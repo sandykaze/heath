@@ -3,29 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f4f6f5">
+<meta name="theme-color" content="#f7f9f8">
 <title>Piiisuke — Personal Body Log</title>
 <style>
 :root{
-  /* 清新高级感色板 */
   --bg-gradient: linear-gradient(170deg, #f7f9f8 0%, #eef2f0 100%);
-  --card-bg: rgba(255, 255, 255, 0.85);
-  --card-border: rgba(230, 235, 232, 0.8);
+  --card-bg: rgba(255, 255, 255, 0.88);
+  --card-border: rgba(225, 232, 228, 0.8);
   --text-main: #2d3436;
   --text-muted: #889290;
   
-  --rose: #e8889a;
-  --rose-bg: rgba(232, 136, 154, 0.22);
+  --rose: #e8889a;            /* 统一柔粉色 */
+  --rose-bg: rgba(232, 136, 154, 0.20);
   --purple: #9f86c0;
-  --purple-bg: rgba(159, 134, 192, 0.22);
+  --purple-bg: rgba(159, 134, 192, 0.20);
   --brown: #b07d5b;
-  --gold: #e2b049;
   
-  --diff-down: #48bb78; /* 减重 - 绿色 */
-  --diff-up: #e53e3e;   /* 增重 - 红色 */
+  --chart-line: #e8889a;      /* 趋势线统一使用粉色 */
+  --diff-down: #48bb78;
+  --diff-up: #e53e3e;
+  --diff-zero: #a0aab0;
 
-  --shadow: 0 10px 30px rgba(160, 175, 170, 0.15);
-  --radius: 22px;
+  --shadow: 0 10px 30px rgba(160, 175, 170, 0.12);
+  --radius: 20px;
 }
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -37,19 +37,45 @@ body{
   letter-spacing: .01em;
   min-height: 100vh;
 }
-.wrap{max-width:600px;margin:auto;padding:24px 16px 80px}
+.wrap{max-width:600px;margin:auto;padding:20px 16px 80px}
 
-/* Brand */
-.brand{display:flex;align-items:center;gap:12px;margin:8px 4px 20px}
+/* Header */
+.brand{display:flex;align-items:center;gap:12px;margin:8px 4px 16px}
 .brand-mark{
-  width:40px;height:40px;border-radius:50%;
+  width:36px;height:36px;border-radius:50%;
   display:grid;place-items:center;
   background:#2d3436;color:#fff;
-  font-size:17px;font-weight:800;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  font-size:16px;font-weight:800;
 }
-h1{font-size:22px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em;color:#2d3436}
-.sub{color:var(--text-muted);font-size:10px;letter-spacing:.15em;margin:4px 0 0}
+h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
+.sub{color:var(--text-muted);font-size:10px;letter-spacing:.12em;margin:3px 0 0}
+
+/* Top Navigation Tabs */
+.nav-tabs{
+  display:flex;
+  background:rgba(230, 236, 233, 0.6);
+  padding:4px;
+  border-radius:14px;
+  margin-bottom:16px;
+  gap:4px;
+}
+.tab-btn{
+  flex:1;
+  border:0;
+  background:transparent;
+  padding:8px 0;
+  font-size:13px;
+  font-weight:600;
+  color:var(--text-muted);
+  border-radius:10px;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.tab-btn.active{
+  background:#ffffff;
+  color:var(--text-main);
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+}
 
 /* Card Style */
 .card{
@@ -58,19 +84,19 @@ h1{font-size:22px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em;co
   border: 1px solid var(--card-border);
   border-radius: var(--radius);
   padding: 20px 18px;
-  margin: 16px 0;
   box-shadow: var(--shadow);
 }
+.tab-content{display:none}
+.tab-content.active{display:block}
 
 /* Toolbar & Legend */
 .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .toolbar button{
-  width:34px;height:34px;background:#ffffff;color:#555;
-  border:1px solid #e2e8e5;border-radius:50%;font-size:18px;
+  width:32px;height:32px;background:#ffffff;color:#555;
+  border:1px solid #e2e8e5;border-radius:50%;font-size:16px;
   cursor:pointer;display:grid;place-items:center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
 }
-.month{font-weight:700;font-size:17px;color:#2d3436}
+.month{font-weight:700;font-size:16px;color:#2d3436}
 .legend{display:flex;gap:14px;color:var(--text-muted);font-size:11px;margin-bottom:14px;justify-content:center}
 .legend span{display:flex;align-items:center;gap:5px}
 .legend span:before{content:"";width:8px;height:8px;border-radius:50%;display:inline-block}
@@ -93,7 +119,6 @@ h1{font-size:22px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em;co
   user-select:none;
 }
 
-/* 带有边缘圆角的色块背景 */
 .day-bg-band{
   position:absolute;
   top:2px;bottom:2px;left:0;right:0;
@@ -103,10 +128,9 @@ h1{font-size:22px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em;co
 .day-bg-band.period{background:var(--rose-bg)}
 .day-bg-band.ovulation{background:var(--purple-bg)}
 
-/* 预测模式虚线线框 */
-.day-bg-band.pred{opacity:0.65;border:1px dashed transparent}
-.day-bg-band.pred.period{border-color:var(--rose);background:rgba(232, 136, 154, 0.12)}
-.day-bg-band.pred.ovulation{border-color:var(--purple);background:rgba(159, 134, 192, 0.12)}
+.day-bg-band.pred{opacity:0.65;}
+.day-bg-band.pred.period{border:1px dashed var(--rose);background:rgba(232, 136, 154, 0.1)}
+.day-bg-band.pred.ovulation{border:1px dashed var(--purple);background:rgba(159, 134, 192, 0.1)}
 
 .day-bg-band.band-start{border-top-left-radius:10px;border-bottom-left-radius:10px;left:2px}
 .day-bg-band.band-end{border-top-right-radius:10px;border-bottom-right-radius:10px;right:2px}
@@ -126,7 +150,6 @@ h1{font-size:22px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em;co
 .day-cell.today .num-wrap{background:#2d3436;color:#fff}
 .day-cell.other-month{opacity:0.25}
 
-/* 单元格信息：包含体重与便便 */
 .cell-info{
   position:relative;
   z-index:2;
@@ -146,29 +169,58 @@ h1{font-size:22px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em;co
 .weight-diff{font-size:8px;margin-left:1px}
 .weight-diff.down{color:var(--diff-down)}
 .weight-diff.up{color:var(--diff-up)}
+.weight-diff.zero{color:var(--diff-zero)}
 
 .poop-dots{font-size:7px;line-height:1;color:var(--brown);letter-spacing:-1px;margin-top:1px}
 
-/* Stats & Chart */
-.section-title{font-weight:700;font-size:15px;color:#2d3436;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
-.chart-hint{font-size:11px;color:var(--text-muted);font-weight:400}
-.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.stat{background:#f8faf9;border:1px solid #eaefe2;border-radius:14px;padding:10px 12px;text-align:center}
-.stat b{display:block;font-size:16px;color:#2d3436;margin-top:2px}
-.stat span{font-size:10px;color:var(--text-muted)}
-.chart-container{width:100%;height:210px;position:relative;touch-action:none}
+/* Top Detail Card on Chart */
+.chart-top-card{
+  background:#ffffff;
+  border:1px solid #e2e8e5;
+  border-radius:14px;
+  padding:12px 16px;
+  margin-bottom:14px;
+  min-height:68px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:4px;
+}
+.top-card-row1{display:flex;justify-content:space-between;align-items:baseline}
+.top-card-row2{display:flex;gap:12px;font-size:11px;color:var(--text-muted)}
+
+.chart-top-card .date-val{font-size:14px;font-weight:700;color:#2d3436}
+.chart-top-card .weight-val{font-size:17px;font-weight:700;color:var(--rose)}
+.chart-top-card .diff-val{font-size:12px;margin-left:4px;font-weight:600}
+
+.tag-phase{
+  display:inline-block;
+  padding:1px 6px;
+  border-radius:4px;
+  font-size:10px;
+  font-weight:600;
+}
+.tag-phase.period{background:var(--rose-bg);color:var(--rose)}
+.tag-phase.ovulation{background:var(--purple-bg);color:var(--purple)}
+
+.chart-container{width:100%;height:230px;position:relative;touch-action:none}
 canvas{width:100%;height:100%;display:block}
 
-/* Prediction & Future List */
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.stat{background:#f8faf9;border:1px solid #eaefe2;border-radius:12px;padding:8px 10px;text-align:center}
+.stat b{display:block;font-size:15px;color:#2d3436;margin-top:2px}
+.stat span{font-size:10px;color:var(--text-muted)}
+
+/* Cycle Prediction List */
 .notice{background:#f8faf9;border:1px solid #eae2e5;border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:#4a5568}
 .prediction-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:8px;
   margin-top:12px;
-  max-height:220px;
+  max-height:260px;
   overflow-y:auto;
-  padding-right:4px;
+  padding-right:2px;
 }
 .pred-item{
   background:#ffffff;
@@ -178,49 +230,49 @@ canvas{width:100%;height:100%;display:block}
   font-size:12px;
   display:flex;
   justify-content:space-between;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 .pred-item .m-label{color:var(--text-muted)}
 .pred-item .d-label{color:var(--rose);font-weight:600;font-family:monospace}
 
 /* Backup */
+.backup-box{margin-top:20px}
 .backup{display:flex;gap:10px}
 .backup button{
   flex:1;padding:10px;border-radius:12px;
   background:#ffffff;border:1px solid #e2e8e5;
   color:#4a5568;font-size:12px;font-weight:500;
-  cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,0.02);
+  cursor:pointer;
 }
 
-/* Drawer / Modal Bottom Sheet */
+/* Drawer / Modal Sheet */
 .drawer-backdrop{
-  position:fixed;inset:0;background:rgba(45, 52, 54, 0.4);backdrop-filter:blur(6px);
+  position:fixed;inset:0;background:rgba(45, 52, 54, 0.35);backdrop-filter:blur(4px);
   z-index:100;display:none;align-items:flex-end;
 }
 .drawer-backdrop.open{display:flex}
 .drawer{
   width:100%;max-width:600px;margin:auto;background:#ffffff;
-  border-radius:24px 24px 0 0;
+  border-radius:22px 22px 0 0;
   box-shadow:0 -10px 40px rgba(0,0,0,0.1);max-height:85vh;overflow-y:auto;
   animation:slideUp .2s cubic-bezier(0.16,1,0.3,1);
 }
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .drawer-handle{width:36px;height:4px;border-radius:99px;background:#e2e8e5;margin:12px auto 4px}
 .drawer-head{display:flex;justify-content:space-between;align-items:center;padding:10px 20px 14px;border-bottom:1px solid #f0f4f2}
-.drawer-head h2{margin:0;font-size:18px;color:#2d3436}
-.close-btn{width:28px;height:28px;border-radius:50%;background:#f0f4f2;color:#777;border:0;font-size:16px;cursor:pointer;display:grid;place-items:center}
+.drawer-head h2{margin:0;font-size:17px;color:#2d3436}
+.close-btn{width:26px;height:26px;border-radius:50%;background:#f0f4f2;color:#777;border:0;font-size:14px;cursor:pointer;display:grid;place-items:center}
 .drawer-body{padding:16px 20px 30px}
 
 .field-group{margin-bottom:14px}
 .field-group label{display:block;color:var(--text-muted);font-size:12px;margin-bottom:6px}
 .field-group input,.field-group select{
-  width:100%;border:1px solid #e2e8e5;border-radius:12px;padding:10px 12px;
+  width:100%;border:1px solid #e2e8e5;border-radius:10px;padding:10px 12px;
   background:#f8faf9;color:#2d3436;font-size:14px;outline:none;
 }
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.actions{display:flex;gap:10px;margin-top:18px}
-.btn-primary{background:#2d3436;color:#ffffff;border:0;padding:12px;border-radius:12px;font-weight:600;flex:1;cursor:pointer}
-.btn-danger{background:#fff0f2;color:var(--rose);border:1px solid #fce4e8;padding:12px;border-radius:12px;cursor:pointer;font-weight:600}
+.actions{display:flex;gap:10px;margin-top:16px}
+.btn-primary{background:#2d3436;color:#ffffff;border:0;padding:11px;border-radius:10px;font-weight:600;flex:1;cursor:pointer}
+.btn-danger{background:#fff0f2;color:var(--rose);border:1px solid #fce4e8;padding:11px;border-radius:10px;cursor:pointer;font-weight:600}
 .poop-list{margin-top:14px;border-top:1px solid #f0f4f2;padding-top:12px}
 .poop-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;border-bottom:1px solid #f5f8f6}
 .del-btn{background:none;border:0;color:#a0aab0;font-size:12px;cursor:pointer}
@@ -239,51 +291,77 @@ canvas{width:100%;height:100%;display:block}
     </div>
   </div>
 
-  <!-- 1. 日历卡片 -->
-  <div class="card">
-    <div class="toolbar">
-      <button onclick="changeMonth(-1)">‹</button>
-      <div class="month" id="monthTitle"></div>
-      <button onclick="changeMonth(1)">›</button>
-    </div>
-    <div class="legend">
-      <span class="leg-period">姨妈期</span>
-      <span class="leg-ovulation">排卵期</span>
-      <span class="leg-poop">排便</span>
-    </div>
-    <div class="cal-grid" id="calendar"></div>
+  <!-- Top Navigation Tabs -->
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('calTab')">日历视图</button>
+    <button class="tab-btn" onclick="switchTab('chartTab')">体重趋势</button>
+    <button class="tab-btn" onclick="switchTab('predTab')">生理期预测</button>
   </div>
 
-  <!-- 2. 体重趋势 -->
-  <div class="card">
-    <div class="section-title">
-      体重趋势 <span class="chart-hint">左右滑动 · 点击查看气泡</span>
-    </div>
-    <div class="statgrid">
-      <div class="stat"><span id="avgW">—</span><b>平均</b></div>
-      <div class="stat"><span id="minW">—</span><b>最低</b></div>
-      <div class="stat"><span id="maxW">—</span><b>最高</b></div>
-    </div>
-    <div class="chart-container" id="chartBox">
-      <canvas id="chart"></canvas>
+  <!-- Tab 1: 日历视图 -->
+  <div id="calTab" class="tab-content active">
+    <div class="card">
+      <div class="toolbar">
+        <button onclick="changeMonth(-1)">‹</button>
+        <div class="month" id="monthTitle"></div>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="legend">
+        <span class="leg-period">姨妈期</span>
+        <span class="leg-ovulation">排卵期</span>
+        <span class="leg-poop">排便</span>
+      </div>
+      <div class="cal-grid" id="calendar"></div>
     </div>
   </div>
 
-  <!-- 3. 未来 12 个月生理期预测 -->
-  <div class="card">
-    <div class="section-title"> 预测未来 12 个月姨妈期</div>
-    <div class="notice">
-      <div id="predSummary">正在分析周期历史...</div>
-      <div class="prediction-grid" id="predictionList"></div>
+  <!-- Tab 2: 体重趋势模块 -->
+  <div id="chartTab" class="tab-content">
+    <div class="card">
+      <!-- 顶部交互数据面板 -->
+      <div class="chart-top-card">
+        <div class="top-card-row1">
+          <div class="date-val" id="topCardDate">请滑动或点击查看</div>
+          <div>
+            <span class="weight-val" id="topCardWeight">— kg</span>
+            <span class="diff-val" id="topCardDiff"></span>
+          </div>
+        </div>
+        <div class="top-card-row2">
+          <div id="topCardPhase"></div>
+          <div id="topCardPoop"></div>
+        </div>
+      </div>
+
+      <!-- 图表画布 (支持触控滑动 & 双指聚拢缩放) -->
+      <div class="chart-container" id="chartBox">
+        <canvas id="chart"></canvas>
+      </div>
+
+      <!-- 底部统计数据 -->
+      <div class="statgrid">
+        <div class="stat"><span id="avgW">—</span><b>平均</b></div>
+        <div class="stat"><span id="minW">—</span><b>最低</b></div>
+        <div class="stat"><span id="maxW">—</span><b>最高</b></div>
+      </div>
     </div>
   </div>
 
-  <!-- 4. 备份 -->
-  <div class="card">
-    <div class="section-title"> 数据备份</div>
+  <!-- Tab 3: 未来 12 个月预测 -->
+  <div id="predTab" class="tab-content">
+    <div class="card">
+      <div class="notice">
+        <div id="predSummary">正在分析周期历史...</div>
+        <div class="prediction-grid" id="predictionList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 数据备份 -->
+  <div class="backup-box">
     <div class="backup">
-      <button onclick="exportData()">导出 JSON</button>
-      <button onclick="document.getElementById('file').click()">导入 JSON</button>
+      <button onclick="exportData()">导出 JSON 数据</button>
+      <button onclick="document.getElementById('file').click()">导入 JSON 数据</button>
       <input id="file" type="file" accept=".json" hidden onchange="importData(event)">
     </div>
   </div>
@@ -291,7 +369,7 @@ canvas{width:100%;height:100%;display:block}
   <div class="footer">仅供个人数据记录与健康观察，不替代医疗诊断。</div>
 </div>
 
-<!-- 5. 底部抽屉 Modal -->
+<!-- 录入抽屉 Modal -->
 <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer(event)">
   <div class="drawer" onclick="event.stopPropagation()">
     <div class="drawer-handle"></div>
@@ -302,11 +380,11 @@ canvas{width:100%;height:100%;display:block}
     <div class="drawer-body">
       <div class="grid-2">
         <div class="field-group">
-          <label>⚖️ 晨起体重 (kg)</label>
+          <label>当日体重 (kg)</label>
           <input id="weight" type="number" step="0.1" placeholder="例如 52.3">
         </div>
         <div class="field-group">
-          <label>🌸 姨妈状态</label>
+          <label>姨妈状态</label>
           <select id="period">
             <option value="">无</option>
             <option value="start">姨妈第一天</option>
@@ -314,23 +392,14 @@ canvas{width:100%;height:100%;display:block}
           </select>
         </div>
       </div>
-      
-      <div class="field-group">
-        <label>🥚 排卵状态 (可选手动覆盖)</label>
-        <select id="ovulation">
-          <option value="">自动推算/无</option>
-          <option value="on">排卵期</option>
-          <option value="peak">排卵日</option>
-        </select>
-      </div>
 
       <div class="actions">
-        <button class="btn-primary" onclick="saveDaily()">保存今日数据</button>
+        <button class="btn-primary" onclick="saveDaily()">保存记录</button>
         <button class="btn-danger" onclick="clearDaily()">清空当天</button>
       </div>
 
       <div class="poop-list">
-        <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:8px">💩 排便记录</label>
+        <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:8px">排便记录</label>
         <div class="grid-2">
           <div class="field-group">
             <select id="poopHour"></select>
@@ -348,7 +417,7 @@ canvas{width:100%;height:100%;display:block}
         <div class="field-group">
           <input id="poopNote" placeholder="备注（如：开塞露、硬）">
         </div>
-        <button class="btn-primary" style="width:100%;padding:8px;font-size:13px;background:#f0f4f2;color:#2d3436" onclick="addPoop()">＋ 添加一次排便</button>
+        <button class="btn-primary" style="width:100%;padding:8px;font-size:13px;background:#f0f4f2;color:#2d3436" onclick="addPoop()">添加一次排便</button>
         <div id="poopContainer"></div>
       </div>
     </div>
@@ -367,6 +436,16 @@ function formatSlash(d){return d.getFullYear()+"/"+pad(d.getMonth()+1)+"/"+pad(d
 function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function dayObj(k){return data.days[k] ||= {poops:[]}}
 
+function switchTab(tabId){
+  document.querySelectorAll('.tab-btn').forEach((btn, idx)=>{
+    btn.classList.toggle('active', ['calTab','chartTab','predTab'][idx] === tabId);
+  });
+  document.querySelectorAll('.tab-content').forEach(el=>{
+    el.classList.toggle('active', el.id === tabId);
+  });
+  if(tabId === 'chartTab') drawChart();
+}
+
 function sizeToDots(size){
   switch(size){
     case "小": return "●";
@@ -383,7 +462,6 @@ function sizeRank(size){
   return ranks[size] || 1;
 }
 
-// 平均周期长度
 function getAvgCycleLength(){
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
   if(starts.length < 2) return 28;
@@ -394,15 +472,14 @@ function getAvgCycleLength(){
   return Math.round(diffs.reduce((a,b)=>a+b,0) / diffs.length);
 }
 
-// 仅推算月经期与排卵期（隐去卵泡期与黄体期）
+// 推算周期 (姨妈期/排卵期)
 function computeCyclePhases(){
-  const phases = {}; // key -> { phase: 'period'|'ovulation', isPred: boolean }
+  const phases = {};
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
   const avgCycle = getAvgCycleLength();
 
   if(!starts.length) return phases;
 
-  // 1. 历史与已知数据
   starts.forEach((sKey, idx) => {
     const sDate = new Date(sKey+"T00:00:00");
     const nextSDate = starts[idx+1] ? new Date(starts[idx+1]+"T00:00:00") : new Date(sDate.getTime() + avgCycle*86400000);
@@ -423,7 +500,6 @@ function computeCyclePhases(){
     }
   });
 
-  // 2. 未来预测
   let lastStart = new Date(starts.at(-1)+"T00:00:00");
   for(let m=1; m<=12; m++){
     let pStart = new Date(lastStart);
@@ -449,7 +525,7 @@ function computeCyclePhases(){
   return phases;
 }
 
-// 计算每间日记录的体重相比于前一个有记录体重的对比差值
+// 体重相较上一有记录日期的增减
 function computeWeightDifferences(){
   const sortedDates = Object.keys(data.days)
     .filter(k => data.days[k].weight != null)
@@ -460,7 +536,7 @@ function computeWeightDifferences(){
     const k = sortedDates[i];
     const currW = data.days[k].weight;
     if(i === 0){
-      diffs[k] = null; // 第一个记录没有上一个可对比
+      diffs[k] = null;
     } else {
       const prevW = data.days[sortedDates[i-1]].weight;
       const diff = currW - prevW;
@@ -511,7 +587,6 @@ function renderCalendar(){
     const phaseInfo = phases[k] || {};
     
     let phaseType = phaseInfo.phase;
-    if(dayData.ovulation === "on" || dayData.ovulation === "peak") phaseType = "ovulation";
     if(dayData.period === "start" || dayData.period === "on") phaseType = "period";
 
     const isPred = phaseInfo.isPred;
@@ -526,20 +601,24 @@ function renderCalendar(){
     if(prevPhase !== phaseType) bandClasses += " band-start";
     if(nextPhase !== phaseType) bandClasses += " band-end";
 
-    // 体重与正负差值 HTML 构建
+    // 体重差值
     let weightHtml = "";
     if(dayData.weight != null){
       const diffVal = weightDiffs[k];
       let diffStr = "";
-      if(diffVal != null && diffVal !== 0){
-        const sign = diffVal > 0 ? "+" : "";
-        const cls = diffVal > 0 ? "up" : "down";
-        diffStr = `<span class="weight-diff ${cls}">(${sign}${diffVal})</span>`;
+      if(diffVal != null){
+        if(diffVal === 0){
+          diffStr = `<span class="weight-diff zero">(±0)</span>`;
+        } else {
+          const sign = diffVal > 0 ? "+" : "";
+          const cls = diffVal > 0 ? "up" : "down";
+          diffStr = `<span class="weight-diff ${cls}">(${sign}${diffVal})</span>`;
+        }
       }
       weightHtml = `<div class="weight-tag">${dayData.weight}${diffStr}</div>`;
     }
 
-    // 便便标记
+    // 排便
     let poopHtml = "";
     if(dayData.poops && dayData.poops.length){
       let maxPoop = dayData.poops.reduce((prev, curr) => sizeRank(curr.size) > sizeRank(prev.size) ? curr : prev, dayData.poops[0]);
@@ -562,7 +641,7 @@ function renderCalendar(){
   document.getElementById("calendar").innerHTML = html;
 }
 
-/* 抽屉 Modal 逻辑 */
+/* 抽屉 Modal */
 function openDrawer(k){
   selectedKey = k;
   document.getElementById("drawerDate").textContent = k;
@@ -570,7 +649,6 @@ function openDrawer(k){
   
   document.getElementById("weight").value = dayData.weight ?? "";
   document.getElementById("period").value = dayData.period || "";
-  document.getElementById("ovulation").value = dayData.ovulation || "";
   
   renderPoops();
   document.getElementById("drawerBackdrop").classList.add("open");
@@ -591,9 +669,7 @@ function saveDaily(){
   if(x.weight === null) delete x.weight;
   
   x.period = document.getElementById("period").value;
-  x.ovulation = document.getElementById("ovulation").value;
   if(!x.period) delete x.period;
-  if(!x.ovulation) delete x.ovulation;
 
   save();
   renderCalendar();
@@ -644,13 +720,54 @@ function renderPoops(){
   }
   container.innerHTML = p.map((x,i)=>`
     <div class="poop-item">
-      <span>💩 ${x.hour}:00 · ${x.size} [${sizeToDots(x.size)}] ${x.note?` (${x.note})`:''}</span>
+      <span>${x.hour}:00 · ${x.size} [${sizeToDots(x.size)}] ${x.note?` (${x.note})`:''}</span>
       <button class="del-btn" onclick="removePoop(${i})">删除</button>
     </div>
   `).join("");
 }
 
-/* 体重折线图（仅展示姨妈与排卵底色色块） */
+/* 构建连续按日序列 */
+function buildChartSeries(){
+  const allKeys = Object.keys(data.days).sort();
+  if(!allKeys.length) return [];
+
+  const startD = new Date(allKeys[0]+"T00:00:00");
+  const endD = new Date(allKeys.at(-1)+"T00:00:00");
+  
+  let rawList = [];
+  let curr = new Date(startD);
+
+  const weightDiffs = computeWeightDifferences();
+  const phases = computeCyclePhases();
+
+  while(curr <= endD){
+    const k = key(curr);
+    const dayData = data.days[k] || {};
+    
+    let phaseText = "";
+    if(dayData.period === "start" || dayData.period === "on"){
+      phaseText = "姨妈期";
+    } else if(phases[k]){
+      if(phases[k].phase === "period") phaseText = "姨妈期";
+      else if(phases[k].phase === "ovulation") phaseText = "排卵期";
+    }
+
+    rawList.push({
+      date: k,
+      weight: dayData.weight ?? null,
+      diff: weightDiffs[k],
+      poops: dayData.poops || [],
+      phase: phaseText
+    });
+    curr.setDate(curr.getDate() + 1);
+  }
+
+  return rawList;
+}
+
+/* 图表绘制 (纯平滑线 + 拖拽 + 双指聚拢缩放) */
+let userStep = 42; // 点之间的初始像素间距
+
 function drawChart(){
   const box = document.getElementById("chartBox");
   const canvas = document.getElementById("chart");
@@ -663,183 +780,240 @@ function drawChart(){
   canvas.height = H * dpr;
   ctx.scale(dpr, dpr);
 
-  const arr = Object.entries(data.days)
-    .filter(([k,x])=>x.weight != null)
-    .sort((a,b)=>a[0].localeCompare(b[0]));
+  const series = buildChartSeries();
 
-  if(!arr.length){
+  if(!series.length){
     ctx.fillStyle="#a0aab0";
     ctx.font="12px sans-serif";
     ctx.textAlign="center";
-    ctx.fillText("暂无体重数据", W/2, H/2);
-    document.getElementById("avgW").textContent = "—";
-    document.getElementById("minW").textContent = "—";
-    document.getElementById("maxW").textContent = "—";
+    ctx.fillText("暂无数据", W/2, H/2);
     return;
   }
 
-  const vals = arr.map(x=>x[1].weight);
-  const min = Math.min(...vals);
-  const max = Math.max(...vals);
+  const validWeights = series.map(x=>x.weight).filter(w=>w!=null);
+  if(!validWeights.length){
+    ctx.fillStyle="#a0aab0";
+    ctx.font="12px sans-serif";
+    ctx.textAlign="center";
+    ctx.fillText("无体重数据", W/2, H/2);
+    return;
+  }
+
+  const min = Math.min(...validWeights);
+  const max = Math.max(...validWeights);
   const range = (max - min) || 1;
 
-  document.getElementById("avgW").textContent = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1)+"kg";
+  // 底部计算模块
+  document.getElementById("avgW").textContent = (validWeights.reduce((a,b)=>a+b,0)/validWeights.length).toFixed(1)+"kg";
   document.getElementById("minW").textContent = min.toFixed(1)+"kg";
   document.getElementById("maxW").textContent = max.toFixed(1)+"kg";
 
-  const phases = computeCyclePhases();
-
-  const padL = 30, padR = 30, padT = 35, padB = 35;
+  const padL = 20, padR = 20, padT = 20, padB = 30;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
-  const step = Math.max(42, plotW / Math.max(1, arr.length - 1));
-  const totalW = (arr.length - 1) * step;
-  const maxOffset = Math.max(0, totalW - plotW);
 
-  let offset = maxOffset;
-  let selectedIdx = arr.length - 1;
-  let dragging = false, startX = 0;
+  let offset = (series.length - 1) * userStep - plotW;
+  offset = Math.max(0, offset);
 
-  function getPhaseColor(p){
-    switch(p){
-      case 'period': return 'rgba(232, 136, 154, 0.22)';
-      case 'ovulation': return 'rgba(159, 134, 192, 0.22)';
-      default: return 'transparent';
+  let selectedIdx = series.length - 1;
+
+  // 更新顶部交互 Card 说明文字
+  function updateTopCard(p){
+    document.getElementById("topCardDate").textContent = p.date.replace(/-/g,"/");
+    
+    // 体重 & 差值
+    if(p.weight != null){
+      document.getElementById("topCardWeight").textContent = p.weight + " kg";
+      if(p.diff != null){
+        if(p.diff === 0){
+          document.getElementById("topCardDiff").textContent = "(±0)";
+          document.getElementById("topCardDiff").style.color = "var(--diff-zero)";
+        } else {
+          const sign = p.diff > 0 ? "+" : "";
+          document.getElementById("topCardDiff").textContent = `(${sign}${p.diff} kg)`;
+          document.getElementById("topCardDiff").style.color = p.diff > 0 ? "var(--diff-up)" : "var(--diff-down)";
+        }
+      } else {
+        document.getElementById("topCardDiff").textContent = "";
+      }
+    } else {
+      document.getElementById("topCardWeight").textContent = "未记录";
+      document.getElementById("topCardDiff").textContent = "";
+    }
+
+    // 周期文字说明
+    const phaseEl = document.getElementById("topCardPhase");
+    if(p.phase){
+      const cls = p.phase === "姨妈期" ? "period" : "ovulation";
+      phaseEl.innerHTML = `<span class="tag-phase ${cls}">${p.phase}</span>`;
+    } else {
+      phaseEl.innerHTML = "";
+    }
+
+    // 排便说明
+    const poopEl = document.getElementById("topCardPoop");
+    if(p.poops && p.poops.length){
+      poopEl.textContent = "排便: " + p.poops.map(x=>`${x.hour}h(${x.size})`).join(" ");
+    } else {
+      poopEl.textContent = "未排便";
     }
   }
 
   function render(){
     ctx.clearRect(0,0,W,H);
+    const totalW = (series.length - 1) * userStep;
+    const maxOffset = Math.max(0, totalW - plotW);
     offset = Math.max(0, Math.min(offset, maxOffset));
 
-    // 1. 仅背景生理期色块（姨妈 & 排卵）
-    for(let i=0; i<arr.length; i++){
-      const x1 = padL + i*step - offset - step/2;
-      const x2 = x1 + step;
-      if(x2 < padL || x1 > W - padR) continue;
-
-      const phase = (phases[arr[i][0]]||{}).phase;
-      if(phase){
-        ctx.fillStyle = getPhaseColor(phase);
-        const drawX1 = Math.max(padL, x1);
-        const drawX2 = Math.min(W - padR, x2);
-        ctx.fillRect(drawX1, padT, drawX2 - drawX1, plotH);
-      }
-    }
-
-    // 2. 网格横线
-    ctx.strokeStyle="#eef2f0";
+    // 网格背景
+    ctx.strokeStyle="#edf2f0";
     ctx.lineWidth=1;
     for(let i=0;i<3;i++){
       let y = padT + i * plotH / 2;
       ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
     }
 
-    const pts = arr.map((e,i)=>({
-      x: padL + i*step - offset,
-      y: padT + (max - e[1].weight)/range * plotH,
-      date: e[0],
-      val: e[1].weight,
-      raw: e[1]
-    }));
-
-    // 3. 折线
-    ctx.beginPath();
-    let started = false;
-    pts.forEach(p=>{
-      if(p.x < padL - 40 || p.x > W + 40) return;
-      if(!started){ ctx.moveTo(p.x, p.y); started=true; }
-      else { ctx.lineTo(p.x, p.y); }
+    // 计算点坐标
+    let lastValidW = validWeights[0];
+    const pts = series.map((e,i)=>{
+      const wVal = e.weight != null ? e.weight : lastValidW;
+      if(e.weight != null) lastValidW = e.weight;
+      return {
+        x: padL + i*userStep - offset,
+        y: padT + (max - wVal)/range * plotH,
+        raw: e
+      };
     });
-    ctx.strokeStyle="#5a6578";
-    ctx.lineWidth=2;
-    ctx.stroke();
 
-    // 4. 点 & 刻度
-    ctx.font="10px sans-serif";
-    ctx.textAlign="center";
+    // 纯平滑粉色折线 (Smooth Bezier)
+    const validPts = pts.filter(p=>p.raw.weight!=null);
+    if(validPts.length > 0){
+      ctx.beginPath();
+      if(validPts.length > 2){
+        ctx.moveTo(validPts[0].x, validPts[0].y);
+        for (let i = 0; i < validPts.length - 1; i++) {
+          const xc = (validPts[i].x + validPts[i + 1].x) / 2;
+          const yc = (validPts[i].y + validPts[i + 1].y) / 2;
+          ctx.quadraticCurveTo(validPts[i].x, validPts[i].y, xc, yc);
+        }
+        ctx.lineTo(validPts[validPts.length - 1].x, validPts[validPts.length - 1].y);
+      } else {
+        validPts.forEach((p, idx)=>{
+          if(idx===0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        });
+      }
 
+      ctx.strokeStyle="#e8889a"; // 低饱和粉色
+      ctx.lineWidth=2.5;
+      ctx.stroke();
+    }
+
+    // 绘制节点 (空心 vs 实心圈)
     pts.forEach((p, idx)=>{
-      if(p.x >= padL - 5 && p.x <= W - padR + 5){
+      if(p.x >= padL - 10 && p.x <= W - padR + 10){
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 3.5, 0, Math.PI*2);
-        ctx.fillStyle="#5a6578";
-        ctx.fill();
+        if(p.raw.weight != null){
+          ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+          ctx.fillStyle="#e8889a";
+          ctx.fill();
+        } else {
+          ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+          ctx.strokeStyle="#a0aab0";
+          ctx.lineWidth=1.5;
+          ctx.fillStyle="#ffffff";
+          ctx.fill();
+          ctx.stroke();
+        }
 
-        ctx.fillStyle="#a0aab0";
-        ctx.fillRect(p.x, padT + plotH, 1, 4);
-        if(idx % Math.ceil(arr.length/10) === 0 || idx === selectedIdx){
-          ctx.fillText(p.date.slice(5), p.x, padT + plotH + 16);
+        // X轴刻度
+        const labelInterval = Math.max(1, Math.round(50 / userStep));
+        if(idx % labelInterval === 0 || idx === selectedIdx){
+          ctx.fillStyle="#a0aab0";
+          ctx.font="10px sans-serif";
+          ctx.textAlign="center";
+          ctx.fillText(p.raw.date.slice(5), p.x, padT + plotH + 18);
         }
       }
     });
 
-    // 5. 选中点弹窗气泡
+    // 高亮选择线
     if(selectedIdx >= 0 && pts[selectedIdx]){
       const p = pts[selectedIdx];
       if(p.x >= padL && p.x <= W - padR){
-        ctx.beginPath();ctx.arc(p.x, p.y, 6, 0, Math.PI*2);ctx.fillStyle="#2d3436";ctx.fill();
-
-        const dateStr = p.date.replace(/-/g,"/");
-        let poopStr = "";
-        if(p.raw.poops && p.raw.poops.length){
-          poopStr = p.raw.poops.map(x=>`💩${x.hour}h(${x.size})`).join(" ");
-        }
-
-        const line1 = `${dateStr}  ${p.val}kg`;
-        const line2 = poopStr;
-
-        ctx.font="11px sans-serif";
-        const w1 = ctx.measureText(line1).width;
-        const w2 = line2 ? ctx.measureText(line2).width : 0;
-        const boxW = Math.max(w1, w2) + 16;
-        const boxH = line2 ? 36 : 22;
-
-        let bubbleX = p.x - boxW/2;
-        bubbleX = Math.max(padL, Math.min(W - padR - boxW, bubbleX));
-        let bubbleY = p.y - boxH - 10;
-        if(bubbleY < 5) bubbleY = p.y + 12;
-
-        // 柔和白底气泡
-        ctx.fillStyle="rgba(255, 255, 255, 0.95)";
-        ctx.strokeStyle="#e2e8e5";
+        ctx.strokeStyle="rgba(232, 136, 154, 0.4)";
         ctx.lineWidth=1;
-        ctx.beginPath();
-        ctx.roundRect(bubbleX, bubbleY, boxW, boxH, 8);
-        ctx.fill();
-        ctx.stroke();
+        ctx.setLineDash([3,3]);
+        ctx.beginPath();ctx.moveTo(p.x, padT);ctx.lineTo(p.x, padT+plotH);ctx.stroke();
+        ctx.setLineDash([]);
 
-        ctx.fillStyle="#2d3436";
-        ctx.textAlign="left";
-        ctx.fillText(line1, bubbleX + 8, bubbleY + (line2 ? 14 : 15));
-        if(line2){
-          ctx.fillStyle="var(--brown)";
-          ctx.fillText(line2, bubbleX + 8, bubbleY + 28);
-        }
+        ctx.beginPath();ctx.arc(p.x, p.y, 6, 0, Math.PI*2);ctx.fillStyle="#2d3436";ctx.fill();
+        updateTopCard(p.raw);
       }
     }
   }
 
+  // 手势缩放与拖拽控制
+  let activePointers = [];
+  let prevPinchDist = null;
+  let dragging = false, startX = 0;
+
+  function getDistance(p1, p2) {
+    return Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+  }
+
   canvas.onpointerdown = e => {
-    dragging = true; startX = e.clientX;
     canvas.setPointerCapture(e.pointerId);
+    activePointers.push(e);
+    if(activePointers.length === 1){
+      dragging = true; startX = e.clientX;
+    }
   };
+
   canvas.onpointermove = e => {
-    if(dragging){
+    // 更新 Pointer 坐标
+    const idx = activePointers.findIndex(p => p.pointerId === e.pointerId);
+    if(idx >= 0) activePointers[idx] = e;
+
+    if (activePointers.length === 2) {
+      // 双指聚拢/拉开 缩放
+      dragging = false;
+      const dist = getDistance(activePointers[0], activePointers[1]);
+      if (prevPinchDist) {
+        const factor = dist / prevPinchDist;
+        userStep = Math.max(12, Math.min(100, userStep * factor));
+        render();
+      }
+      prevPinchDist = dist;
+    } else if (dragging && activePointers.length === 1) {
       offset -= (e.clientX - startX);
       startX = e.clientX;
       render();
     }
   };
-  canvas.onpointerup = e => {
-    dragging = false;
-    const rect = canvas.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const idx = Math.round((clickX - padL + offset) / step);
-    if(idx >= 0 && idx < arr.length) selectedIdx = idx;
+
+  canvas.onpointerup = canvas.onpointercancel = e => {
+    activePointers = activePointers.filter(p => p.pointerId !== e.pointerId);
+    if(activePointers.length < 2) prevPinchDist = null;
+    if(activePointers.length === 0){
+      if(dragging){
+        dragging = false;
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickedIdx = Math.round((clickX - padL + offset) / userStep);
+        if(clickedIdx >= 0 && clickedIdx < series.length) selectedIdx = clickedIdx;
+        render();
+      }
+    }
+  };
+
+  // 支持滚轮缩放 (PC体验)
+  canvas.onwheel = e => {
+    e.preventDefault();
+    if (e.deltaY < 0) userStep = Math.min(100, userStep * 1.1);
+    else userStep = Math.max(12, userStep * 0.9);
     render();
   };
-  canvas.onpointercancel = () => dragging = false;
 
   render();
 }
@@ -905,7 +1079,7 @@ function importData(e){
   reader.readAsText(file);
 }
 
-// 预置数据
+// 预置示例数据
 const preset = {
   "2026-01-16":{period:"start"},
   "2026-02-12":{period:"start"},
@@ -916,7 +1090,7 @@ const preset = {
   "2026-07-05":{period:"start"},
   "2026-08-02":{period:"start"},
 
-  "2026-07-06":{weight:52.1, poops:[{hour:8,size:"小"},{hour:13,size:"小"},{hour:18,size:"小偏中"}]},
+  "2026-07-06":{weight:52.1, poops:[{hour:8,size:"小"},{hour:13,size:"小"}]},
   "2026-07-07":{weight:52.2, poops:[{hour:11,size:"中"}]},
   "2026-07-08":{weight:52.2},
   "2026-07-09":{weight:52.4},
