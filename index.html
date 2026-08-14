@@ -8,8 +8,10 @@
 <style>
 :root{
   --bg:#111314;--card:#191c1d;--card2:#202425;--text:#f2f0eb;--muted:#8d918e;--line:#2a2e2e;
-  --rose:#e08295;--rose-bg:rgba(224,130,149,0.22);
-  --purple:#a78bfa;--purple-bg:rgba(167,139,250,0.18);
+  --rose:#e08295;--rose-bg:rgba(224,130,149,0.25);
+  --follicle:#60a5fa;--follicle-bg:rgba(96,165,250,0.22);
+  --purple:#a78bfa;--purple-bg:rgba(167,139,250,0.25);
+  --luteal:#facc15;--luteal-bg:rgba(250,204,21,0.22);
   --brown:#c8a789;--ice:#8ca9c8;--gold:#d4af37;
   --shadow:0 18px 60px rgba(0,0,0,.35);
   --radius:20px;
@@ -35,11 +37,13 @@ h1{font-size:24px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em}
 .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
 .toolbar button{width:32px;height:32px;background:#242829;color:#ddd;border:0;border-radius:50%;font-size:18px;cursor:pointer;display:grid;place-items:center}
 .month{font-weight:700;font-size:17px;color:#eee}
-.legend{display:flex;gap:16px;color:var(--muted);font-size:11px;margin-bottom:12px;justify-content:center}
-.legend span{display:flex;align-items:center;gap:5px}
+.legend{display:flex;gap:10px;color:var(--muted);font-size:11px;margin-bottom:12px;justify-content:center;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:4px}
 .legend span:before{content:"";width:8px;height:8px;border-radius:50%;display:inline-block}
 .legend .leg-period:before{background:var(--rose)}
+.legend .leg-follicle:before{background:var(--follicle)}
 .legend .leg-ovulation:before{background:var(--purple)}
+.legend .leg-luteal:before{background:var(--luteal)}
 .legend .leg-poop:before{background:var(--brown)}
 
 /* Calendar Grid */
@@ -62,8 +66,18 @@ h1{font-size:24px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em}
   z-index:1;
   pointer-events:none;
 }
+/* 实线与虚线预测色块 */
 .day-bg-band.period{background:var(--rose-bg)}
+.day-bg-band.follicle{background:var(--follicle-bg)}
 .day-bg-band.ovulation{background:var(--purple-bg)}
+.day-bg-band.luteal{background:var(--luteal-bg)}
+
+.day-bg-band.pred{opacity:0.6;border:1px dashed transparent}
+.day-bg-band.pred.period{border-color:var(--rose);background:rgba(224,130,149,0.12)}
+.day-bg-band.pred.follicle{border-color:var(--follicle);background:rgba(96,165,250,0.11)}
+.day-bg-band.pred.ovulation{border-color:var(--purple);background:rgba(167,139,250,0.12)}
+.day-bg-band.pred.luteal{border-color:var(--luteal);background:rgba(250,204,21,0.11)}
+
 .day-bg-band.band-start{border-top-left-radius:12px;border-bottom-left-radius:12px;left:2px}
 .day-bg-band.band-end{border-top-right-radius:12px;border-bottom-right-radius:12px;right:2px}
 
@@ -103,7 +117,7 @@ h1{font-size:24px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em}
 .stat{background:#202425;border-radius:14px;padding:10px 12px;text-align:center}
 .stat b{display:block;font-size:16px;color:#eee;margin-top:2px}
 .stat span{font-size:10px;color:#777d7a}
-.chart-container{width:100%;height:180px;position:relative;touch-action:none}
+.chart-container{width:100%;height:210px;position:relative;touch-action:none}
 canvas{width:100%;height:100%;display:block}
 
 /* Prediction & Future List */
@@ -127,7 +141,7 @@ canvas{width:100%;height:100%;display:block}
   justify-content:space-between;
 }
 .pred-item .m-label{color:#8d918e}
-.pred-item .d-label{color:#e08295;font-weight:600}
+.pred-item .d-label{color:#e08295;font-weight:600;font-family:monospace}
 
 /* Backup */
 .backup{display:flex;gap:10px}
@@ -188,8 +202,10 @@ canvas{width:100%;height:100%;display:block}
     </div>
     <div class="legend">
       <span class="leg-period">姨妈期</span>
+      <span class="leg-follicle">卵泡期</span>
       <span class="leg-ovulation">排卵期</span>
-      <span class="leg-poop">排便 (●/○)</span>
+      <span class="leg-luteal">黄体期</span>
+      <span class="leg-poop">排便</span>
     </div>
     <div class="cal-grid" id="calendar"></div>
   </div>
@@ -197,7 +213,7 @@ canvas{width:100%;height:100%;display:block}
   <!-- 2. 体重趋势 -->
   <div class="card">
     <div class="section-title">
-      体重趋势 <span class="chart-hint">左右滑动滚动 · 点击查看点</span>
+      体重趋势 <span class="chart-hint">左右滑动 · 点击查看详情气泡</span>
     </div>
     <div class="statgrid">
       <div class="stat"><span id="avgW">—</span><b>平均</b></div>
@@ -231,7 +247,7 @@ canvas{width:100%;height:100%;display:block}
   <div class="footer">仅供个人数据记录与健康观察，不替代医疗诊断。</div>
 </div>
 
-<!-- 5. 底部抽屉 (Modal Bottom Sheet) -->
+<!-- 5. 底部抽屉 -->
 <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer(event)">
   <div class="drawer" onclick="event.stopPropagation()">
     <div class="drawer-handle"></div>
@@ -256,11 +272,11 @@ canvas{width:100%;height:100%;display:block}
       </div>
       
       <div class="field-group">
-        <label>🥚 排卵状态</label>
+        <label>🥚 排卵状态 (可选手动覆盖)</label>
         <select id="ovulation">
-          <option value="">自动/无</option>
+          <option value="">自动推算/无</option>
           <option value="on">排卵期</option>
-          <option value="peak">预测排卵日</option>
+          <option value="peak">排卵日</option>
         </select>
       </div>
 
@@ -300,13 +316,14 @@ const KEY="bodyDiaryV3";
 let data=JSON.parse(localStorage.getItem(KEY)||'{"days":{}}');
 let selectedKey = "";
 let viewDate = new Date();
+let chartFocusInit = false; // 控制初次渲染高亮最新节点
 
 function pad(n){return String(n).padStart(2,"0")}
 function key(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function formatSlash(d){return d.getFullYear()+"/"+pad(d.getMonth()+1)+"/"+pad(d.getDate())}
 function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function dayObj(k){return data.days[k] ||= {poops:[]}}
 
-// 转换大小为实心/空心圆点标记
 function sizeToDots(size){
   switch(size){
     case "小": return "●";
@@ -318,10 +335,87 @@ function sizeToDots(size){
   }
 }
 
-// 评分用于选取当天最大体量进行日历展示
 function sizeRank(size){
   const ranks = {"小":1, "小偏中":2, "中":3, "中偏大":4, "大":5};
   return ranks[size] || 1;
+}
+
+// 计算平均周期天数
+function getAvgCycleLength(){
+  const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
+  if(starts.length < 2) return 28; // 默认28天
+  let diffs = [];
+  for(let i=1; i<starts.length; i++){
+    diffs.push((new Date(starts[i]) - new Date(starts[i-1])) / 86400000);
+  }
+  return Math.round(diffs.reduce((a,b)=>a+b,0) / diffs.length);
+}
+
+// 核心：推算历史与未来的四大生理时期 (月经期、卵泡期、排卵期、黄体期)
+function computeCyclePhases(){
+  const phases = {}; // key -> { phase: 'period'|'follicle'|'ovulation'|'luteal', isPred: boolean }
+  const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
+  const avgCycle = getAvgCycleLength();
+
+  if(!starts.length) return phases;
+
+  // 1. 处理历史与近期真实数据 (根据 start 扩展)
+  starts.forEach((sKey, idx) => {
+    const sDate = new Date(sKey+"T00:00:00");
+    const nextSDate = starts[idx+1] ? new Date(starts[idx+1]+"T00:00:00") : new Date(sDate.getTime() + avgCycle*86400000);
+    
+    // 该周期总天数
+    const cycleDays = Math.round((nextSDate - sDate) / 86400000);
+    
+    for(let i=0; i<cycleDays; i++){
+      const curr = new Date(sDate);
+      curr.setDate(curr.getDate() + i);
+      const k = key(curr);
+
+      // 默认规则：姨妈前5天为月经期；下次月经前14天为排卵日，排卵日及前5后1为排卵期；其余为卵泡期/黄体期
+      let p = "follicle";
+      if(i < 5){
+        p = "period";
+      } else if(i >= cycleDays - 19 && i <= cycleDays - 13){
+        p = "ovulation";
+      } else if(i > cycleDays - 13){
+        p = "luteal";
+      } else {
+        p = "follicle";
+      }
+      phases[k] = { phase: p, isPred: false };
+    }
+  });
+
+  // 2. 推算未来 12 个月的预测数据
+  let lastStart = new Date(starts.at(-1)+"T00:00:00");
+  for(let m=1; m<=12; m++){
+    let pStart = new Date(lastStart);
+    pStart.setDate(pStart.getDate() + avgCycle * m);
+    
+    for(let i=0; i<avgCycle; i++){
+      const curr = new Date(pStart);
+      curr.setDate(curr.getDate() + i);
+      const k = key(curr);
+
+      // 若已有真实记录不覆盖
+      if(phases[k] && !phases[k].isPred) continue;
+
+      let p = "follicle";
+      if(i < 5){
+        p = "period";
+      } else if(i >= avgCycle - 19 && i <= avgCycle - 13){
+        p = "ovulation";
+      } else if(i > avgCycle - 13){
+        p = "luteal";
+      } else {
+        p = "follicle";
+      }
+      phases[k] = { phase: p, isPred: true };
+    }
+  }
+
+  return phases;
 }
 
 function init(){
@@ -341,21 +435,6 @@ function changeMonth(n){
   renderCalendar();
 }
 
-// 计算预计排卵窗口
-function getOvulationDays(){
-  const ovSet = new Set();
-  const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
-  starts.forEach(sKey=>{
-    const d = new Date(sKey+"T00:00:00");
-    for(let i=10; i<=16; i++){
-      const ovD = new Date(d);
-      ovD.setDate(ovD.getDate() + i);
-      ovSet.add(key(ovD));
-    }
-  });
-  return ovSet;
-}
-
 function renderCalendar(){
   const y = viewDate.getFullYear(), m = viewDate.getMonth();
   document.getElementById("monthTitle").textContent = `${y}年 ${m+1}月`;
@@ -363,7 +442,8 @@ function renderCalendar(){
   const first = new Date(y, m, 1);
   const last = new Date(y, m+1, 0);
   const todayStr = key(new Date());
-  const autoOvulation = getOvulationDays();
+  
+  const phases = computeCyclePhases();
 
   let html = ["日","一","二","三","四","五","六"].map(x=>`<div class="dow">${x}</div>`).join("");
   
@@ -375,32 +455,30 @@ function renderCalendar(){
     const dt = new Date(y, m, d);
     const k = key(dt);
     const dayData = data.days[k] || {};
+    const phaseInfo = phases[k] || {};
     
-    const isPeriod = dayData.period === "start" || dayData.period === "on";
-    const isOvulation = dayData.ovulation === "on" || dayData.ovulation === "peak" || autoOvulation.has(k);
-    
+    // 手动选择排卵状态可以覆盖展示
+    let phaseType = phaseInfo.phase;
+    if(dayData.ovulation === "on" || dayData.ovulation === "peak") phaseType = "ovulation";
+    if(dayData.period === "start" || dayData.period === "on") phaseType = "period";
+
+    const isPred = phaseInfo.isPred;
+
     const prevKey = key(new Date(y, m, d-1));
     const nextKey = key(new Date(y, m, d+1));
-    const prevPeriod = (data.days[prevKey]||{}).period;
-    const nextPeriod = (data.days[nextKey]||{}).period;
+    const prevPhase = (phases[prevKey]||{}).phase;
+    const nextPhase = (phases[nextKey]||{}).phase;
     
-    let bandClasses = "";
-    if(isPeriod){
-      bandClasses += " period";
-      if(!prevPeriod) bandClasses += " band-start";
-      if(!nextPeriod) bandClasses += " band-end";
-    } else if(isOvulation){
-      bandClasses += " ovulation";
-      if(!autoOvulation.has(prevKey) && !(data.days[prevKey]||{}).ovulation) bandClasses += " band-start";
-      if(!autoOvulation.has(nextKey) && !(data.days[nextKey]||{}).ovulation) bandClasses += " band-end";
-    }
+    let bandClasses = phaseType ? ` ${phaseType}` : '';
+    if(isPred) bandClasses += " pred";
+    if(prevPhase !== phaseType) bandClasses += " band-start";
+    if(nextPhase !== phaseType) bandClasses += " band-end";
 
-    // 表达排便与生理期标记
+    // 点阵显示
     let dots = "";
-    if(isPeriod) dots += `<span class="dot period-dot"></span>`;
+    if(phaseType === "period" && !isPred) dots += `<span class="dot period-dot"></span>`;
     
     if(dayData.poops && dayData.poops.length){
-      // 找出体量最大的排便呈现点阵
       let maxPoop = dayData.poops.reduce((prev, curr) => sizeRank(curr.size) > sizeRank(prev.size) ? curr : prev, dayData.poops[0]);
       dots += `<span class="poop-dots">${sizeToDots(maxPoop.size)}</span>`;
     }
@@ -409,7 +487,7 @@ function renderCalendar(){
 
     html += `
       <div class="day-cell ${isToday?'today':''}" onclick="openDrawer('${k}')">
-        ${(isPeriod || isOvulation) ? `<div class="day-bg-band ${bandClasses}"></div>` : ''}
+        ${phaseType ? `<div class="day-bg-band ${bandClasses}"></div>` : ''}
         <div class="num-wrap">${d}</div>
         <div class="indicators">${dots}</div>
       </div>
@@ -506,7 +584,7 @@ function renderPoops(){
   `).join("");
 }
 
-/* 体重曲线绘制 */
+/* 体重曲线绘制 (包含底色时期区、底部时间轴、完整弹窗气泡) */
 function drawChart(){
   const box = document.getElementById("chartBox");
   const canvas = document.getElementById("chart");
@@ -543,18 +621,48 @@ function drawChart(){
   document.getElementById("minW").textContent = min.toFixed(1)+"kg";
   document.getElementById("maxW").textContent = max.toFixed(1)+"kg";
 
-  let offset = 0, dragging = false, startX = 0, selectedIdx = -1;
-  const padL = 25, padR = 25, padT = 20, padB = 25;
+  const phases = computeCyclePhases();
+
+  const padL = 30, padR = 30, padT = 35, padB = 35;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
-  const step = Math.max(36, plotW / Math.max(1, arr.length - 1));
+  const step = Math.max(42, plotW / Math.max(1, arr.length - 1));
   const totalW = (arr.length - 1) * step;
   const maxOffset = Math.max(0, totalW - plotW);
+
+  // 默认定位到最靠右（最新）的节点
+  let offset = maxOffset;
+  let selectedIdx = arr.length - 1;
+  let dragging = false, startX = 0;
+
+  function getPhaseColor(p){
+    switch(p){
+      case 'period': return 'rgba(224,130,149,0.18)';
+      case 'follicle': return 'rgba(96,165,250,0.15)';
+      case 'ovulation': return 'rgba(167,139,250,0.18)';
+      case 'luteal': return 'rgba(250,204,21,0.15)';
+      default: return 'transparent';
+    }
+  }
 
   function render(){
     ctx.clearRect(0,0,W,H);
     offset = Math.max(0, Math.min(offset, maxOffset));
 
+    // 1. 背景生理期色块
+    for(let i=0; i<arr.length; i++){
+      const x1 = padL + i*step - offset - step/2;
+      const x2 = x1 + step;
+      if(x2 < padL || x1 > W - padR) continue;
+
+      const phase = (phases[arr[i][0]]||{}).phase;
+      ctx.fillStyle = getPhaseColor(phase);
+      const drawX1 = Math.max(padL, x1);
+      const drawX2 = Math.min(W - padR, x2);
+      ctx.fillRect(drawX1, padT, drawX2 - drawX1, plotH);
+    }
+
+    // 2. 网格横线
     ctx.strokeStyle="#262a2b";
     ctx.lineWidth=1;
     for(let i=0;i<3;i++){
@@ -562,13 +670,16 @@ function drawChart(){
       ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
     }
 
+    // 计算点坐标
     const pts = arr.map((e,i)=>({
       x: padL + i*step - offset,
       y: padT + (max - e[1].weight)/range * plotH,
       date: e[0],
-      val: e[1].weight
+      val: e[1].weight,
+      raw: e[1]
     }));
 
+    // 3. 折线
     ctx.beginPath();
     let started = false;
     pts.forEach(p=>{
@@ -580,21 +691,72 @@ function drawChart(){
     ctx.lineWidth=2;
     ctx.stroke();
 
-    pts.forEach((p)=>{
+    // 4. 点 & 底部刻度轴
+    ctx.font="10px sans-serif";
+    ctx.textAlign="center";
+
+    pts.forEach((p, idx)=>{
       if(p.x >= padL - 5 && p.x <= W - padR + 5){
+        // 点
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+        ctx.arc(p.x, p.y, 3.5, 0, Math.PI*2);
         ctx.fillStyle="#8ca9c8";
         ctx.fill();
+
+        // X轴刻度与文字
+        ctx.fillStyle="#666c69";
+        ctx.fillRect(p.x, padT + plotH, 1, 4);
+        if(idx % Math.ceil(arr.length/10) === 0 || idx === selectedIdx){
+          ctx.fillText(p.date.slice(5), p.x, padT + plotH + 16);
+        }
       }
     });
 
+    // 5. 选中点的气泡特效 (日期 + 体重 + 拉屎情况)
     if(selectedIdx >= 0 && pts[selectedIdx]){
       const p = pts[selectedIdx];
       if(p.x >= padL && p.x <= W - padR){
-        ctx.beginPath();ctx.arc(p.x, p.y, 5, 0, Math.PI*2);ctx.fillStyle="#eee9df";ctx.fill();
-        ctx.fillStyle="#eee9df";ctx.font="11px sans-serif";ctx.textAlign="center";
-        ctx.fillText(`${p.date.slice(5)} : ${p.val}kg`, p.x, Math.max(12, p.y - 10));
+        // 突出点
+        ctx.beginPath();ctx.arc(p.x, p.y, 6, 0, Math.PI*2);ctx.fillStyle="#eee9df";ctx.fill();
+
+        // 整理气泡内文本
+        const dateStr = p.date.replace(/-/g,"/");
+        let poopStr = "";
+        if(p.raw.poops && p.raw.poops.length){
+          poopStr = p.raw.poops.map(x=>`💩${x.hour}h(${x.size})`).join(" ");
+        }
+
+        const line1 = `${dateStr}  ${p.val}kg`;
+        const line2 = poopStr;
+
+        ctx.font="11px sans-serif";
+        const w1 = ctx.measureText(line1).width;
+        const w2 = line2 ? ctx.measureText(line2).width : 0;
+        const boxW = Math.max(w1, w2) + 16;
+        const boxH = line2 ? 36 : 22;
+
+        let bubbleX = p.x - boxW/2;
+        bubbleX = Math.max(padL, Math.min(W - padR - boxW, bubbleX));
+        let bubbleY = p.y - boxH - 10;
+        if(bubbleY < 5) bubbleY = p.y + 12;
+
+        // 绘制气泡背景
+        ctx.fillStyle="rgba(32, 36, 37, 0.92)";
+        ctx.strokeStyle="#444948";
+        ctx.lineWidth=1;
+        ctx.beginPath();
+        ctx.roundRect(bubbleX, bubbleY, boxW, boxH, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        // 绘制气泡文字
+        ctx.fillStyle="#eee9df";
+        ctx.textAlign="left";
+        ctx.fillText(line1, bubbleX + 8, bubbleY + (line2 ? 14 : 15));
+        if(line2){
+          ctx.fillStyle="#c8a789";
+          ctx.fillText(line2, bubbleX + 8, bubbleY + 28);
+        }
       }
     }
   }
@@ -623,24 +785,20 @@ function drawChart(){
   render();
 }
 
-/* 预测未来 12 个月生理期 */
+/* 预测未来 12 个月生理期 (精简日期格式与文案) */
 function prediction(){
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
   const summaryEl = document.getElementById("predSummary");
   const listEl = document.getElementById("predictionList");
   
   if(starts.length < 2){
-    summaryEl.innerHTML = "标记 2 次及以上“姨妈第一天”，即可计算未来预测。";
+    summaryEl.innerHTML = "标记 2 次及以上“姨妈第一天”，即可精准预测。";
     listEl.innerHTML = "";
     return;
   }
 
-  let diffs = [];
-  for(let i=1; i<starts.length; i++){
-    diffs.push((new Date(starts[i]) - new Date(starts[i-1])) / 86400000);
-  }
-  const avg = diffs.reduce((a,b)=>a+b,0) / diffs.length;
-  summaryEl.innerHTML = `根据历史记录，您的平均周期为 <b>${avg.toFixed(1)} 天</b>。未来 12 个月预计时间如下：`;
+  const avg = getAvgCycleLength();
+  summaryEl.innerHTML = `根据历史记录，您的平均周期为 <b>${avg} 天</b>。未来 12 个月预计日期：`;
 
   let lastDate = new Date(starts.at(-1)+"T00:00:00");
   let listHtml = "";
@@ -648,14 +806,14 @@ function prediction(){
   for(let i=1; i<=12; i++){
     let nextDate = new Date(lastDate);
     nextDate.setDate(nextDate.getDate() + Math.round(avg * i));
-    let y = nextDate.getFullYear();
-    let m = pad(nextDate.getMonth()+1);
-    let d = pad(nextDate.getDate());
+    
+    let yearM = `${nextDate.getFullYear()}/${pad(nextDate.getMonth()+1)}`;
+    let fullD = formatSlash(nextDate);
     
     listHtml += `
       <div class="pred-item">
-        <span class="m-label">${y}年${m}月</span>
-        <span class="d-label">${m}月${d}日前后</span>
+        <span class="m-label">${yearM}</span>
+        <span class="d-label">${fullD}</span>
       </div>
     `;
   }
@@ -691,7 +849,7 @@ function importData(e){
 
 // 包含所有历史姨妈期与 7-8 月全量用户数据的预置对象
 const preset = {
-  // 姨妈第一天
+  // 姨妈第一天 (系统会自动推算并展示 5 天月经期)
   "2026-01-16":{period:"start"},
   "2026-02-12":{period:"start"},
   "2026-03-13":{period:"start"},
