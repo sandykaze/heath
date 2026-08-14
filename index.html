@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>健康日记</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 pb-12 font-sans">
+  <div class="max-w-md mx-auto p-4">
+    <header class="mb-6 text-center">
+      <h1 class="text-2xl font-bold text-slate-900">🌸 个人健康追踪</h1>
+      <p class="text-xs text-slate-500 mt-1">每天记录一点点，健康看得见</p>
+    </header>
+
+    <!-- 打卡卡片 -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6">
+      <h2 class="text-lg font-bold mb-4 flex items-center gap-2">✍️ 今日打卡</h2>
+      
+      <form id="logForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">日期</label>
+          <input type="date" id="date" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400" required>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">早晨空腹体重 (kg)</label>
+          <input type="number" step="0.1" id="weight" placeholder="例: 52.5" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-rose-400">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">生理期状态</label>
+          <div class="grid grid-cols-3 gap-2">
+            <label class="cursor-pointer">
+              <input type="radio" name="cycle" value="none" class="peer hidden" checked>
+              <div class="text-center p-2.5 text-xs rounded-xl border border-slate-200 peer-checked:bg-slate-800 peer-checked:text-white peer-checked:border-slate-800 transition">无</div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="cycle" value="period" class="peer hidden">
+              <div class="text-center p-2.5 text-xs rounded-xl border border-rose-200 text-rose-600 peer-checked:bg-rose-500 peer-checked:text-white peer-checked:border-rose-500 transition">🩸 姨妈期</div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="cycle" value="ovulation" class="peer hidden">
+              <div class="text-center p-2.5 text-xs rounded-xl border border-purple-200 text-purple-600 peer-checked:bg-purple-500 peer-checked:text-white peer-checked:border-purple-500 transition">🥚 排卵期</div>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">拉屎情况</label>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <input type="time" id="poopTime" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+            <select id="poopSize" class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+              <option value="">选择份量</option>
+              <option value="💩 小份量">💩 小</option>
+              <option value="💩💩 中等">💩💩 中</option>
+              <option value="💩💩💩 超大量">💩💩💩 大</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-rose-200 transition active:scale-95">保存今日记录</button>
+      </form>
+    </div>
+
+    <!-- 可视化图表 -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mb-6">
+      <h2 class="text-lg font-bold mb-4">📈 体重趋势 (kg)</h2>
+      <canvas id="weightChart" class="w-full" height="200"></canvas>
+    </div>
+
+    <!-- 历史数据 -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-bold">📅 近期记录</h2>
+        <button onclick="exportData()" class="text-xs text-rose-500 underline">导出备份</button>
+      </div>
+      <div id="logsList" class="space-y-3 text-sm"></div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('date').valueAsDate = new Date();
+    let healthData = JSON.parse(localStorage.getItem('my_health_logs') || '[]');
+
+    document.getElementById('logForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const date = document.getElementById('date').value;
+      const weight = parseFloat(document.getElementById('weight').value) || null;
+      const cycle = document.querySelector('input[name="cycle"]:checked').value;
+      const poopTime = document.getElementById('poopTime').value;
+      const poopSize = document.getElementById('poopSize').value;
+
+      const existingIndex = healthData.findIndex(item => item.date === date);
+      const entry = {
+        date,
+        weight,
+        cycle,
+        poop: poopTime ? { time: poopTime, size: poopSize } : null
+      };
+
+      if (existingIndex > -1) {
+        healthData[existingIndex] = entry;
+      } else {
+        healthData.push(entry);
+      }
+
+      healthData.sort((a, b) => new Date(a.date) - new Date(b.date));
+      localStorage.setItem('my_health_logs', JSON.stringify(healthData));
+
+      alert('保存成功！');
+      renderAll();
+    });
+
+    let chartInstance = null;
+    function renderChart() {
+      const ctx = document.getElementById('weightChart').getContext('2d');
+      const validWeightData = healthData.filter(d => d.weight !== null);
+      
+      const labels = validWeightData.map(d => d.date.slice(5));
+      const weights = validWeightData.map(d => d.weight);
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '体重 (kg)',
+            data: weights,
+            borderColor: '#f43f5e',
+            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: false }
+          }
+        }
+      });
+    }
+
+    function renderLogs() {
+      const container = document.getElementById('logsList');
+      if (healthData.length === 0) {
+        container.innerHTML = '<p class="text-slate-400 text-center py-4">暂无数据，今天打个卡吧～</p>';
+        return;
+      }
+
+      const cycleMap = { 'none': '', 'period': '🩸 姨妈期', 'ovulation': '🥚 排卵期' };
+      container.innerHTML = [...healthData].reverse().map(item => `
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <div class="flex justify-between font-semibold text-slate-700">
+            <span>${item.date}</span>
+            <span class="text-rose-500">${item.weight ? item.weight + ' kg' : '未记体重'}</span>
+          </div>
+          <div class="flex gap-3 text-xs text-slate-500 mt-1">
+            ${item.cycle !== 'none' ? `<span class="bg-rose-100 text-rose-600 px-2 py-0.5 rounded-md">${cycleMap[item.cycle]}</span>` : ''}
+            ${item.poop ? `<span class="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md">${item.poop.time} ${item.poop.size}</span>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(healthData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `health_data_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function renderAll() {
+      renderChart();
+      renderLogs();
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>
