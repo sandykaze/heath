@@ -3,307 +3,653 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#fff7f5">
+<meta name="theme-color" content="#111314">
 <title>Piisuke — Personal Body Log</title>
 <style>
 :root{
-  --bg:#f5f5f2;--card:#ffffff;--text:#171717;--muted:#8a8a84;--line:#e9e9e5;
-  --pink:#e88a9b;--pink-soft:#fae9ed;--blue:#7399d1;--blue-soft:#edf3fb;
-  --green:#72a486;--green-soft:#edf6f0;--brown:#a9785f;--brown-soft:#f5ede8;
-  --shadow:0 12px 40px rgba(30,30,25,.055)
+  --bg:#111314;--card:#191c1d;--card2:#202425;--text:#f2f0eb;--muted:#8d918e;--line:#2a2e2e;
+  --rose:#e08295;--rose-bg:rgba(224,130,149,0.22);
+  --purple:#a78bfa;--purple-bg:rgba(167,139,250,0.18);
+  --brown:#c8a789;--ice:#8ca9c8;--gold:#d4af37;
+  --shadow:0 18px 60px rgba(0,0,0,.35);
+  --radius:20px;
 }
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Noto Sans SC",sans-serif;letter-spacing:.01em}
-.wrap{max-width:820px;margin:auto;padding:28px 18px 80px}
-.brand{display:flex;align-items:center;gap:12px;margin:4px 2px 24px}
-.brand-mark{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#171717;color:white;font-size:16px;font-weight:700;letter-spacing:.08em}
-h1{font-size:27px;line-height:1;margin:0;font-weight:800;letter-spacing:.18em}
-.sub{color:var(--muted);font-size:10px;letter-spacing:.18em;margin:5px 0 0}
-.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;margin:14px 0;box-shadow:var(--shadow)}
-.toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.toolbar button,.ghost{width:36px;height:36px;background:#f3f3ef;color:#333;border-radius:50%;padding:0;font-size:20px}
-.month{font-weight:750;font-size:17px;letter-spacing:.04em}
-.legend{display:flex;gap:16px;flex-wrap:wrap;color:var(--muted);font-size:11px;margin:14px 0 10px}
-.legend span{display:flex;align-items:center;gap:6px}
-.legend span:before{content:"";width:7px;height:7px;border-radius:50%;display:inline-block}
-.legend span:nth-child(1):before{background:var(--blue)}
-.legend span:nth-child(2):before{background:var(--pink)}
-.legend span:nth-child(3):before{background:var(--green)}
-.legend span:nth-child(4):before{background:var(--brown)}
-.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
-.dow{text-align:center;color:#aaa;font-size:10px;padding:5px 0}
-.day{min-height:82px;border:1px solid #f0f0ed;border-radius:13px;padding:7px;background:#fff;position:relative;overflow:hidden;transition:.15s}
-.day:hover{background:#fafaf7}
-.day.empty{background:#fafaf8;border-color:transparent}
-.day.sel{outline:2px solid #171717;outline-offset:-2px}
-.num{font-size:11px;font-weight:700;color:#777}
-.marks{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
-.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-.dot.w{background:var(--blue)}.dot.p{background:var(--pink)}.dot.b{background:var(--brown)}.dot.o{background:var(--green)}
-.dot.big{width:10px;height:10px}
-.dot-label{font-size:9px;color:#999;margin-left:2px}
-.section-title{font-weight:750;font-size:14px;margin-bottom:12px}
-.selected-date{color:#777;font-weight:600}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.field label{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}
-.field select,.field input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;background:#fafaf8;color:#222;outline:none}
-.field select:focus,.field input:focus{border-color:#bbb}
-.actions{display:flex;gap:8px;margin-top:12px}
-.primary{background:#171717;color:white;padding:12px 16px;border-radius:12px;font-weight:650;flex:1}
-.danger{background:#f2f0ed;color:#777;padding:12px 16px;border-radius:12px}
-.log{border-top:1px solid var(--line);padding-top:15px;margin-top:15px}.logrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:13px;border-bottom:1px solid #f3f2ef}.del{background:none;color:#aaa;font-size:11px}
-canvas{width:100%;height:220px}
-.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#f7f7f4;border-radius:14px;padding:11px}.stat b{display:block;font-size:18px}.stat span{font-size:10px;color:var(--muted)}
-.notice{background:#f7f7f4;border-radius:14px;padding:13px;font-size:13px;line-height:1.7}
-.backup{display:flex;gap:8px;flex-wrap:wrap}.backup button{padding:10px 13px;border-radius:12px;background:#f2f0ed;color:#555}
-.footer{color:#aaa;font-size:10px;text-align:center;margin-top:24px;letter-spacing:.04em}
-@media(max-width:420px){.wrap{padding:22px 12px 70px}.day{min-height:68px;padding:6px}.marks{gap:4px;margin-top:5px}.grid{grid-template-columns:1fr}.card{border-radius:18px;padding:15px}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0;
+  background:radial-gradient(circle at 50% -10%,#242829 0,#111314 44%,#0e1011 100%);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Noto Sans SC",sans-serif;
+  letter-spacing:.01em;
+  min-height:100vh;
+}
+.wrap{max-width:600px;margin:auto;padding:20px 16px 80px}
+.brand{display:flex;align-items:center;gap:12px;margin:8px 4px 20px}
+.brand-mark{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#eee9df;color:#171717;font-size:16px;font-weight:800}
+h1{font-size:24px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em}
+.sub{color:#707674;font-size:10px;letter-spacing:.15em;margin:4px 0 0}
 
-/* Piisuke premium night palette */
-:root{
- --bg:#111314;--card:#191c1d;--card2:#202425;--text:#f2f0eb;--muted:#8d918e;--line:#2a2e2e;
- --rose:#d98a98;--sage:#9bb8a3;--sand:#c8a789;--ice:#8ca9c8;--gold:#c6ad78;
- --shadow:0 18px 60px rgba(0,0,0,.28)
+.card{background:rgba(25,28,29,.95);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+
+/* Header & Month Nav */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.toolbar button{width:32px;height:32px;background:#242829;color:#ddd;border:0;border-radius:50%;font-size:18px;cursor:pointer;display:grid;place-items:center}
+.month{font-weight:700;font-size:17px;color:#eee}
+.legend{display:flex;gap:16px;color:var(--muted);font-size:11px;margin-bottom:12px;justify-content:center}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend span:before{content:"";width:8px;height:8px;border-radius:50%;display:inline-block}
+.legend .leg-period:before{background:var(--rose)}
+.legend .leg-ovulation:before{background:var(--purple)}
+.legend .leg-poop:before{background:var(--brown)}
+
+/* Calendar Grid */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:4px;position:relative}
+.dow{text-align:center;color:#656b69;font-size:11px;font-weight:600;padding:6px 0}
+.day-cell{
+  position:relative;
+  height:54px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding-top:4px;
+  cursor:pointer;
+  user-select:none;
 }
-body{background:radial-gradient(circle at 50% -10%,#242829 0,#111314 44%,#0e1011 100%);color:var(--text)}
-.wrap{max-width:820px;padding:30px 18px 90px}
-.brand{margin:4px 2px 26px}.brand-mark{background:#eee9df;color:#171717}
-h1{font-size:28px;letter-spacing:.02em;font-weight:700}.sub{color:#707674}
-.card{background:rgba(25,28,29,.94);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow)}
-.calendar-card{padding:16px}.toolbar button,.ghost{background:#242829;color:#ddd}
-.month{color:#eee}.legend{color:#8c918f}.legend span:before{width:6px;height:6px}
-.legend span:nth-child(1):before{background:var(--ice)}.legend span:nth-child(2):before{background:var(--rose)}.legend span:nth-child(3):before{background:var(--sand)}.legend span:nth-child(4):before{background:var(--sage)}
-.dow{color:#656b69}.day{background:#1a1d1e;border-color:#292d2e}.day.empty{background:#161819;border-color:transparent}.day:hover{background:#202425}.day.sel{outline:1px solid #e7e2d8}
-.num{color:#8d918f}.marks{gap:5px}.dot{width:7px;height:7px;box-shadow:0 0 0 2px rgba(255,255,255,.025)}.dot.w{background:var(--ice)}.dot.p{background:var(--rose)}.dot.b{background:var(--sand)}.dot.o{background:var(--sage)}
-.today-bar{display:flex;justify-content:space-between;align-items:center;margin:16px 2px 12px}.eyebrow{font-size:9px;letter-spacing:.18em;color:#6f7572;margin-bottom:4px}.selected-date{font-size:18px;color:#eee;font-weight:650}
-.open-drawer{background:#eee9df;color:#171717;border-radius:999px;padding:11px 17px;font-weight:700}
-.section-title{color:#e8e5df}.chart-hint{float:right;font-size:10px;color:#666c69;font-weight:400}
-.stat{background:#202425}.stat b{color:#eee}.stat span{color:#777d7a}
-.notice{background:#202425;color:#c6cac7}.backup button{background:#242829;color:#bbb}
-.footer{color:#555b59}
-canvas{cursor:grab}canvas:active{cursor:grabbing}
-.drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.56);backdrop-filter:blur(8px);z-index:50;display:none;align-items:flex-end}
+.day-bg-band{
+  position:absolute;
+  top:2px;bottom:2px;left:0;right:0;
+  z-index:1;
+  pointer-events:none;
+}
+.day-bg-band.period{background:var(--rose-bg)}
+.day-bg-band.ovulation{background:var(--purple-bg)}
+.day-bg-band.band-start{border-top-left-radius:12px;border-bottom-left-radius:12px;left:2px}
+.day-bg-band.band-end{border-top-right-radius:12px;border-bottom-right-radius:12px;right:2px}
+
+.num-wrap{
+  position:relative;
+  z-index:2;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  font-size:13px;
+  font-weight:500;
+  color:#ccc;
+}
+.day-cell.today .num-wrap{background:var(--gold);color:#111;font-weight:700}
+.day-cell.other-month{opacity:0.25}
+
+.indicators{
+  position:relative;
+  z-index:2;
+  display:flex;
+  gap:3px;
+  align-items:center;
+  margin-top:3px;
+  height:12px;
+}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot.period-dot{background:var(--rose)}
+.dot.poop-dot{background:var(--brown)}
+
+/* Stats & Chart */
+.section-title{font-weight:700;font-size:15px;color:#e8e5df;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.chart-hint{font-size:11px;color:#666c69;font-weight:400}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat{background:#202425;border-radius:14px;padding:10px 12px;text-align:center}
+.stat b{display:block;font-size:16px;color:#eee;margin-top:2px}
+.stat span{font-size:10px;color:#777d7a}
+.chart-container{width:100%;height:180px;position:relative;touch-action:none}
+canvas{width:100%;height:100%;display:block}
+
+/* Prediction & Backup */
+.notice{background:#202425;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.6;color:#c6cac7}
+.backup{display:flex;gap:10px}
+.backup button{flex:1;padding:10px;border-radius:12px;background:#242829;border:1px solid var(--line);color:#bbb;font-size:12px;cursor:pointer}
+
+/* Drawer / Modal Bottom Sheet */
+.drawer-backdrop{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(10px);
+  z-index:100;display:none;align-items:flex-end;
+}
 .drawer-backdrop.open{display:flex}
-.drawer{width:100%;max-width:820px;margin:auto;background:#181b1c;border:1px solid #303535;border-bottom:0;border-radius:28px 28px 0 0;box-shadow:0 -20px 70px rgba(0,0,0,.4);max-height:88vh;overflow:auto;animation:slideUp .22s ease}
+.drawer{
+  width:100%;max-width:600px;margin:auto;background:#181b1c;
+  border:1px solid #303535;border-bottom:0;border-radius:24px 24px 0 0;
+  box-shadow:0 -10px 40px rgba(0,0,0,.5);max-height:85vh;overflow-y:auto;
+  animation:slideUp .2s cubic-bezier(0.16,1,0.3,1);
+}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.drawer-handle{width:42px;height:4px;border-radius:99px;background:#555b59;margin:10px auto}
-.drawer-head{display:flex;justify-content:space-between;align-items:flex-start;padding:4px 20px 15px;border-bottom:1px solid var(--line)}.drawer-head h2{margin:0;font-size:21px}.close-drawer{width:34px;height:34px;border-radius:50%;background:#262a2b;color:#bbb;font-size:22px}
-.drawer-body{padding:18px 20px 30px}.field label{color:#777d7a}.field select,.field input{background:#202425;border-color:#303535;color:#eee}.field select:focus,.field input:focus{border-color:#646b68}
-.primary{background:#eee9df;color:#171717}.danger{background:#272b2c;color:#999}.log{border-color:#2c3030}.logrow{border-color:#292d2e}
-@media(max-width:420px){.wrap{padding:22px 12px 70px}.card{border-radius:20px}.drawer{border-radius:25px 25px 0 0}}
+.drawer-handle{width:36px;height:4px;border-radius:99px;background:#444948;margin:10px auto 4px}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:10px 20px 14px;border-bottom:1px solid var(--line)}
+.drawer-head h2{margin:0;font-size:18px;color:#eee}
+.close-btn{width:28px;height:28px;border-radius:50%;background:#262a2b;color:#bbb;border:0;font-size:18px;cursor:pointer;display:grid;place-items:center}
+.drawer-body{padding:16px 20px 30px}
 
+.field-group{margin-bottom:14px}
+.field-group label{display:block;color:#8d918e;font-size:12px;margin-bottom:6px}
+.field-group input,.field-group select{
+  width:100%;border:1px solid #303535;border-radius:12px;padding:10px 12px;background:#202425;color:#eee;font-size:14px;outline:none;
+}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions{display:flex;gap:10px;margin-top:18px}
+.btn-primary{background:#eee9df;color:#171717;border:0;padding:12px;border-radius:12px;font-weight:600;flex:1;cursor:pointer}
+.btn-danger{background:#272b2c;color:#e08295;border:0;padding:12px;border-radius:12px;cursor:pointer}
+.poop-list{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.poop-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;border-bottom:1px solid #232728}
+.del-btn{background:none;border:0;color:#777;font-size:12px;cursor:pointer}
+
+.footer{color:#555b59;font-size:10px;text-align:center;margin-top:24px}
 </style>
 </head>
 <body>
+
 <div class="wrap">
-<div class="brand"><span class="brand-mark">P</span><div><h1>Piisuke</h1><p class="sub">PERSONAL BODY LOG · 2026</p></div></div>
-
-<div class="card calendar-card">
-  <div class="toolbar">
-    <button onclick="changeMonth(-1)">‹</button><div class="month" id="monthTitle"></div><button onclick="changeMonth(1)">›</button>
-  </div>
-  <div class="legend"><span>体重</span><span>姨妈</span><span>排便</span><span>排卵</span></div>
-  <div class="cal" id="calendar"></div>
-</div>
-
-<div class="today-bar"><div><div class="eyebrow">TODAY</div><div class="selected-date" id="selDate"></div></div><button class="open-drawer" onclick="openDrawer()">＋ 记录</button></div>
-  <div class="section-title">Calendar</div>
-  <div class="grid">
-    <div class="field"><label>⚖️ 早上体重</label><input id="weight" type="number" step="0.1" min="20" max="200" placeholder="例如 52.3"></div>
-    <div class="field"><label>🌸 姨妈</label><select id="period"><option value="">未记录</option><option value="start">姨妈第一天</option><option value="on">姨妈期</option></select></div>
-    <div class="field"><label>🥚 排卵期</label><select id="ovulation"><option value="">未记录</option><option value="on">排卵期</option><option value="peak">预计排卵日</option></select></div>
-  </div>
-  <div class="actions"><button class="primary" onclick="saveDaily()">保存当天</button><button class="danger" onclick="clearDaily()">清空当天</button></div>
-  <div class="log">
-    <div class="section-title">💩 排便记录</div>
-    <div class="grid">
-      <div class="field"><label>时间（小时）</label><select id="poopHour"></select></div>
-      <div class="field"><label>大小</label><select id="poopSize"><option>小</option><option>小偏中</option><option>中</option><option>中偏大</option><option>大</option></select></div>
+  <div class="brand">
+    <span class="brand-mark">P</span>
+    <div>
+      <h1>Piisuke</h1>
+      <p class="sub">BODY & CYCLE TRACKER</p>
     </div>
-    <div class="field" style="margin-top:9px"><label>备注（可选）</label><input id="poopNote" placeholder="例如：开塞露、硬"></div>
-    <div class="actions"><button class="primary" onclick="addPoop()">＋添加一次排便</button></div>
-    <div id="poopList"></div>
   </div>
-</div>
 
-<div class="card">
-  <div class="section-title">Weight trend <span class="chart-hint">左右拖动 · 点选查看</span></div>
-  <div class="statgrid"><div class="stat"><b id="avgW">—</b><span>记录平均</span></div><div class="stat"><b id="minW">—</b><span>最低</span></div><div class="stat"><b id="maxW">—</b><span>最高</span></div></div>
-  <canvas id="chart" width="700" height="220"></canvas>
-</div>
-
-<div class="card">
-  <div class="section-title">🔮 姨妈 / 排卵预测</div>
-  <div class="notice" id="prediction"></div>
-</div>
-
-<div class="card">
-  <div class="section-title">💾 数据备份</div>
-  <div class="backup">
-    <button onclick="exportData()">导出数据</button>
-    <button onclick="document.getElementById('file').click()">导入数据</button>
-    <input id="file" type="file" accept=".json" hidden onchange="importData(event)">
+  <!-- 1. 日历卡片 -->
+  <div class="card">
+    <div class="toolbar">
+      <button onclick="changeMonth(-1)">‹</button>
+      <div class="month" id="monthTitle"></div>
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="legend">
+      <span class="leg-period">姨妈期</span>
+      <span class="leg-ovulation">排卵期</span>
+      <span class="leg-poop">排便</span>
+    </div>
+    <div class="cal-grid" id="calendar"></div>
   </div>
+
+  <!-- 2. 体重趋势 -->
+  <div class="card">
+    <div class="section-title">
+      体重趋势 <span class="chart-hint">左右滑动滚动 · 点击查看点</span>
+    </div>
+    <div class="statgrid">
+      <div class="stat"><span id="avgW">—</span><b>平均</b></div>
+      <div class="stat"><span id="minW">—</span><b>最低</b></div>
+      <div class="stat"><span id="maxW">—</span><b>最高</b></div>
+    </div>
+    <div class="chart-container" id="chartBox">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+
+  <!-- 3. 周期预测 -->
+  <div class="card">
+    <div class="section-title">🔮 周期预测</div>
+    <div class="notice" id="prediction">正在计算周期...</div>
+  </div>
+
+  <!-- 4. 备份 -->
+  <div class="card">
+    <div class="section-title">💾 数据备份</div>
+    <div class="backup">
+      <button onclick="exportData()">导出 JSON</button>
+      <button onclick="document.getElementById('file').click()">导入 JSON</button>
+      <input id="file" type="file" accept=".json" hidden onchange="importData(event)">
+    </div>
+  </div>
+
+  <div class="footer">仅供个人数据记录与健康观察，不替代医疗诊断。</div>
 </div>
-<div class="footer">本页面仅用于个人记录与趋势观察，不构成医疗建议。</div>
+
+<!-- 5. 底部抽屉 (Modal Bottom Sheet) -->
+<div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer(event)">
+  <div class="drawer" onclick="event.stopPropagation()">
+    <div class="drawer-handle"></div>
+    <div class="drawer-head">
+      <h2 id="drawerDate">2026-08-14</h2>
+      <button class="close-btn" onclick="hideDrawer()">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="grid-2">
+        <div class="field-group">
+          <label>⚖️ 晨起体重 (kg)</label>
+          <input id="weight" type="number" step="0.1" placeholder="例如 52.3">
+        </div>
+        <div class="field-group">
+          <label>🌸 姨妈状态</label>
+          <select id="period">
+            <option value="">无</option>
+            <option value="start">姨妈第一天</option>
+            <option value="on">姨妈期</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="field-group">
+        <label>🥚 排卵状态</label>
+        <select id="ovulation">
+          <option value="">自动/无</option>
+          <option value="on">排卵期</option>
+          <option value="peak">预测排卵日</option>
+        </select>
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" onclick="saveDaily()">保存今日数据</button>
+        <button class="btn-danger" onclick="clearDaily()">清空当天</button>
+      </div>
+
+      <div class="poop-list">
+        <label style="color:#8d918e;font-size:12px;display:block;margin-bottom:8px">💩 排便记录</label>
+        <div class="grid-2">
+          <div class="field-group">
+            <select id="poopHour"></select>
+          </div>
+          <div class="field-group">
+            <select id="poopSize">
+              <option>小</option>
+              <option>小偏中</option>
+              <option>中</option>
+              <option>中偏大</option>
+              <option>大</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-group">
+          <input id="poopNote" placeholder="备注（如：开塞露、较硬）">
+        </div>
+        <button class="btn-primary" style="width:100%;padding:8px;font-size:13px" onclick="addPoop()">＋ 添加一次排便</button>
+        <div id="poopContainer"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-const KEY="bodyDiaryV1";
-let data=JSON.parse(localStorage.getItem(KEY)||'{"days":{},"periods":[]}');
-let selected=new Date(); selected.setHours(0,0,0,0);
-let view=new Date(selected.getFullYear(),selected.getMonth(),1);
+const KEY="bodyDiaryV2";
+let data=JSON.parse(localStorage.getItem(KEY)||'{"days":{}}');
+let selectedKey = "";
+let viewDate = new Date();
 
 function pad(n){return String(n).padStart(2,"0")}
 function key(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
 function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function dayObj(k){return data.days[k] ||= {poops:[]}}
+
 function init(){
- for(let h=0;h<24;h++) document.getElementById("poopHour").innerHTML+=`<option value="${h}">${h}点</option>`;
- render(); loadSelected(); drawChart(); prediction();
-}
-function changeMonth(n){view=new Date(view.getFullYear(),view.getMonth()+n,1);render()}
-function render(){
- const y=view.getFullYear(),m=view.getMonth(), first=new Date(y,m,1), last=new Date(y,m+1,0);
- document.getElementById("monthTitle").textContent=`${y}年${m+1}月`;
- let html=["日","一","二","三","四","五","六"].map(x=>`<div class="dow">${x}</div>`).join("");
- for(let i=0;i<first.getDay();i++) html+=`<div class="day empty"></div>`;
- for(let d=1;d<=last.getDate();d++){
-   const dt=new Date(y,m,d),k=key(dt),x=data.days[k]||{}, po=x.poops||[];
-   let marks="";
-   if(x.weight!=null) marks+=`<span class="dot w" title="体重 ${x.weight}kg"></span>`;
-   if(x.period) marks+=`<span class="dot p" title="${x.period==="start"?"姨妈第一天":"姨妈期"}"></span>`;
-   if(x.ovulation) marks+=`<span class="dot o" title="排卵期"></span>`;
-   if(po.length) marks+=`<span class="dot b big" title="排便 ${po.length}次"></span>`;
-   html+=`<div class="day ${k===key(selected)?"sel":""}" onclick="selectDay('${k}')"><div class="num">${d}</div><div class="marks">${marks}</div></div>`;
- }
- document.getElementById("calendar").innerHTML=html;
-}
-function selectDay(k){selected=new Date(k+"T00:00:00");view=new Date(selected.getFullYear(),selected.getMonth(),1);render();loadSelected()}
-function loadSelected(){
- const k=key(selected),x=data.days[k]||{};
- document.getElementById("selDate").textContent=`${selected.getMonth()+1}月${selected.getDate()}日`;
- document.getElementById("weight").value=x.weight??"";
- document.getElementById("period").value=x.period||"";
- document.getElementById("ovulation").value=x.ovulation||"";
- renderPoops();
-}
-function saveDaily(){
- const k=key(selected),x=dayObj(k),w=document.getElementById("weight").value;
- x.weight=w===""?null:Number(w); if(x.weight===null) delete x.weight;
- x.period=document.getElementById("period").value;
- x.ovulation=document.getElementById("ovulation").value;
- if(!x.period) delete x.period;if(!x.ovulation) delete x.ovulation;
- save();render();drawChart();prediction();
-}
-function clearDaily(){if(confirm("确定清空这一天的全部记录吗？")){delete data.days[key(selected)];save();loadSelected();render();drawChart();prediction()}}
-function addPoop(){
- const x=dayObj(key(selected));x.poops ||= [];
- x.poops.push({hour:Number(document.getElementById("poopHour").value),size:document.getElementById("poopSize").value,note:document.getElementById("poopNote").value.trim()});
- x.poops.sort((a,b)=>a.hour-b.hour);document.getElementById("poopNote").value="";save();render();loadSelected();
-}
-function removePoop(i){data.days[key(selected)].poops.splice(i,1);save();render();loadSelected()}
-function renderPoops(){
- const p=(data.days[key(selected)]||{}).poops||[];
- document.getElementById("poopList").innerHTML=p.length?p.map((x,i)=>`<div class="logrow"><span>💩 ${x.hour}点 · ${x.size}${x.note?` · ${x.note}`:""}</span><button class="del" onclick="removePoop(${i})">删除</button></div>`).join(""):`<div style="color:#aaa;font-size:12px;padding:8px 0">今天还没有排便记录</div>`;
-}
-function weights(){
- return Object.entries(data.days).filter(([k,x])=>x.weight!=null).sort((a,b)=>a[0].localeCompare(b[0]));
-}
-function drawChart(){
- const c=document.getElementById("chart"),ctx=c.getContext("2d"),W=c.width,H=c.height,arr=weights();
- ctx.clearRect(0,0,W,H); if(!arr.length)return;
- const vals=arr.map(x=>x[1].weight),min=Math.min(...vals),max=Math.max(...vals),range=max-min||1;
- let offset=0,dragging=false,lastX=0,selectedIdx=-1;
- function paint(){
-   ctx.clearRect(0,0,W,H);
-   const padL=20,padR=12,padT=18,padB=28,plotW=W-padL-padR,plotH=H-padT-padB;
-   ctx.strokeStyle="#2b3030";ctx.lineWidth=1;
-   for(let i=0;i<3;i++){let yy=padT+i*plotH/2;ctx.beginPath();ctx.moveTo(padL,yy);ctx.lineTo(W-padR,yy);ctx.stroke()}
-   const step=Math.max(26,plotW/Math.max(1,arr.length-1)), total=(arr.length-1)*step, maxOffset=Math.max(0,total-plotW);
-   offset=Math.max(0,Math.min(offset,maxOffset));
-   const pts=arr.map((e,i)=>({x:padL+i*step-offset,y:padT+(max-e[1].weight)/range*plotH,k:e[0],v:e[1].weight}));
-   ctx.beginPath();let started=false;
-   pts.forEach(p=>{if(p.x<padL-20||p.x>W+20)return;if(!started){ctx.moveTo(p.x,p.y);started=true}else ctx.lineTo(p.x,p.y)});
-   ctx.strokeStyle="#8ca9c8";ctx.lineWidth=2.5;ctx.stroke();
-   pts.forEach(p=>{if(p.x>=padL-5&&p.x<=W+5){ctx.beginPath();ctx.arc(p.x,p.y,3.2,0,Math.PI*2);ctx.fillStyle="#8ca9c8";ctx.fill()}});
-   if(selectedIdx>=0){const p=pts[selectedIdx];if(p&&p.x>=padL&&p.x<=W-padR){ctx.beginPath();ctx.arc(p.x,p.y,6,0,Math.PI*2);ctx.fillStyle="#eee9df";ctx.fill();ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fillStyle="#8ca9c8";ctx.fill();ctx.fillStyle="#eee9df";ctx.font="12px sans-serif";ctx.textAlign="center";ctx.fillText(`${p.k.slice(5)}  ·  ${p.v.toFixed(1)} kg`,p.x,Math.max(13,p.y-13));}}
-   ctx.fillStyle="#666c69";ctx.font="10px sans-serif";ctx.textAlign="left";ctx.fillText(arr[0][0].slice(5),padL,H-7);ctx.textAlign="right";ctx.fillText(arr.at(-1)[0].slice(5),W-padR,H-7);
- }
- function nearest(x){let step=Math.max(26,(W-32)/Math.max(1,arr.length-1));let idx=Math.round((x-20+offset)/step);return Math.max(0,Math.min(arr.length-1,idx))}
- c.onpointerdown=e=>{dragging=true;lastX=e.offsetX;c.setPointerCapture(e.pointerId)}
- c.onpointermove=e=>{if(dragging){offset-=e.offsetX-lastX;lastX=e.offsetX;paint()}}
- c.onpointerup=e=>{dragging=false;selectedIdx=nearest(e.offsetX);paint()}
- c.onpointercancel=()=>dragging=false;
- paint();
- const vals2=vals;document.getElementById("avgW").textContent=(vals2.reduce((a,b)=>a+b,0)/vals2.length).toFixed(1)+"kg";document.getElementById("minW").textContent=min.toFixed(1)+"kg";document.getElementById("maxW").textContent=max.toFixed(1)+"kg";
+  const hSel = document.getElementById("poopHour");
+  hSel.innerHTML = "";
+  for(let h=0;h<24;h++) hSel.innerHTML+=`<option value="${h}">${h}:00</option>`;
+  
+  const today = new Date();
+  viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
+  renderCalendar();
+  drawChart();
+  prediction();
 }
 
-function periodStarts(){
- let a=[];
- for(const [k,x] of Object.entries(data.days)) if(x.period==="start")a.push(k);
- return a.sort();
-}
-function prediction(){
- const ps=periodStarts();if(ps.length<2){document.getElementById("prediction").innerHTML="记录至少 2 次姨妈第一天后，就可以根据你的实际周期计算预测。";return}
- let dif=[];for(let i=1;i<ps.length;i++)dif.push((new Date(ps[i])-new Date(ps[i-1]))/86400000);
- const avg=dif.reduce((a,b)=>a+b,0)/dif.length,last=new Date(ps.at(-1)+"T00:00:00");
- const next=new Date(last);next.setDate(next.getDate()+Math.round(avg));
- const ov=new Date(next);ov.setDate(ov.getDate()-14);
- document.getElementById("prediction").innerHTML=`你的历史周期平均约 <b>${avg.toFixed(1)} 天</b>（${dif.map(x=>x.toFixed(0)).join("、")} 天）。<br>下一次姨妈预计：<b>${next.getMonth()+1}月${next.getDate()}日前后</b><br>预计排卵日：<b>${ov.getMonth()+1}月${ov.getDate()}日前后</b><br><span style="color:#998d88">预测会随着你继续记录而自动更新，实际周期可能有波动。</span>`;
+function changeMonth(n){
+  viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+n, 1);
+  renderCalendar();
 }
 
-function openDrawer(){
-  document.getElementById("drawerDate").textContent=`${selected.getFullYear()} · ${selected.getMonth()+1}月${selected.getDate()}日`;
+// 自动计算排卵期范围辅助方法
+function getOvulationDays(){
+  const ovSet = new Set();
+  const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
+  starts.forEach(sKey=>{
+    const d = new Date(sKey+"T00:00:00");
+    // 一般排卵日约在下次月经前14天，预估区间为第10-16天
+    for(let i=10; i<=16; i++){
+      const ovD = new Date(d);
+      ovD.setDate(ovD.getDate() + i);
+      ovSet.add(key(ovD));
+    }
+  });
+  return ovSet;
+}
+
+function renderCalendar(){
+  const y = viewDate.getFullYear(), m = viewDate.getMonth();
+  document.getElementById("monthTitle").textContent = `${y}年 ${m+1}月`;
+  
+  const first = new Date(y, m, 1);
+  const last = new Date(y, m+1, 0);
+  const todayStr = key(new Date());
+  const autoOvulation = getOvulationDays();
+
+  let html = ["日","一","二","三","四","五","六"].map(x=>`<div class="dow">${x}</div>`).join("");
+  
+  // 补齐上个月空白
+  for(let i=0; i<first.getDay(); i++){
+    html += `<div class="day-cell other-month"></div>`;
+  }
+
+  for(let d=1; d<=last.getDate(); d++){
+    const dt = new Date(y, m, d);
+    const k = key(dt);
+    const dayData = data.days[k] || {};
+    
+    // 判断生理期/排卵期带状渲染
+    const isPeriod = dayData.period === "start" || dayData.period === "on";
+    const isOvulation = dayData.ovulation === "on" || dayData.ovulation === "peak" || autoOvulation.has(k);
+    
+    // 检查前后连贯性，以做圆角处理
+    const prevKey = key(new Date(y, m, d-1));
+    const nextKey = key(new Date(y, m, d+1));
+    const prevPeriod = (data.days[prevKey]||{}).period;
+    const nextPeriod = (data.days[nextKey]||{}).period;
+    
+    let bandClasses = "";
+    if(isPeriod){
+      bandClasses += " period";
+      if(!prevPeriod) bandClasses += " band-start";
+      if(!nextPeriod) bandClasses += " band-end";
+    } else if(isOvulation){
+      bandClasses += " ovulation";
+      if(!autoOvulation.has(prevKey) && !(data.days[prevKey]||{}).ovulation) bandClasses += " band-start";
+      if(!autoOvulation.has(nextKey) && !(data.days[nextKey]||{}).ovulation) bandClasses += " band-end";
+    }
+
+    // 指示标记：日历上只保留姨妈和拉屎
+    let dots = "";
+    if(isPeriod) dots += `<span class="dot period-dot"></span>`;
+    if(dayData.poops && dayData.poops.length) dots += `<span class="dot poop-dot"></span>`;
+
+    const isToday = k === todayStr;
+
+    html += `
+      <div class="day-cell ${isToday?'today':''}" onclick="openDrawer('${k}')">
+        ${(isPeriod || isOvulation) ? `<div class="day-bg-band ${bandClasses}"></div>` : ''}
+        <div class="num-wrap">${d}</div>
+        <div class="indicators">${dots}</div>
+      </div>
+    `;
+  }
+  document.getElementById("calendar").innerHTML = html;
+}
+
+/* 抽屉逻辑 */
+function openDrawer(k){
+  selectedKey = k;
+  document.getElementById("drawerDate").textContent = k;
+  const dayData = data.days[k] || {};
+  
+  document.getElementById("weight").value = dayData.weight ?? "";
+  document.getElementById("period").value = dayData.period || "";
+  document.getElementById("ovulation").value = dayData.ovulation || "";
+  
+  renderPoops();
   document.getElementById("drawerBackdrop").classList.add("open");
-  document.body.style.overflow="hidden";
-  loadSelected();
 }
-function closeDrawer(e){
-  if(e && e.target!==document.getElementById("drawerBackdrop")) return;
+
+function hideDrawer(){
   document.getElementById("drawerBackdrop").classList.remove("open");
-  document.body.style.overflow="";
 }
 
+function closeDrawer(e){
+  if(e.target === document.getElementById("drawerBackdrop")) hideDrawer();
+}
+
+function saveDaily(){
+  const x = dayObj(selectedKey);
+  const w = document.getElementById("weight").value;
+  x.weight = w === "" ? null : Number(w);
+  if(x.weight === null) delete x.weight;
+  
+  x.period = document.getElementById("period").value;
+  x.ovulation = document.getElementById("ovulation").value;
+  if(!x.period) delete x.period;
+  if(!x.ovulation) delete x.ovulation;
+
+  save();
+  renderCalendar();
+  drawChart();
+  prediction();
+  hideDrawer();
+}
+
+function clearDaily(){
+  if(confirm("确定清空当天的记录吗？")){
+    delete data.days[selectedKey];
+    save();
+    renderCalendar();
+    drawChart();
+    prediction();
+    hideDrawer();
+  }
+}
+
+function addPoop(){
+  const x = dayObj(selectedKey);
+  x.poops ||= [];
+  x.poops.push({
+    hour: Number(document.getElementById("poopHour").value),
+    size: document.getElementById("poopSize").value,
+    note: document.getElementById("poopNote").value.trim()
+  });
+  x.poops.sort((a,b)=>a.hour-b.hour);
+  document.getElementById("poopNote").value="";
+  save();
+  renderCalendar();
+  renderPoops();
+}
+
+function removePoop(i){
+  data.days[selectedKey].poops.splice(i,1);
+  save();
+  renderCalendar();
+  renderPoops();
+}
+
+function renderPoops(){
+  const p = (data.days[selectedKey]||{}).poops || [];
+  const container = document.getElementById("poopContainer");
+  if(!p.length){
+    container.innerHTML = `<div style="color:#666;font-size:12px;padding:8px 0">无排便记录</div>`;
+    return;
+  }
+  container.innerHTML = p.map((x,i)=>`
+    <div class="poop-item">
+      <span>💩 ${x.hour}:00 · ${x.size}${x.note?` (${x.note})`:''}</span>
+      <button class="del-btn" onclick="removePoop(${i})">删除</button>
+    </div>
+  `).join("");
+}
+
+/* 体重曲线绘制 (自适应高清屏 & 手势拖拽) */
+function drawChart(){
+  const box = document.getElementById("chartBox");
+  const canvas = document.getElementById("chart");
+  const ctx = canvas.getContext("2d");
+  
+  const dpr = window.devicePixelRatio || 1;
+  const W = box.clientWidth;
+  const H = box.clientHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+
+  const arr = Object.entries(data.days)
+    .filter(([k,x])=>x.weight != null)
+    .sort((a,b)=>a[0].localeCompare(b[0]));
+
+  if(!arr.length){
+    ctx.fillStyle="#666";
+    ctx.font="12px sans-serif";
+    ctx.textAlign="center";
+    ctx.fillText("暂无体重数据", W/2, H/2);
+    document.getElementById("avgW").textContent = "—";
+    document.getElementById("minW").textContent = "—";
+    document.getElementById("maxW").textContent = "—";
+    return;
+  }
+
+  const vals = arr.map(x=>x[1].weight);
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const range = (max - min) || 1;
+
+  document.getElementById("avgW").textContent = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1)+"kg";
+  document.getElementById("minW").textContent = min.toFixed(1)+"kg";
+  document.getElementById("maxW").textContent = max.toFixed(1)+"kg";
+
+  let offset = 0, dragging = false, startX = 0, selectedIdx = -1;
+  const padL = 25, padR = 25, padT = 20, padB = 25;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  const step = Math.max(36, plotW / Math.max(1, arr.length - 1));
+  const totalW = (arr.length - 1) * step;
+  const maxOffset = Math.max(0, totalW - plotW);
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    offset = Math.max(0, Math.min(offset, maxOffset));
+
+    // 背景网格线
+    ctx.strokeStyle="#262a2b";
+    ctx.lineWidth=1;
+    for(let i=0;i<3;i++){
+      let y = padT + i * plotH / 2;
+      ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
+    }
+
+    const pts = arr.map((e,i)=>({
+      x: padL + i*step - offset,
+      y: padT + (max - e[1].weight)/range * plotH,
+      date: e[0],
+      val: e[1].weight
+    }));
+
+    // 折线
+    ctx.beginPath();
+    let started = false;
+    pts.forEach(p=>{
+      if(p.x < padL - 40 || p.x > W + 40) return;
+      if(!started){ ctx.moveTo(p.x, p.y); started=true; }
+      else { ctx.lineTo(p.x, p.y); }
+    });
+    ctx.strokeStyle="#8ca9c8";
+    ctx.lineWidth=2;
+    ctx.stroke();
+
+    // 数据点
+    pts.forEach((p, idx)=>{
+      if(p.x >= padL - 5 && p.x <= W - padR + 5){
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+        ctx.fillStyle="#8ca9c8";
+        ctx.fill();
+      }
+    });
+
+    // 选中点高亮
+    if(selectedIdx >= 0 && pts[selectedIdx]){
+      const p = pts[selectedIdx];
+      if(p.x >= padL && p.x <= W - padR){
+        ctx.beginPath();ctx.arc(p.x, p.y, 5, 0, Math.PI*2);ctx.fillStyle="#eee9df";ctx.fill();
+        ctx.fillStyle="#eee9df";ctx.font="11px sans-serif";ctx.textAlign="center";
+        ctx.fillText(`${p.date.slice(5)} : ${p.val}kg`, p.x, Math.max(12, p.y - 10));
+      }
+    }
+  }
+
+  // 触控交互
+  canvas.onpointerdown = e => {
+    dragging = true; startX = e.clientX;
+    canvas.setPointerCapture(e.pointerId);
+  };
+  canvas.onpointermove = e => {
+    if(dragging){
+      offset -= (e.clientX - startX);
+      startX = e.clientX;
+      render();
+    }
+  };
+  canvas.onpointerup = e => {
+    dragging = false;
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const idx = Math.round((clickX - padL + offset) / step);
+    if(idx >= 0 && idx < arr.length) selectedIdx = idx;
+    render();
+  };
+  canvas.onpointercancel = () => dragging = false;
+
+  render();
+}
+
+/* 生理周期预测 */
+function prediction(){
+  const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
+  const el = document.getElementById("prediction");
+  if(starts.length < 2){
+    el.innerHTML = "标记 2 次及以上“姨妈第一天”，即可自动推算周期与预测排卵期。";
+    return;
+  }
+  let diffs = [];
+  for(let i=1; i<starts.length; i++){
+    diffs.push((new Date(starts[i]) - new Date(starts[i-1])) / 86400000);
+  }
+  const avg = diffs.reduce((a,b)=>a+b,0) / diffs.length;
+  const last = new Date(starts.at(-1)+"T00:00:00");
+  
+  const nextP = new Date(last); nextP.setDate(nextP.getDate() + Math.round(avg));
+  const nextOv = new Date(nextP); nextOv.setDate(nextOv.getDate() - 14);
+
+  el.innerHTML = `
+    平均周期：<b>${avg.toFixed(1)} 天</b><br>
+    预计下次姨妈：<b>${nextP.getMonth()+1}月${nextP.getDate()}日</b> 前后<br>
+    预计下次排卵：<b>${nextOv.getMonth()+1}月${nextOv.getDate()}日</b> 前后
+  `;
+}
+
+/* 导出与导入 */
 function exportData(){
- const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="身体日记备份.json";a.click();URL.revokeObjectURL(a.href)
-}
-function importData(e){
- const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.days)throw 0;data=x;save();render();loadSelected();drawChart();prediction();alert("导入成功")}catch{alert("文件格式不正确")}};r.readAsText(f)
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `piisuke_backup_${key(new Date())}.json`;
+  a.click();
 }
 
-// 预置用户提供的数据
-const preset={
-"2026-01-16":{period:"start"},"2026-02-12":{period:"start"},"2026-03-13":{period:"start"},"2026-04-11":{period:"start"},"2026-05-08":{period:"start"},"2026-06-06":{period:"start"},"2026-07-05":{period:"start"},"2026-08-02":{period:"start"},
-"2026-07-06":{weight:52.1,poops:[{hour:8,size:"小"},{hour:13,size:"小小"},{hour:18,size:"小偏中"}]},
-"2026-07-07":{weight:52.2,poops:[{hour:11,size:"中"}]},
-"2026-07-08":{weight:52.2},"2026-07-09":{weight:52.4},
-"2026-07-10":{weight:52.6,poops:[{hour:10,size:"小偏中"}]},
-"2026-07-11":{weight:52.5,poops:[{hour:9,size:"中"},{hour:10,size:"大"}]},
-"2026-07-12":{weight:52.2,poops:[{hour:10,size:"中"}]},
-"2026-07-13":{weight:51.9},"2026-07-14":{weight:52.2},
-"2026-07-15":{weight:52.5,poops:[{hour:10,size:"大"}]},
-"2026-07-16":{weight:52.6},"2026-07-17":{weight:52.8,poops:[{hour:7,size:"大"}]},
-"2026-07-18":{weight:52.7,poops:[{hour:17,size:"中"}]},
-"2026-07-19":{weight:52.5,poops:[{hour:11,size:"中"}]},
-"2026-07-20":{weight:52.1},"2026-07-21":{weight:51.9},"2026-07-22":{weight:52.6},"2026-07-23":{weight:52.4},
-"2026-07-24":{weight:52.1,poops:[{hour:7,size:"大"}]},
-"2026-07-25":{weight:51.9,poops:[{hour:12,size:"大"}]},
-"2026-07-26":{weight:52.0,poops:[{hour:11,size:"中"}]},
-"2026-07-27":{weight:51.8},"2026-07-28":{weight:52.2},"2026-07-29":{weight:52.4,poops:[{hour:10,size:"中"}]},
-"2026-07-30":{weight:52.2,poops:[{hour:7,size:"中"}]},
-"2026-07-31":{weight:52.3,poops:[{hour:11,size:"中"}]},
-"2026-08-01":{weight:52.3,poops:[{hour:15,size:"小偏中"}]},
-"2026-08-02":{weight:52.1,poops:[{hour:10,size:"大"}],period:"start"},
-"2026-08-03":{weight:51.9},"2026-08-04":{weight:52.1},
-"2026-08-05":{weight:52.3,poops:[{hour:15,size:"中偏大"}]},
-"2026-08-09":{poops:[{hour:0,size:"大",note:"时间未记录"}]},
-"2026-08-12":{weight:52.4},
-"2026-08-16":{weight:52.3,poops:[{hour:20,size:"硬",note:"晚上开塞露"}]},
-"2026-08-17":{weight:52.3}
+function importData(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if(!parsed.days) throw new Error();
+      data = parsed;
+      save();
+      init();
+      alert("导入成功！");
+    } catch(err) {
+      alert("导入失败：无效的 JSON 备份文件。");
+    }
+  };
+  reader.readAsText(file);
+}
+
+// 自动置入初始数据逻辑（保持老版本一致）
+const preset = {
+  "2026-08-02":{period:"start",weight:52.1,poops:[{hour:10,size:"大"}]},
+  "2026-08-03":{weight:51.9},
+  "2026-08-04":{weight:52.1},
+  "2026-08-05":{weight:52.3,poops:[{hour:15,size:"中偏大"}]},
+  "2026-08-12":{weight:52.4},
+  "2026-08-16":{weight:52.3,poops:[{hour:20,size:"硬",note:"开塞露"}]}
 };
 for(const [k,v] of Object.entries(preset)) data.days[k] ||= v;
-save();init();
+save();
+
+window.onload = init;
+window.onresize = drawChart;
 </script>
 </body>
 </html>
