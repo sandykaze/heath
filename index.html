@@ -3,55 +3,87 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111314">
+<meta name="theme-color" content="#f4f6f5">
 <title>Piiisuke — Personal Body Log</title>
 <style>
 :root{
-  --bg:#111314;--card:#191c1d;--card2:#202425;--text:#f2f0eb;--muted:#8d918e;--line:#2a2e2e;
-  --rose:#e08295;--rose-bg:rgba(224,130,149,0.25);
-  --follicle:#60a5fa;--follicle-bg:rgba(96,165,250,0.22);
-  --purple:#a78bfa;--purple-bg:rgba(167,139,250,0.25);
-  --luteal:#facc15;--luteal-bg:rgba(250,204,21,0.22);
-  --brown:#c8a789;--ice:#8ca9c8;--gold:#d4af37;
-  --shadow:0 18px 60px rgba(0,0,0,.35);
-  --radius:20px;
+  /* 清新高级感色板 */
+  --bg-gradient: linear-gradient(170deg, #f7f9f8 0%, #eef2f0 100%);
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(230, 235, 232, 0.8);
+  --text-main: #2d3436;
+  --text-muted: #889290;
+  
+  --rose: #e8889a;
+  --rose-bg: rgba(232, 136, 154, 0.22);
+  --purple: #9f86c0;
+  --purple-bg: rgba(159, 134, 192, 0.22);
+  --brown: #b07d5b;
+  --gold: #e2b049;
+  
+  --diff-down: #48bb78; /* 减重 - 绿色 */
+  --diff-up: #e53e3e;   /* 增重 - 红色 */
+
+  --shadow: 0 10px 30px rgba(160, 175, 170, 0.15);
+  --radius: 22px;
 }
+
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{
   margin:0;
-  background:radial-gradient(circle at 50% -10%,#242829 0,#111314 44%,#0e1011 100%);
-  color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","Noto Sans SC",sans-serif;
-  letter-spacing:.01em;
-  min-height:100vh;
+  background: var(--bg-gradient);
+  color: var(--text-main);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Noto Sans SC", sans-serif;
+  letter-spacing: .01em;
+  min-height: 100vh;
 }
-.wrap{max-width:600px;margin:auto;padding:20px 16px 80px}
+.wrap{max-width:600px;margin:auto;padding:24px 16px 80px}
+
+/* Brand */
 .brand{display:flex;align-items:center;gap:12px;margin:8px 4px 20px}
-.brand-mark{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#eee9df;color:#171717;font-size:16px;font-weight:800}
-h1{font-size:24px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em}
-.sub{color:#707674;font-size:10px;letter-spacing:.15em;margin:4px 0 0}
+.brand-mark{
+  width:40px;height:40px;border-radius:50%;
+  display:grid;place-items:center;
+  background:#2d3436;color:#fff;
+  font-size:17px;font-weight:800;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+h1{font-size:22px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em;color:#2d3436}
+.sub{color:var(--text-muted);font-size:10px;letter-spacing:.15em;margin:4px 0 0}
 
-.card{background:rgba(25,28,29,.95);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin:14px 0;box-shadow:var(--shadow)}
+/* Card Style */
+.card{
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  margin: 16px 0;
+  box-shadow: var(--shadow);
+}
 
-/* Header & Month Nav */
+/* Toolbar & Legend */
 .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.toolbar button{width:32px;height:32px;background:#242829;color:#ddd;border:0;border-radius:50%;font-size:18px;cursor:pointer;display:grid;place-items:center}
-.month{font-weight:700;font-size:17px;color:#eee}
-.legend{display:flex;gap:10px;color:var(--muted);font-size:11px;margin-bottom:12px;justify-content:center;flex-wrap:wrap}
-.legend span{display:flex;align-items:center;gap:4px}
+.toolbar button{
+  width:34px;height:34px;background:#ffffff;color:#555;
+  border:1px solid #e2e8e5;border-radius:50%;font-size:18px;
+  cursor:pointer;display:grid;place-items:center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+.month{font-weight:700;font-size:17px;color:#2d3436}
+.legend{display:flex;gap:14px;color:var(--text-muted);font-size:11px;margin-bottom:14px;justify-content:center}
+.legend span{display:flex;align-items:center;gap:5px}
 .legend span:before{content:"";width:8px;height:8px;border-radius:50%;display:inline-block}
 .legend .leg-period:before{background:var(--rose)}
-.legend .leg-follicle:before{background:var(--follicle)}
 .legend .leg-ovulation:before{background:var(--purple)}
-.legend .leg-luteal:before{background:var(--luteal)}
 .legend .leg-poop:before{background:var(--brown)}
 
 /* Calendar Grid */
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:4px;position:relative}
-.dow{text-align:center;color:#656b69;font-size:11px;font-weight:600;padding:6px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:6px;position:relative}
+.dow{text-align:center;color:#a0aab0;font-size:11px;font-weight:600;padding:4px 0}
 .day-cell{
   position:relative;
-  height:58px;
+  height:62px;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -60,126 +92,140 @@ h1{font-size:24px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em}
   cursor:pointer;
   user-select:none;
 }
+
+/* 带有边缘圆角的色块背景 */
 .day-bg-band{
   position:absolute;
   top:2px;bottom:2px;left:0;right:0;
   z-index:1;
   pointer-events:none;
 }
-/* 实线与虚线预测色块 */
 .day-bg-band.period{background:var(--rose-bg)}
-.day-bg-band.follicle{background:var(--follicle-bg)}
 .day-bg-band.ovulation{background:var(--purple-bg)}
-.day-bg-band.luteal{background:var(--luteal-bg)}
 
-.day-bg-band.pred{opacity:0.6;border:1px dashed transparent}
-.day-bg-band.pred.period{border-color:var(--rose);background:rgba(224,130,149,0.12)}
-.day-bg-band.pred.follicle{border-color:var(--follicle);background:rgba(96,165,250,0.11)}
-.day-bg-band.pred.ovulation{border-color:var(--purple);background:rgba(167,139,250,0.12)}
-.day-bg-band.pred.luteal{border-color:var(--luteal);background:rgba(250,204,21,0.11)}
+/* 预测模式虚线线框 */
+.day-bg-band.pred{opacity:0.65;border:1px dashed transparent}
+.day-bg-band.pred.period{border-color:var(--rose);background:rgba(232, 136, 154, 0.12)}
+.day-bg-band.pred.ovulation{border-color:var(--purple);background:rgba(159, 134, 192, 0.12)}
 
-.day-bg-band.band-start{border-top-left-radius:12px;border-bottom-left-radius:12px;left:2px}
-.day-bg-band.band-end{border-top-right-radius:12px;border-bottom-right-radius:12px;right:2px}
+.day-bg-band.band-start{border-top-left-radius:10px;border-bottom-left-radius:10px;left:2px}
+.day-bg-band.band-end{border-top-right-radius:10px;border-bottom-right-radius:10px;right:2px}
 
 .num-wrap{
   position:relative;
   z-index:2;
-  width:26px;
-  height:26px;
+  width:24px;
+  height:24px;
   border-radius:50%;
   display:grid;
   place-items:center;
-  font-size:13px;
-  font-weight:500;
-  color:#ccc;
+  font-size:12px;
+  font-weight:600;
+  color:#4a5568;
 }
-.day-cell.today .num-wrap{background:var(--gold);color:#111;font-weight:700}
+.day-cell.today .num-wrap{background:#2d3436;color:#fff}
 .day-cell.other-month{opacity:0.25}
 
-.indicators{
+/* 单元格信息：包含体重与便便 */
+.cell-info{
   position:relative;
   z-index:2;
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:1px;
   margin-top:2px;
-  height:20px;
+  line-height:1.1;
 }
-.dot{width:5px;height:5px;border-radius:50%;display:inline-block}
-.dot.period-dot{background:var(--rose)}
-.poop-dots{font-size:8px;line-height:1;color:var(--brown);letter-spacing:-1px}
+.weight-tag{
+  font-size:9px;
+  color:#5a6578;
+  font-weight:500;
+  transform:scale(0.9);
+  white-space:nowrap;
+}
+.weight-diff{font-size:8px;margin-left:1px}
+.weight-diff.down{color:var(--diff-down)}
+.weight-diff.up{color:var(--diff-up)}
+
+.poop-dots{font-size:7px;line-height:1;color:var(--brown);letter-spacing:-1px;margin-top:1px}
 
 /* Stats & Chart */
-.section-title{font-weight:700;font-size:15px;color:#e8e5df;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
-.chart-hint{font-size:11px;color:#666c69;font-weight:400}
-.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
-.stat{background:#202425;border-radius:14px;padding:10px 12px;text-align:center}
-.stat b{display:block;font-size:16px;color:#eee;margin-top:2px}
-.stat span{font-size:10px;color:#777d7a}
+.section-title{font-weight:700;font-size:15px;color:#2d3436;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.chart-hint{font-size:11px;color:var(--text-muted);font-weight:400}
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:#f8faf9;border:1px solid #eaefe2;border-radius:14px;padding:10px 12px;text-align:center}
+.stat b{display:block;font-size:16px;color:#2d3436;margin-top:2px}
+.stat span{font-size:10px;color:var(--text-muted)}
 .chart-container{width:100%;height:210px;position:relative;touch-action:none}
 canvas{width:100%;height:100%;display:block}
 
 /* Prediction & Future List */
-.notice{background:#202425;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.6;color:#c6cac7}
+.notice{background:#f8faf9;border:1px solid #eae2e5;border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:#4a5568}
 .prediction-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:8px;
-  margin-top:10px;
+  margin-top:12px;
   max-height:220px;
   overflow-y:auto;
   padding-right:4px;
 }
 .pred-item{
-  background:#181b1c;
-  border:1px solid #2a2e2e;
+  background:#ffffff;
+  border:1px solid #eef2f0;
   border-radius:10px;
   padding:8px 10px;
   font-size:12px;
   display:flex;
   justify-content:space-between;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
-.pred-item .m-label{color:#8d918e}
-.pred-item .d-label{color:#e08295;font-weight:600;font-family:monospace}
+.pred-item .m-label{color:var(--text-muted)}
+.pred-item .d-label{color:var(--rose);font-weight:600;font-family:monospace}
 
 /* Backup */
 .backup{display:flex;gap:10px}
-.backup button{flex:1;padding:10px;border-radius:12px;background:#242829;border:1px solid var(--line);color:#bbb;font-size:12px;cursor:pointer}
+.backup button{
+  flex:1;padding:10px;border-radius:12px;
+  background:#ffffff;border:1px solid #e2e8e5;
+  color:#4a5568;font-size:12px;font-weight:500;
+  cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,0.02);
+}
 
 /* Drawer / Modal Bottom Sheet */
 .drawer-backdrop{
-  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(10px);
+  position:fixed;inset:0;background:rgba(45, 52, 54, 0.4);backdrop-filter:blur(6px);
   z-index:100;display:none;align-items:flex-end;
 }
 .drawer-backdrop.open{display:flex}
 .drawer{
-  width:100%;max-width:600px;margin:auto;background:#181b1c;
-  border:1px solid #303535;border-bottom:0;border-radius:24px 24px 0 0;
-  box-shadow:0 -10px 40px rgba(0,0,0,.5);max-height:85vh;overflow-y:auto;
+  width:100%;max-width:600px;margin:auto;background:#ffffff;
+  border-radius:24px 24px 0 0;
+  box-shadow:0 -10px 40px rgba(0,0,0,0.1);max-height:85vh;overflow-y:auto;
   animation:slideUp .2s cubic-bezier(0.16,1,0.3,1);
 }
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.drawer-handle{width:36px;height:4px;border-radius:99px;background:#444948;margin:10px auto 4px}
-.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:10px 20px 14px;border-bottom:1px solid var(--line)}
-.drawer-head h2{margin:0;font-size:18px;color:#eee}
-.close-btn{width:28px;height:28px;border-radius:50%;background:#262a2b;color:#bbb;border:0;font-size:18px;cursor:pointer;display:grid;place-items:center}
+.drawer-handle{width:36px;height:4px;border-radius:99px;background:#e2e8e5;margin:12px auto 4px}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:10px 20px 14px;border-bottom:1px solid #f0f4f2}
+.drawer-head h2{margin:0;font-size:18px;color:#2d3436}
+.close-btn{width:28px;height:28px;border-radius:50%;background:#f0f4f2;color:#777;border:0;font-size:16px;cursor:pointer;display:grid;place-items:center}
 .drawer-body{padding:16px 20px 30px}
 
 .field-group{margin-bottom:14px}
-.field-group label{display:block;color:#8d918e;font-size:12px;margin-bottom:6px}
+.field-group label{display:block;color:var(--text-muted);font-size:12px;margin-bottom:6px}
 .field-group input,.field-group select{
-  width:100%;border:1px solid #303535;border-radius:12px;padding:10px 12px;background:#202425;color:#eee;font-size:14px;outline:none;
+  width:100%;border:1px solid #e2e8e5;border-radius:12px;padding:10px 12px;
+  background:#f8faf9;color:#2d3436;font-size:14px;outline:none;
 }
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .actions{display:flex;gap:10px;margin-top:18px}
-.btn-primary{background:#eee9df;color:#171717;border:0;padding:12px;border-radius:12px;font-weight:600;flex:1;cursor:pointer}
-.btn-danger{background:#272b2c;color:#e08295;border:0;padding:12px;border-radius:12px;cursor:pointer}
-.poop-list{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
-.poop-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;border-bottom:1px solid #232728}
-.del-btn{background:none;border:0;color:#777;font-size:12px;cursor:pointer}
+.btn-primary{background:#2d3436;color:#ffffff;border:0;padding:12px;border-radius:12px;font-weight:600;flex:1;cursor:pointer}
+.btn-danger{background:#fff0f2;color:var(--rose);border:1px solid #fce4e8;padding:12px;border-radius:12px;cursor:pointer;font-weight:600}
+.poop-list{margin-top:14px;border-top:1px solid #f0f4f2;padding-top:12px}
+.poop-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;border-bottom:1px solid #f5f8f6}
+.del-btn{background:none;border:0;color:#a0aab0;font-size:12px;cursor:pointer}
 
-.footer{color:#555b59;font-size:10px;text-align:center;margin-top:24px}
+.footer{color:#a0aab0;font-size:10px;text-align:center;margin-top:24px}
 </style>
 </head>
 <body>
@@ -202,9 +248,7 @@ canvas{width:100%;height:100%;display:block}
     </div>
     <div class="legend">
       <span class="leg-period">姨妈期</span>
-      <span class="leg-follicle">卵泡期</span>
       <span class="leg-ovulation">排卵期</span>
-      <span class="leg-luteal">黄体期</span>
       <span class="leg-poop">排便</span>
     </div>
     <div class="cal-grid" id="calendar"></div>
@@ -213,7 +257,7 @@ canvas{width:100%;height:100%;display:block}
   <!-- 2. 体重趋势 -->
   <div class="card">
     <div class="section-title">
-      体重趋势 <span class="chart-hint">左右滑动 · 点击查看详情气泡</span>
+      体重趋势 <span class="chart-hint">左右滑动 · 点击查看气泡</span>
     </div>
     <div class="statgrid">
       <div class="stat"><span id="avgW">—</span><b>平均</b></div>
@@ -247,7 +291,7 @@ canvas{width:100%;height:100%;display:block}
   <div class="footer">仅供个人数据记录与健康观察，不替代医疗诊断。</div>
 </div>
 
-<!-- 5. 底部抽屉 -->
+<!-- 5. 底部抽屉 Modal -->
 <div class="drawer-backdrop" id="drawerBackdrop" onclick="closeDrawer(event)">
   <div class="drawer" onclick="event.stopPropagation()">
     <div class="drawer-handle"></div>
@@ -286,7 +330,7 @@ canvas{width:100%;height:100%;display:block}
       </div>
 
       <div class="poop-list">
-        <label style="color:#8d918e;font-size:12px;display:block;margin-bottom:8px">💩 排便记录</label>
+        <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:8px">💩 排便记录</label>
         <div class="grid-2">
           <div class="field-group">
             <select id="poopHour"></select>
@@ -304,7 +348,7 @@ canvas{width:100%;height:100%;display:block}
         <div class="field-group">
           <input id="poopNote" placeholder="备注（如：开塞露、硬）">
         </div>
-        <button class="btn-primary" style="width:100%;padding:8px;font-size:13px" onclick="addPoop()">＋ 添加一次排便</button>
+        <button class="btn-primary" style="width:100%;padding:8px;font-size:13px;background:#f0f4f2;color:#2d3436" onclick="addPoop()">＋ 添加一次排便</button>
         <div id="poopContainer"></div>
       </div>
     </div>
@@ -316,7 +360,6 @@ const KEY="bodyDiaryV3";
 let data=JSON.parse(localStorage.getItem(KEY)||'{"days":{}}');
 let selectedKey = "";
 let viewDate = new Date();
-let chartFocusInit = false; // 控制初次渲染高亮最新节点
 
 function pad(n){return String(n).padStart(2,"0")}
 function key(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
@@ -340,10 +383,10 @@ function sizeRank(size){
   return ranks[size] || 1;
 }
 
-// 计算平均周期天数
+// 平均周期长度
 function getAvgCycleLength(){
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
-  if(starts.length < 2) return 28; // 默认28天
+  if(starts.length < 2) return 28;
   let diffs = [];
   for(let i=1; i<starts.length; i++){
     diffs.push((new Date(starts[i]) - new Date(starts[i-1])) / 86400000);
@@ -351,20 +394,18 @@ function getAvgCycleLength(){
   return Math.round(diffs.reduce((a,b)=>a+b,0) / diffs.length);
 }
 
-// 核心：推算历史与未来的四大生理时期 (月经期、卵泡期、排卵期、黄体期)
+// 仅推算月经期与排卵期（隐去卵泡期与黄体期）
 function computeCyclePhases(){
-  const phases = {}; // key -> { phase: 'period'|'follicle'|'ovulation'|'luteal', isPred: boolean }
+  const phases = {}; // key -> { phase: 'period'|'ovulation', isPred: boolean }
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
   const avgCycle = getAvgCycleLength();
 
   if(!starts.length) return phases;
 
-  // 1. 处理历史与近期真实数据 (根据 start 扩展)
+  // 1. 历史与已知数据
   starts.forEach((sKey, idx) => {
     const sDate = new Date(sKey+"T00:00:00");
     const nextSDate = starts[idx+1] ? new Date(starts[idx+1]+"T00:00:00") : new Date(sDate.getTime() + avgCycle*86400000);
-    
-    // 该周期总天数
     const cycleDays = Math.round((nextSDate - sDate) / 86400000);
     
     for(let i=0; i<cycleDays; i++){
@@ -372,22 +413,17 @@ function computeCyclePhases(){
       curr.setDate(curr.getDate() + i);
       const k = key(curr);
 
-      // 默认规则：姨妈前5天为月经期；下次月经前14天为排卵日，排卵日及前5后1为排卵期；其余为卵泡期/黄体期
-      let p = "follicle";
+      let p = null;
       if(i < 5){
         p = "period";
       } else if(i >= cycleDays - 19 && i <= cycleDays - 13){
         p = "ovulation";
-      } else if(i > cycleDays - 13){
-        p = "luteal";
-      } else {
-        p = "follicle";
       }
-      phases[k] = { phase: p, isPred: false };
+      if(p) phases[k] = { phase: p, isPred: false };
     }
   });
 
-  // 2. 推算未来 12 个月的预测数据
+  // 2. 未来预测
   let lastStart = new Date(starts.at(-1)+"T00:00:00");
   for(let m=1; m<=12; m++){
     let pStart = new Date(lastStart);
@@ -398,24 +434,40 @@ function computeCyclePhases(){
       curr.setDate(curr.getDate() + i);
       const k = key(curr);
 
-      // 若已有真实记录不覆盖
       if(phases[k] && !phases[k].isPred) continue;
 
-      let p = "follicle";
+      let p = null;
       if(i < 5){
         p = "period";
       } else if(i >= avgCycle - 19 && i <= avgCycle - 13){
         p = "ovulation";
-      } else if(i > avgCycle - 13){
-        p = "luteal";
-      } else {
-        p = "follicle";
       }
-      phases[k] = { phase: p, isPred: true };
+      if(p) phases[k] = { phase: p, isPred: true };
     }
   }
 
   return phases;
+}
+
+// 计算每间日记录的体重相比于前一个有记录体重的对比差值
+function computeWeightDifferences(){
+  const sortedDates = Object.keys(data.days)
+    .filter(k => data.days[k].weight != null)
+    .sort();
+  
+  const diffs = {};
+  for(let i=0; i<sortedDates.length; i++){
+    const k = sortedDates[i];
+    const currW = data.days[k].weight;
+    if(i === 0){
+      diffs[k] = null; // 第一个记录没有上一个可对比
+    } else {
+      const prevW = data.days[sortedDates[i-1]].weight;
+      const diff = currW - prevW;
+      diffs[k] = Number(diff.toFixed(1));
+    }
+  }
+  return diffs;
 }
 
 function init(){
@@ -444,6 +496,7 @@ function renderCalendar(){
   const todayStr = key(new Date());
   
   const phases = computeCyclePhases();
+  const weightDiffs = computeWeightDifferences();
 
   let html = ["日","一","二","三","四","五","六"].map(x=>`<div class="dow">${x}</div>`).join("");
   
@@ -457,7 +510,6 @@ function renderCalendar(){
     const dayData = data.days[k] || {};
     const phaseInfo = phases[k] || {};
     
-    // 手动选择排卵状态可以覆盖展示
     let phaseType = phaseInfo.phase;
     if(dayData.ovulation === "on" || dayData.ovulation === "peak") phaseType = "ovulation";
     if(dayData.period === "start" || dayData.period === "on") phaseType = "period";
@@ -474,13 +526,24 @@ function renderCalendar(){
     if(prevPhase !== phaseType) bandClasses += " band-start";
     if(nextPhase !== phaseType) bandClasses += " band-end";
 
-    // 点阵显示
-    let dots = "";
-    if(phaseType === "period" && !isPred) dots += `<span class="dot period-dot"></span>`;
-    
+    // 体重与正负差值 HTML 构建
+    let weightHtml = "";
+    if(dayData.weight != null){
+      const diffVal = weightDiffs[k];
+      let diffStr = "";
+      if(diffVal != null && diffVal !== 0){
+        const sign = diffVal > 0 ? "+" : "";
+        const cls = diffVal > 0 ? "up" : "down";
+        diffStr = `<span class="weight-diff ${cls}">(${sign}${diffVal})</span>`;
+      }
+      weightHtml = `<div class="weight-tag">${dayData.weight}${diffStr}</div>`;
+    }
+
+    // 便便标记
+    let poopHtml = "";
     if(dayData.poops && dayData.poops.length){
       let maxPoop = dayData.poops.reduce((prev, curr) => sizeRank(curr.size) > sizeRank(prev.size) ? curr : prev, dayData.poops[0]);
-      dots += `<span class="poop-dots">${sizeToDots(maxPoop.size)}</span>`;
+      poopHtml = `<div class="poop-dots">${sizeToDots(maxPoop.size)}</div>`;
     }
 
     const isToday = k === todayStr;
@@ -489,14 +552,17 @@ function renderCalendar(){
       <div class="day-cell ${isToday?'today':''}" onclick="openDrawer('${k}')">
         ${phaseType ? `<div class="day-bg-band ${bandClasses}"></div>` : ''}
         <div class="num-wrap">${d}</div>
-        <div class="indicators">${dots}</div>
+        <div class="cell-info">
+          ${weightHtml}
+          ${poopHtml}
+        </div>
       </div>
     `;
   }
   document.getElementById("calendar").innerHTML = html;
 }
 
-/* 抽屉逻辑 */
+/* 抽屉 Modal 逻辑 */
 function openDrawer(k){
   selectedKey = k;
   document.getElementById("drawerDate").textContent = k;
@@ -573,7 +639,7 @@ function renderPoops(){
   const p = (data.days[selectedKey]||{}).poops || [];
   const container = document.getElementById("poopContainer");
   if(!p.length){
-    container.innerHTML = `<div style="color:#666;font-size:12px;padding:8px 0">无排便记录</div>`;
+    container.innerHTML = `<div style="color:var(--text-muted);font-size:12px;padding:8px 0">无排便记录</div>`;
     return;
   }
   container.innerHTML = p.map((x,i)=>`
@@ -584,7 +650,7 @@ function renderPoops(){
   `).join("");
 }
 
-/* 体重曲线绘制 (包含底色时期区、底部时间轴、完整弹窗气泡) */
+/* 体重折线图（仅展示姨妈与排卵底色色块） */
 function drawChart(){
   const box = document.getElementById("chartBox");
   const canvas = document.getElementById("chart");
@@ -602,7 +668,7 @@ function drawChart(){
     .sort((a,b)=>a[0].localeCompare(b[0]));
 
   if(!arr.length){
-    ctx.fillStyle="#666";
+    ctx.fillStyle="#a0aab0";
     ctx.font="12px sans-serif";
     ctx.textAlign="center";
     ctx.fillText("暂无体重数据", W/2, H/2);
@@ -630,17 +696,14 @@ function drawChart(){
   const totalW = (arr.length - 1) * step;
   const maxOffset = Math.max(0, totalW - plotW);
 
-  // 默认定位到最靠右（最新）的节点
   let offset = maxOffset;
   let selectedIdx = arr.length - 1;
   let dragging = false, startX = 0;
 
   function getPhaseColor(p){
     switch(p){
-      case 'period': return 'rgba(224,130,149,0.18)';
-      case 'follicle': return 'rgba(96,165,250,0.15)';
-      case 'ovulation': return 'rgba(167,139,250,0.18)';
-      case 'luteal': return 'rgba(250,204,21,0.15)';
+      case 'period': return 'rgba(232, 136, 154, 0.22)';
+      case 'ovulation': return 'rgba(159, 134, 192, 0.22)';
       default: return 'transparent';
     }
   }
@@ -649,28 +712,29 @@ function drawChart(){
     ctx.clearRect(0,0,W,H);
     offset = Math.max(0, Math.min(offset, maxOffset));
 
-    // 1. 背景生理期色块
+    // 1. 仅背景生理期色块（姨妈 & 排卵）
     for(let i=0; i<arr.length; i++){
       const x1 = padL + i*step - offset - step/2;
       const x2 = x1 + step;
       if(x2 < padL || x1 > W - padR) continue;
 
       const phase = (phases[arr[i][0]]||{}).phase;
-      ctx.fillStyle = getPhaseColor(phase);
-      const drawX1 = Math.max(padL, x1);
-      const drawX2 = Math.min(W - padR, x2);
-      ctx.fillRect(drawX1, padT, drawX2 - drawX1, plotH);
+      if(phase){
+        ctx.fillStyle = getPhaseColor(phase);
+        const drawX1 = Math.max(padL, x1);
+        const drawX2 = Math.min(W - padR, x2);
+        ctx.fillRect(drawX1, padT, drawX2 - drawX1, plotH);
+      }
     }
 
     // 2. 网格横线
-    ctx.strokeStyle="#262a2b";
+    ctx.strokeStyle="#eef2f0";
     ctx.lineWidth=1;
     for(let i=0;i<3;i++){
       let y = padT + i * plotH / 2;
       ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
     }
 
-    // 计算点坐标
     const pts = arr.map((e,i)=>({
       x: padL + i*step - offset,
       y: padT + (max - e[1].weight)/range * plotH,
@@ -687,24 +751,22 @@ function drawChart(){
       if(!started){ ctx.moveTo(p.x, p.y); started=true; }
       else { ctx.lineTo(p.x, p.y); }
     });
-    ctx.strokeStyle="#8ca9c8";
+    ctx.strokeStyle="#5a6578";
     ctx.lineWidth=2;
     ctx.stroke();
 
-    // 4. 点 & 底部刻度轴
+    // 4. 点 & 刻度
     ctx.font="10px sans-serif";
     ctx.textAlign="center";
 
     pts.forEach((p, idx)=>{
       if(p.x >= padL - 5 && p.x <= W - padR + 5){
-        // 点
         ctx.beginPath();
         ctx.arc(p.x, p.y, 3.5, 0, Math.PI*2);
-        ctx.fillStyle="#8ca9c8";
+        ctx.fillStyle="#5a6578";
         ctx.fill();
 
-        // X轴刻度与文字
-        ctx.fillStyle="#666c69";
+        ctx.fillStyle="#a0aab0";
         ctx.fillRect(p.x, padT + plotH, 1, 4);
         if(idx % Math.ceil(arr.length/10) === 0 || idx === selectedIdx){
           ctx.fillText(p.date.slice(5), p.x, padT + plotH + 16);
@@ -712,14 +774,12 @@ function drawChart(){
       }
     });
 
-    // 5. 选中点的气泡特效 (日期 + 体重 + 拉屎情况)
+    // 5. 选中点弹窗气泡
     if(selectedIdx >= 0 && pts[selectedIdx]){
       const p = pts[selectedIdx];
       if(p.x >= padL && p.x <= W - padR){
-        // 突出点
-        ctx.beginPath();ctx.arc(p.x, p.y, 6, 0, Math.PI*2);ctx.fillStyle="#eee9df";ctx.fill();
+        ctx.beginPath();ctx.arc(p.x, p.y, 6, 0, Math.PI*2);ctx.fillStyle="#2d3436";ctx.fill();
 
-        // 整理气泡内文本
         const dateStr = p.date.replace(/-/g,"/");
         let poopStr = "";
         if(p.raw.poops && p.raw.poops.length){
@@ -740,21 +800,20 @@ function drawChart(){
         let bubbleY = p.y - boxH - 10;
         if(bubbleY < 5) bubbleY = p.y + 12;
 
-        // 绘制气泡背景
-        ctx.fillStyle="rgba(32, 36, 37, 0.92)";
-        ctx.strokeStyle="#444948";
+        // 柔和白底气泡
+        ctx.fillStyle="rgba(255, 255, 255, 0.95)";
+        ctx.strokeStyle="#e2e8e5";
         ctx.lineWidth=1;
         ctx.beginPath();
         ctx.roundRect(bubbleX, bubbleY, boxW, boxH, 8);
         ctx.fill();
         ctx.stroke();
 
-        // 绘制气泡文字
-        ctx.fillStyle="#eee9df";
+        ctx.fillStyle="#2d3436";
         ctx.textAlign="left";
         ctx.fillText(line1, bubbleX + 8, bubbleY + (line2 ? 14 : 15));
         if(line2){
-          ctx.fillStyle="#c8a789";
+          ctx.fillStyle="var(--brown)";
           ctx.fillText(line2, bubbleX + 8, bubbleY + 28);
         }
       }
@@ -785,7 +844,6 @@ function drawChart(){
   render();
 }
 
-/* 预测未来 12 个月生理期 (精简日期格式与文案) */
 function prediction(){
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
   const summaryEl = document.getElementById("predSummary");
@@ -847,9 +905,8 @@ function importData(e){
   reader.readAsText(file);
 }
 
-// 包含所有历史姨妈期与 7-8 月全量用户数据的预置对象
+// 预置数据
 const preset = {
-  // 姨妈第一天 (系统会自动推算并展示 5 天月经期)
   "2026-01-16":{period:"start"},
   "2026-02-12":{period:"start"},
   "2026-03-13":{period:"start"},
@@ -859,7 +916,6 @@ const preset = {
   "2026-07-05":{period:"start"},
   "2026-08-02":{period:"start"},
 
-  // 7月完整记录
   "2026-07-06":{weight:52.1, poops:[{hour:8,size:"小"},{hour:13,size:"小"},{hour:18,size:"小偏中"}]},
   "2026-07-07":{weight:52.2, poops:[{hour:11,size:"中"}]},
   "2026-07-08":{weight:52.2},
@@ -887,7 +943,6 @@ const preset = {
   "2026-07-30":{weight:52.2, poops:[{hour:7,size:"中"}]},
   "2026-07-31":{weight:52.3, poops:[{hour:11,size:"中"}]},
 
-  // 8月记录
   "2026-08-01":{weight:52.3, poops:[{hour:15,size:"小偏中"}]},
   "2026-08-02":{weight:52.1, period:"start", poops:[{hour:10,size:"大"}]},
   "2026-08-03":{weight:51.9},
