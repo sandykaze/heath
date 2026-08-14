@@ -1,502 +1,208 @@
-html_content = '''<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>健康日记 & 生理期预测</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    /* Custom Calendar Grid & Touch Friendly Adjustments */
-    .cal-day { min-height: 58px; }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#fff7f5">
+<title>身体日记｜体重 · 姨妈 · 排便</title>
+<style>
+:root{--bg:#fff9f7;--card:#fff;--text:#332b2a;--muted:#887d79;--line:#eee3df;--pink:#ef8fa0;--pink2:#fde7eb;--blue:#8caedb;--blue2:#eaf2fb;--green:#86b99b;--green2:#e9f5ed;--brown:#b98970;--shadow:0 6px 22px #7b5b5120}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC",sans-serif}
+button,input,select{font:inherit} button{border:0;cursor:pointer}.wrap{max-width:760px;margin:auto;padding:16px 14px 70px}
+h1{font-size:25px;margin:8px 2px 4px}.sub{color:var(--muted);font-size:13px;margin:0 2px 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin:12px 0;box-shadow:var(--shadow)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:8px}.toolbar button,.ghost{background:#f5efed;color:#554a47;border-radius:12px;padding:9px 12px}
+.month{font-weight:750;font-size:18px}.legend{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin:12px 0}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.dow{text-align:center;color:var(--muted);font-size:11px;padding:4px 0}.day{min-height:78px;border:1px solid var(--line);border-radius:10px;padding:5px;background:#fff;position:relative;overflow:hidden}.day.empty{background:#faf7f6}.day.sel{outline:2px solid var(--pink)}.num{font-size:12px;font-weight:700}.marks{font-size:11px;line-height:1.45;margin-top:3px}.w{color:#5e7da8}.p{color:#d96f83}.b{color:#8d604b}.o{color:#6a9b7c}.dots{margin-top:3px;color:#999}
+.section-title{font-weight:750;margin-bottom:10px}.selected-date{color:var(--pink);font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}.field select,.field input{width:100%;border:1px solid var(--line);border-radius:12px;padding:11px;background:#fff}
+.actions{display:flex;gap:8px;margin-top:12px}.primary{background:var(--pink);color:white;padding:11px 15px;border-radius:12px;font-weight:700;flex:1}.danger{background:#f7e9e6;color:#9a5e54;padding:11px 15px;border-radius:12px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}.chip{background:#f6f1ef;border-radius:999px;padding:7px 10px;font-size:12px}.chip.pink{background:var(--pink2);color:#b95266}.chip.blue{background:var(--blue2);color:#58759c}.chip.green{background:var(--green2);color:#547c62}
+.log{border-top:1px solid var(--line);padding-top:10px;margin-top:10px}.logrow{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px}.del{background:none;color:#b99b93;font-size:12px}
+canvas{width:100%;height:220px}.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#faf5f3;border-radius:13px;padding:10px}.stat b{display:block;font-size:18px}.stat span{font-size:11px;color:var(--muted)}
+.notice{background:#fff4f0;border-radius:12px;padding:11px;font-size:13px;line-height:1.5}.backup{display:flex;gap:8px;flex-wrap:wrap}.backup button{padding:10px 12px;border-radius:12px;background:#f3eeec}.footer{color:#aaa;font-size:11px;text-align:center;margin-top:20px}
+@media(max-width:420px){.day{min-height:69px;padding:4px}.marks{font-size:10px}.grid{grid-template-columns:1fr}.stat b{font-size:16px}}
+</style>
 </head>
-<body class="bg-slate-50 text-slate-800 pb-16 font-sans">
-  <div class="max-w-md mx-auto p-4 space-y-5">
-    
-    <!-- 头部标题 -->
-    <header class="text-center pt-2">
-      <h1 class="text-2xl font-bold text-slate-900 tracking-tight">🌸 健康打卡 & 生理日历</h1>
-      <p class="text-xs text-slate-500 mt-1">体重 · 便便 · 姨妈预测 · 可视化趋势</p>
-    </header>
+<body>
+<div class="wrap">
+<h1>🌷 我的身体日记</h1>
+<p class="sub">体重 · 姨妈 · 排卵 · 排便｜数据保存在本机浏览器</p>
 
-    <!-- 智能生理期预测卡片 -->
-    <div class="bg-gradient-to-br from-rose-500 to-pink-600 rounded-2xl p-4 text-white shadow-md shadow-rose-200">
-      <div class="flex items-center justify-between">
-        <div>
-          <span class="text-xs opacity-85 font-medium bg-white/20 px-2 py-0.5 rounded-full">周期预测 (平均28天)</span>
-          <div class="text-xl font-bold mt-1.5" id="nextPeriodText">下月预估：8月30日</div>
-        </div>
-        <div class="text-right">
-          <div class="text-xs opacity-85">排卵期预测</div>
-          <div class="text-sm font-semibold mt-1" id="ovulationText">8月14日 - 8月19日</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 1. 交互日历区 -->
-    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-      <div class="flex justify-between items-center mb-3 px-1">
-        <button id="prevMonth" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 font-bold text-lg">&lt;</button>
-        <h2 id="calendarMonthLabel" class="text-base font-bold text-slate-800">2026 年 8 月</h2>
-        <button id="nextMonth" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-600 font-bold text-lg">&gt;</button>
-      </div>
-
-      <!-- 星期表头 -->
-      <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-400 mb-1">
-        <div>日</div><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div>六</div>
-      </div>
-
-      <!-- 日历网格 -->
-      <div id="calendarGrid" class="grid grid-cols-7 gap-1 text-center text-xs"></div>
-
-      <!-- 图例说明 -->
-      <div class="flex items-center justify-around text-[11px] text-slate-500 mt-4 border-t pt-3 border-slate-100">
-        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>姨妈期</span>
-        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span>排卵期</span>
-        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-200 inline-block"></span>预测姨妈</span>
-        <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>💩便便</span>
-      </div>
-    </div>
-
-    <!-- 2. 当日打卡 / 编辑表单 -->
-    <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-          <span>✍️</span> <span id="formTitleDate">2026-08-17</span> 打卡记录
-        </h2>
-        <span class="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md">点击日历可切换日期</span>
-      </div>
-
-      <form id="healthForm" class="space-y-4">
-        <input type="hidden" id="selectedDate" value="2026-08-17">
-
-        <!-- 早晨体重选择 -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">早晨空腹体重 (kg)</label>
-          <div class="flex gap-2">
-            <input type="number" step="0.1" id="weightInput" placeholder="输入或滑动调整" 
-                   class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-rose-400">
-          </div>
-          <!-- 体重快捷按钮 -->
-          <div class="flex gap-1.5 mt-2 overflow-x-auto no-scrollbar py-0.5">
-            <button type="button" onclick="setQuickWeight(51.8)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600">51.8</button>
-            <button type="button" onclick="setQuickWeight(52.0)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600">52.0</button>
-            <button type="button" onclick="setQuickWeight(52.2)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600">52.2</button>
-            <button type="button" onclick="setQuickWeight(52.3)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600">52.3</button>
-            <button type="button" onclick="setQuickWeight(52.5)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600">52.5</button>
-            <button type="button" onclick="setQuickWeight(52.8)" class="px-2.5 py-1 text-xs bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600">52.8</button>
-          </div>
-        </div>
-
-        <!-- 生理期状态选择 -->
-        <div>
-          <label class="block text-xs font-semibold text-slate-500 mb-1">生理状态选择</label>
-          <div class="grid grid-cols-3 gap-2">
-            <label class="cursor-pointer">
-              <input type="radio" name="cycleState" value="none" class="peer hidden" checked>
-              <div class="text-center py-2 text-xs font-medium rounded-xl border border-slate-200 text-slate-600 peer-checked:bg-slate-800 peer-checked:text-white peer-checked:border-slate-800 transition">日常</div>
-            </label>
-            <label class="cursor-pointer">
-              <input type="radio" name="cycleState" value="period" class="peer hidden">
-              <div class="text-center py-2 text-xs font-medium rounded-xl border border-rose-200 text-rose-600 peer-checked:bg-rose-500 peer-checked:text-white peer-checked:border-rose-500 transition">🩸 姨妈期</div>
-            </label>
-            <label class="cursor-pointer">
-              <input type="radio" name="cycleState" value="ovulation" class="peer hidden">
-              <div class="text-center py-2 text-xs font-medium rounded-xl border border-purple-200 text-purple-600 peer-checked:bg-purple-500 peer-checked:text-white peer-checked:border-purple-500 transition">🥚 排卵期</div>
-            </label>
-          </div>
-        </div>
-
-        <!-- 排便情况快捷选择 -->
-        <div>
-          <div class="flex justify-between items-center mb-1">
-            <label class="block text-xs font-semibold text-slate-500">💩 排便记录 (支持多次)</label>
-            <button type="button" onclick="addPoopRow()" class="text-xs text-rose-500 font-semibold flex items-center gap-0.5">+ 添加一次</button>
-          </div>
-          <div id="poopContainer" class="space-y-2">
-            <!-- 动态排便行 -->
-          </div>
-        </div>
-
-        <button type="submit" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl shadow-md shadow-rose-100 transition active:scale-95 text-sm">
-          💾 保存今日记录
-        </button>
-      </form>
-    </div>
-
-    <!-- 3. 体重趋势图表 -->
-    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="text-base font-bold text-slate-900">📈 体重变化趋势</h2>
-        <span class="text-xs text-slate-400">7月至今曲线</span>
-      </div>
-      <div class="h-52 w-full">
-        <canvas id="weightChart"></canvas>
-      </div>
-    </div>
-
-    <!-- 4. 数据导入/导出备份 -->
-    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center space-y-2">
-      <div class="text-xs text-slate-500">数据保存在手机本地，建议每周备份一次</div>
-      <div class="flex justify-center gap-3">
-        <button onclick="exportData()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg">📤 导出JSON备份</button>
-        <label class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg cursor-pointer">
-          📥 导入历史备份
-          <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(event)">
-        </label>
-      </div>
-    </div>
-
+<div class="card">
+  <div class="toolbar">
+    <button onclick="changeMonth(-1)">‹</button><div class="month" id="monthTitle"></div><button onclick="changeMonth(1)">›</button>
   </div>
+  <div class="legend"><span>⚖️体重</span><span>🌸姨妈</span><span>💩便便</span><span>🥚排卵</span></div>
+  <div class="cal" id="calendar"></div>
+</div>
 
-  <script>
-    // 1. 预置的历史数据
-    const initialHistory = ''' + json.dumps(raw_records, ensure_ascii=False) + ''';
+<div class="card">
+  <div class="section-title">当天记录 · <span class="selected-date" id="selDate"></span></div>
+  <div class="grid">
+    <div class="field"><label>⚖️ 早上体重</label><input id="weight" type="number" step="0.1" min="20" max="200" placeholder="例如 52.3"></div>
+    <div class="field"><label>🌸 姨妈</label><select id="period"><option value="">未记录</option><option value="start">姨妈第一天</option><option value="on">姨妈期</option></select></div>
+    <div class="field"><label>🥚 排卵期</label><select id="ovulation"><option value="">未记录</option><option value="on">排卵期</option><option value="peak">预计排卵日</option></select></div>
+  </div>
+  <div class="actions"><button class="primary" onclick="saveDaily()">保存当天</button><button class="danger" onclick="clearDaily()">清空当天</button></div>
+  <div class="log">
+    <div class="section-title">💩 排便记录</div>
+    <div class="grid">
+      <div class="field"><label>时间（小时）</label><select id="poopHour"></select></div>
+      <div class="field"><label>大小</label><select id="poopSize"><option>小</option><option>小偏中</option><option>中</option><option>中偏大</option><option>大</option></select></div>
+    </div>
+    <div class="field" style="margin-top:9px"><label>备注（可选）</label><input id="poopNote" placeholder="例如：开塞露、硬"></div>
+    <div class="actions"><button class="primary" onclick="addPoop()">＋添加一次排便</button></div>
+    <div id="poopList"></div>
+  </div>
+</div>
 
-    // 历史经期第一天数据（用于精准计算平均周期）
-    const mensesStartDates = [
-      "2026-01-16", "2026-02-12", "2026-03-13", "2026-04-11",
-      "2026-05-08", "2026-06-06", "2026-07-05", "2026-08-02"
-    ];
+<div class="card">
+  <div class="section-title">📈 体重趋势</div>
+  <div class="statgrid"><div class="stat"><b id="avgW">—</b><span>记录平均</span></div><div class="stat"><b id="minW">—</b><span>最低</span></div><div class="stat"><b id="maxW">—</b><span>最高</span></div></div>
+  <canvas id="chart" width="700" height="220"></canvas>
+</div>
 
-    // 初始化 LocalStorage 数据
-    if (!localStorage.getItem('my_health_tracker_db')) {
-      localStorage.setItem('my_health_tracker_db', JSON.stringify(initialHistory));
-    }
+<div class="card">
+  <div class="section-title">🔮 姨妈 / 排卵预测</div>
+  <div class="notice" id="prediction"></div>
+</div>
 
-    function getData() {
-      return JSON.parse(localStorage.getItem('my_health_tracker_db') || '[]');
-    }
+<div class="card">
+  <div class="section-title">💾 数据备份</div>
+  <div class="backup">
+    <button onclick="exportData()">导出数据</button>
+    <button onclick="document.getElementById('file').click()">导入数据</button>
+    <input id="file" type="file" accept=".json" hidden onchange="importData(event)">
+  </div>
+</div>
+<div class="footer">本页面仅用于个人记录与趋势观察，不构成医疗建议。</div>
+</div>
 
-    function saveData(data) {
-      localStorage.setItem('my_health_tracker_db', JSON.stringify(data));
-    }
+<script>
+const KEY="bodyDiaryV1";
+let data=JSON.parse(localStorage.getItem(KEY)||'{"days":{},"periods":[]}');
+let selected=new Date(); selected.setHours(0,0,0,0);
+let view=new Date(selected.getFullYear(),selected.getMonth(),1);
 
-    // 计算平均周期 (根据真实8次历史)
-    function getAverageCycleLength() {
-      let totalDays = 0;
-      for (let i = 0; i < mensesStartDates.length - 1; i++) {
-        const d1 = new Date(mensesStartDates[i]);
-        const d2 = new Date(mensesStartDates[i+1]);
-        totalDays += (d2 - d1) / (1000 * 60 * 60 * 24);
-      }
-      return Math.round(totalDays / (mensesStartDates.length - 1)) || 28;
-    }
+function pad(n){return String(n).padStart(2,"0")}
+function key(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function dayObj(k){return data.days[k] ||= {poops:[]}}
+function init(){
+ for(let h=0;h<24;h++) document.getElementById("poopHour").innerHTML+=`<option value="${h}">${h}点</option>`;
+ render(); loadSelected(); drawChart(); prediction();
+}
+function changeMonth(n){view=new Date(view.getFullYear(),view.getMonth()+n,1);render()}
+function render(){
+ const y=view.getFullYear(),m=view.getMonth(), first=new Date(y,m,1), last=new Date(y,m+1,0);
+ document.getElementById("monthTitle").textContent=`${y}年${m+1}月`;
+ let html=["日","一","二","三","四","五","六"].map(x=>`<div class="dow">${x}</div>`).join("");
+ for(let i=0;i<first.getDay();i++) html+=`<div class="day empty"></div>`;
+ for(let d=1;d<=last.getDate();d++){
+   const dt=new Date(y,m,d),k=key(dt),x=data.days[k]||{}, po=x.poops||[];
+   let marks="";
+   if(x.weight!=null) marks+=`<div class="w">⚖️${x.weight}</div>`;
+   if(x.period) marks+=`<div class="p">🌸${x.period==="start"?"首日":"姨妈"}</div>`;
+   if(x.ovulation) marks+=`<div class="o">🥚</div>`;
+   if(po.length) marks+=`<div class="b">💩${po.length}次</div>`;
+   html+=`<div class="day ${k===key(selected)?"sel":""}" onclick="selectDay('${k}')"><div class="num">${d}</div><div class="marks">${marks}</div></div>`;
+ }
+ document.getElementById("calendar").innerHTML=html;
+}
+function selectDay(k){selected=new Date(k+"T00:00:00");view=new Date(selected.getFullYear(),selected.getMonth(),1);render();loadSelected()}
+function loadSelected(){
+ const k=key(selected),x=data.days[k]||{};
+ document.getElementById("selDate").textContent=`${selected.getMonth()+1}月${selected.getDate()}日`;
+ document.getElementById("weight").value=x.weight??"";
+ document.getElementById("period").value=x.period||"";
+ document.getElementById("ovulation").value=x.ovulation||"";
+ renderPoops();
+}
+function saveDaily(){
+ const k=key(selected),x=dayObj(k),w=document.getElementById("weight").value;
+ x.weight=w===""?null:Number(w); if(x.weight===null) delete x.weight;
+ x.period=document.getElementById("period").value;
+ x.ovulation=document.getElementById("ovulation").value;
+ if(!x.period) delete x.period;if(!x.ovulation) delete x.ovulation;
+ save();render();drawChart();prediction();
+}
+function clearDaily(){if(confirm("确定清空这一天的全部记录吗？")){delete data.days[key(selected)];save();loadSelected();render();drawChart();prediction()}}
+function addPoop(){
+ const x=dayObj(key(selected));x.poops ||= [];
+ x.poops.push({hour:Number(document.getElementById("poopHour").value),size:document.getElementById("poopSize").value,note:document.getElementById("poopNote").value.trim()});
+ x.poops.sort((a,b)=>a.hour-b.hour);document.getElementById("poopNote").value="";save();render();loadSelected();
+}
+function removePoop(i){data.days[key(selected)].poops.splice(i,1);save();render();loadSelected()}
+function renderPoops(){
+ const p=(data.days[key(selected)]||{}).poops||[];
+ document.getElementById("poopList").innerHTML=p.length?p.map((x,i)=>`<div class="logrow"><span>💩 ${x.hour}点 · ${x.size}${x.note?` · ${x.note}`:""}</span><button class="del" onclick="removePoop(${i})">删除</button></div>`).join(""):`<div style="color:#aaa;font-size:12px;padding:8px 0">今天还没有排便记录</div>`;
+}
+function weights(){
+ return Object.entries(data.days).filter(([k,x])=>x.weight!=null).sort((a,b)=>a[0].localeCompare(b[0]));
+}
+function drawChart(){
+ const c=document.getElementById("chart"),ctx=c.getContext("2d"),w=c.width,h=c.height;
+ ctx.clearRect(0,0,w,h);let arr=weights();if(!arr.length)return;
+ const vals=arr.map(x=>x[1].weight),min=Math.min(...vals),max=Math.max(...vals),padY=25,padX=35;
+ ctx.strokeStyle="#eadfdb";ctx.lineWidth=1;
+ for(let i=0;i<4;i++){let yy=padY+i*(h-2*padY)/3;ctx.beginPath();ctx.moveTo(padX,yy);ctx.lineTo(w-10,yy);ctx.stroke();ctx.fillStyle="#998d88";ctx.font="11px sans-serif";ctx.fillText((max-(max-min)*i/3).toFixed(1),2,yy+4)}
+ if(arr.length===1){ctx.fillStyle="#ef8fa0";ctx.beginPath();ctx.arc(w/2,h/2,4,0,7);ctx.fill();return}
+ ctx.beginPath();arr.forEach((e,i)=>{let x=padX+i*(w-padX-10)/(arr.length-1),y=padY+(max-e[1].weight)/(max-min||1)*(h-2*padY);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.strokeStyle="#ef8fa0";ctx.lineWidth=3;ctx.stroke();
+ const vals2=vals;document.getElementById("avgW").textContent=(vals2.reduce((a,b)=>a+b,0)/vals2.length).toFixed(1)+"kg";document.getElementById("minW").textContent=min.toFixed(1)+"kg";document.getElementById("maxW").textContent=max.toFixed(1)+"kg";
+}
+function periodStarts(){
+ let a=[];
+ for(const [k,x] of Object.entries(data.days)) if(x.period==="start")a.push(k);
+ return a.sort();
+}
+function prediction(){
+ const ps=periodStarts();if(ps.length<2){document.getElementById("prediction").innerHTML="记录至少 2 次姨妈第一天后，就可以根据你的实际周期计算预测。";return}
+ let dif=[];for(let i=1;i<ps.length;i++)dif.push((new Date(ps[i])-new Date(ps[i-1]))/86400000);
+ const avg=dif.reduce((a,b)=>a+b,0)/dif.length,last=new Date(ps.at(-1)+"T00:00:00");
+ const next=new Date(last);next.setDate(next.getDate()+Math.round(avg));
+ const ov=new Date(next);ov.setDate(ov.getDate()-14);
+ document.getElementById("prediction").innerHTML=`你的历史周期平均约 <b>${avg.toFixed(1)} 天</b>（${dif.map(x=>x.toFixed(0)).join("、")} 天）。<br>下一次姨妈预计：<b>${next.getMonth()+1}月${next.getDate()}日前后</b><br>预计排卵日：<b>${ov.getMonth()+1}月${ov.getDate()}日前后</b><br><span style="color:#998d88">预测会随着你继续记录而自动更新，实际周期可能有波动。</span>`;
+}
+function exportData(){
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="身体日记备份.json";a.click();URL.revokeObjectURL(a.href)
+}
+function importData(e){
+ const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.days)throw 0;data=x;save();render();loadSelected();drawChart();prediction();alert("导入成功")}catch{alert("文件格式不正确")}};r.readAsText(f)
+}
 
-    // 预测未来姨妈和排卵期
-    function getPredictedDates() {
-      const cycleLen = getAverageCycleLength();
-      const lastPeriodStart = new Date(mensesStartDates[mensesStartDates.length - 1]);
-      
-      // 下次经期预测
-      const nextPeriodStart = new Date(lastPeriodStart);
-      nextPeriodStart.setDate(nextPeriodStart.getDate() + cycleLen);
-      
-      const nextPeriodEnd = new Date(nextPeriodStart);
-      nextPeriodEnd.setDate(nextPeriodEnd.getDate() + 4); // 默认持续5天
-
-      // 下下次经期预测
-      const nextPeriodStart2 = new Date(nextPeriodStart);
-      nextPeriodStart2.setDate(nextPeriodStart2.getDate() + cycleLen);
-
-      // 下次排卵期预测 (经期倒数14天为排卵日，前后各2-3天)
-      const ovulationDay = new Date(nextPeriodStart);
-      ovulationDay.setDate(ovulationDay.getDate() - 14);
-
-      const ovStart = new Date(ovulationDay);
-      ovStart.setDate(ovStart.getDate() - 3);
-      const ovEnd = new Date(ovulationDay);
-      ovEnd.setDate(ovEnd.getDate() + 2);
-
-      return {
-        nextPeriodStart, nextPeriodEnd,
-        nextPeriodStart2,
-        ovStart, ovEnd,
-        ovulationDay
-      };
-    }
-
-    // 当前日历状态
-    let currentYear = 2026;
-    let currentMonth = 7; // 0-indexed (7 = 8月)
-    let activeSelectedDate = '2026-08-17';
-
-    // 页面加载完成初始化
-    document.addEventListener('DOMContentLoaded', () => {
-      updatePredictionsUI();
-      renderCalendar(currentYear, currentMonth);
-      loadFormForDate(activeSelectedDate);
-      initChart();
-    });
-
-    function updatePredictionsUI() {
-      const pred = getPredictedDates();
-      const formatMd = (d) => `${d.getMonth()+1}月${d.getDate()}日`;
-      
-      document.getElementById('nextPeriodText').innerText = `下月预估：${formatMd(pred.nextPeriodStart)}`;
-      document.getElementById('ovulationText').innerText = `${formatMd(pred.ovStart)} - ${formatMd(pred.ovEnd)}`;
-    }
-
-    // 日历渲染逻辑
-    function renderCalendar(year, month) {
-      document.getElementById('calendarMonthLabel').innerText = `${year} 年 ${month + 1} 月`;
-      const grid = document.getElementById('calendarGrid');
-      grid.innerHTML = '';
-
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      const allData = getData();
-      const dataMap = {};
-      allData.forEach(item => dataMap[item.date] = item);
-
-      const pred = getPredictedDates();
-
-      // 填充上一月空白
-      for (let i = 0; i < firstDay; i++) {
-        grid.appendChild(document.createElement('div'));
-      }
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const dayCell = document.createElement('div');
-        dayCell.className = 'cal-day p-1 rounded-xl flex flex-col items-center justify-between border cursor-pointer transition text-xs';
-        
-        // 判断日期标记状态
-        const record = dataMap[dateStr];
-        const dateObj = new Date(year, month, day);
-
-        let bgClass = 'bg-white border-slate-100 text-slate-700 hover:bg-slate-50';
-        let badgeHtml = '';
-
-        // 真实标注优先
-        if (record) {
-          if (record.cycle === 'period') {
-            bgClass = 'bg-rose-500 text-white border-rose-500 shadow-sm';
-          } else if (record.cycle === 'ovulation') {
-            bgClass = 'bg-purple-500 text-white border-purple-500 shadow-sm';
-          }
-
-          if (record.weight) {
-            badgeHtml += `<div class="text-[9px] scale-90 ${record.cycle !== 'none' ? 'text-white' : 'text-slate-500'} font-medium">${record.weight}</div>`;
-          }
-
-          if (record.poops && record.poops.length > 0) {
-            badgeHtml += `<div class="text-[10px]">💩${record.poops.length > 1 ? record.poops.length : ''}</div>`;
-          }
-        } else {
-          // 判断预测标注
-          if (dateObj >= pred.nextPeriodStart && dateObj <= pred.nextPeriodEnd) {
-            bgClass = 'bg-rose-100 text-rose-700 border-rose-200';
-          } else if (dateObj >= pred.ovStart && dateObj <= pred.ovEnd) {
-            bgClass = 'bg-purple-100 text-purple-700 border-purple-200';
-          }
-        }
-
-        // 高亮当前选中日
-        if (dateStr === activeSelectedDate) {
-          bgClass += ' ring-2 ring-slate-800 ring-offset-1';
-        }
-
-        dayCell.className = `cal-day p-1 rounded-xl flex flex-col items-center justify-between border cursor-pointer transition text-xs ${bgClass}`;
-        dayCell.innerHTML = `
-          <span class="font-bold text-xs">${day}</span>
-          <div class="flex flex-col items-center leading-tight">${badgeHtml}</div>
-        `;
-
-        dayCell.onclick = () => {
-          activeSelectedDate = dateStr;
-          renderCalendar(currentYear, currentMonth);
-          loadFormForDate(dateStr);
-        };
-
-        grid.appendChild(dayCell);
-      }
-    }
-
-    // 月份切换
-    document.getElementById('prevMonth').onclick = () => {
-      currentMonth--;
-      if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-      renderCalendar(currentYear, currentMonth);
-    };
-    document.getElementById('nextMonth').onclick = () => {
-      currentMonth++;
-      if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-      renderCalendar(currentYear, currentMonth);
-    };
-
-    // 快捷设置体重
-    function setQuickWeight(w) {
-      document.getElementById('weightInput').value = w;
-    }
-
-    // 动态增加便便行
-    function addPoopRow(hour = "09:00", size = "中") {
-      const container = document.getElementById('poopContainer');
-      const rowId = 'poop_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
-      
-      const div = document.createElement('div');
-      div.className = 'flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200';
-      div.id = rowId;
-      div.innerHTML = `
-        <select class="poop-hour bg-white border border-slate-200 rounded-lg p-1.5 text-xs focus:outline-none">
-          ${Array.from({length: 24}, (_, i) => {
-            const h = String(i).padStart(2, '0') + ':00';
-            return `<option value="${h}" ${h.startsWith(hour.slice(0,2)) ? 'selected' : ''}>${i} 点</option>`;
-          }).join('')}
-        </select>
-        <select class="poop-size bg-white border border-slate-200 rounded-lg p-1.5 text-xs focus:outline-none flex-1">
-          <option value="小" ${size==='小'?'selected':''}>💩 小份</option>
-          <option value="中" ${size==='中'?'selected':''}>💩💩 中等</option>
-          <option value="大" ${size==='大'?'selected':''}>💩💩💩 大份</option>
-        </select>
-        <button type="button" onclick="document.getElementById('${rowId}').remove()" class="text-xs text-rose-400 font-bold px-1.5 py-1">✕</button>
-      `;
-      container.appendChild(div);
-    }
-
-    // 加载指定日期数据到表单
-    function loadFormForDate(dateStr) {
-      document.getElementById('selectedDate').value = dateStr;
-      document.getElementById('formTitleDate').innerText = dateStr;
-
-      const allData = getData();
-      const record = allData.find(d => d.date === dateStr);
-
-      // 设置体重
-      document.getElementById('weightInput').value = record && record.weight ? record.weight : '';
-
-      // 设置生理期
-      const cycleVal = record ? record.cycle : 'none';
-      document.querySelectorAll('input[name="cycleState"]').forEach(r => {
-        r.checked = (r.value === cycleVal);
-      });
-
-      // 设置排便
-      const poopContainer = document.getElementById('poopContainer');
-      poopContainer.innerHTML = '';
-      if (record && record.poops && record.poops.length > 0) {
-        record.poops.forEach(p => addPoopRow(p.hour, p.size));
-      } else {
-        // 默认空行供填写
-        addPoopRow("09:00", "中");
-      }
-    }
-
-    // 保存表单数据
-    document.getElementById('healthForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const dateStr = document.getElementById('selectedDate').value;
-      const weightVal = parseFloat(document.getElementById('weightInput').value) || null;
-      const cycleVal = document.querySelector('input[name="cycleState"]:checked').value;
-
-      // 提取便便数据
-      const poopRows = document.querySelectorAll('#poopContainer > div');
-      const poops = [];
-      poopRows.forEach(row => {
-        const hour = row.querySelector('.poop-hour').value;
-        const size = row.querySelector('.poop-size').value;
-        poops.push({ hour, size });
-      });
-
-      let allData = getData();
-      const idx = allData.findIndex(d => d.date === dateStr);
-      const entry = { date: dateStr, weight: weightVal, cycle: cycleVal, poops };
-
-      if (idx > -1) {
-        allData[idx] = entry;
-      } else {
-        allData.push(entry);
-      }
-
-      allData.sort((a,b) => new Date(a.date) - new Date(b.date));
-      saveData(allData);
-
-      renderCalendar(currentYear, currentMonth);
-      updateChart();
-      alert('✅ ' + dateStr + ' 数据保存成功！');
-    });
-
-    // 绘制体重图表
-    let chartInstance = null;
-    function initChart() {
-      const ctx = document.getElementById('weightChart').getContext('2d');
-      chartInstance = new Chart(ctx, {
-        type: 'line',
-        data: { labels: [], datasets: [] },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { display: false } },
-            y: { min: 51.0, max: 53.5 }
-          }
-        }
-      });
-      updateChart();
-    }
-
-    function updateChart() {
-      if (!chartInstance) return;
-      const allData = getData().filter(d => d.weight !== null);
-      
-      const labels = allData.map(d => d.date.slice(5));
-      const weights = allData.map(d => d.weight);
-
-      chartInstance.data.labels = labels;
-      chartInstance.data.datasets = [{
-        label: '体重 (kg)',
-        data: weights,
-        borderColor: '#f43f5e',
-        backgroundColor: 'rgba(244, 63, 94, 0.08)',
-        fill: true,
-        tension: 0.35,
-        pointRadius: 3,
-        pointBackgroundColor: '#f43f5e'
-      }];
-      chartInstance.update();
-    }
-
-    // 导出 JSON 数据
-    function exportData() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(getData(), null, 2));
-      const a = document.createElement('a');
-      a.href = dataStr;
-      a.download = `health_data_backup_${new Date().toISOString().slice(0,10)}.json`;
-      a.click();
-    }
-
-    // 导入 JSON 数据
-    function importData(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const imported = JSON.parse(e.target.result);
-          if (Array.isArray(imported)) {
-            saveData(imported);
-            renderCalendar(currentYear, currentMonth);
-            updateChart();
-            alert('🎉 历史数据导入成功！');
-          }
-        } catch (err) {
-          alert('❌ 文件解析失败，请确保导入正确的 JSON 文件。');
-        }
-      };
-      reader.readAsText(file);
-    }
-  </script>
+// 预置用户提供的数据
+const preset={
+"2026-01-16":{period:"start"},"2026-02-12":{period:"start"},"2026-03-13":{period:"start"},"2026-04-11":{period:"start"},"2026-05-08":{period:"start"},"2026-06-06":{period:"start"},"2026-07-05":{period:"start"},"2026-08-02":{period:"start"},
+"2026-07-06":{weight:52.1,poops:[{hour:8,size:"小"},{hour:13,size:"小小"},{hour:18,size:"小偏中"}]},
+"2026-07-07":{weight:52.2,poops:[{hour:11,size:"中"}]},
+"2026-07-08":{weight:52.2},"2026-07-09":{weight:52.4},
+"2026-07-10":{weight:52.6,poops:[{hour:10,size:"小偏中"}]},
+"2026-07-11":{weight:52.5,poops:[{hour:9,size:"中"},{hour:10,size:"大"}]},
+"2026-07-12":{weight:52.2,poops:[{hour:10,size:"中"}]},
+"2026-07-13":{weight:51.9},"2026-07-14":{weight:52.2},
+"2026-07-15":{weight:52.5,poops:[{hour:10,size:"大"}]},
+"2026-07-16":{weight:52.6},"2026-07-17":{weight:52.8,poops:[{hour:7,size:"大"}]},
+"2026-07-18":{weight:52.7,poops:[{hour:17,size:"中"}]},
+"2026-07-19":{weight:52.5,poops:[{hour:11,size:"中"}]},
+"2026-07-20":{weight:52.1},"2026-07-21":{weight:51.9},"2026-07-22":{weight:52.6},"2026-07-23":{weight:52.4},
+"2026-07-24":{weight:52.1,poops:[{hour:7,size:"大"}]},
+"2026-07-25":{weight:51.9,poops:[{hour:12,size:"大"}]},
+"2026-07-26":{weight:52.0,poops:[{hour:11,size:"中"}]},
+"2026-07-27":{weight:51.8},"2026-07-28":{weight:52.2},"2026-07-29":{weight:52.4,poops:[{hour:10,size:"中"}]},
+"2026-07-30":{weight:52.2,poops:[{hour:7,size:"中"}]},
+"2026-07-31":{weight:52.3,poops:[{hour:11,size:"中"}]},
+"2026-08-01":{weight:52.3,poops:[{hour:15,size:"小偏中"}]},
+"2026-08-02":{weight:52.1,poops:[{hour:10,size:"大"}],period:"start"},
+"2026-08-03":{weight:51.9},"2026-08-04":{weight:52.1},
+"2026-08-05":{weight:52.3,poops:[{hour:15,size:"中偏大"}]},
+"2026-08-09":{poops:[{hour:12,size:"大"}]},
+"2026-08-12":{weight:52.4},
+"2026-08-16":{weight:52.3,poops:[{hour:20,size:"硬",note:"晚上开塞露"}]},
+"2026-08-17":{weight:52.3}
+};
+for(const [k,v] of Object.entries(preset)) data.days[k] ||= v;
+save();init();
+</script>
 </body>
 </html>
-'''
-
-with open('index.html', 'w', encoding='utf-8') as f:
-    f.write(html_content)
-
-print("index.html created successfully!")
