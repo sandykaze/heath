@@ -47,7 +47,7 @@ h1{font-size:24px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em}
 .dow{text-align:center;color:#656b69;font-size:11px;font-weight:600;padding:6px 0}
 .day-cell{
   position:relative;
-  height:54px;
+  height:58px;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -70,8 +70,8 @@ h1{font-size:24px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em}
 .num-wrap{
   position:relative;
   z-index:2;
-  width:28px;
-  height:28px;
+  width:26px;
+  height:26px;
   border-radius:50%;
   display:grid;
   place-items:center;
@@ -86,14 +86,15 @@ h1{font-size:24px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em}
   position:relative;
   z-index:2;
   display:flex;
-  gap:3px;
+  flex-direction:column;
   align-items:center;
-  margin-top:3px;
-  height:12px;
+  gap:1px;
+  margin-top:2px;
+  height:20px;
 }
-.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot{width:5px;height:5px;border-radius:50%;display:inline-block}
 .dot.period-dot{background:var(--rose)}
-.dot.poop-dot{background:var(--brown)}
+.poop-dots{font-size:8px;line-height:1;color:var(--brown);letter-spacing:-1px}
 
 /* Stats & Chart */
 .section-title{font-weight:700;font-size:15px;color:#e8e5df;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
@@ -105,8 +106,30 @@ h1{font-size:24px;line-height:1;margin:0;font-weight:700;letter-spacing:.02em}
 .chart-container{width:100%;height:180px;position:relative;touch-action:none}
 canvas{width:100%;height:100%;display:block}
 
-/* Prediction & Backup */
+/* Prediction & Future List */
 .notice{background:#202425;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.6;color:#c6cac7}
+.prediction-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:10px;
+  max-height:220px;
+  overflow-y:auto;
+  padding-right:4px;
+}
+.pred-item{
+  background:#181b1c;
+  border:1px solid #2a2e2e;
+  border-radius:10px;
+  padding:8px 10px;
+  font-size:12px;
+  display:flex;
+  justify-content:space-between;
+}
+.pred-item .m-label{color:#8d918e}
+.pred-item .d-label{color:#e08295;font-weight:600}
+
+/* Backup */
 .backup{display:flex;gap:10px}
 .backup button{flex:1;padding:10px;border-radius:12px;background:#242829;border:1px solid var(--line);color:#bbb;font-size:12px;cursor:pointer}
 
@@ -166,7 +189,7 @@ canvas{width:100%;height:100%;display:block}
     <div class="legend">
       <span class="leg-period">姨妈期</span>
       <span class="leg-ovulation">排卵期</span>
-      <span class="leg-poop">排便</span>
+      <span class="leg-poop">排便 (●/○)</span>
     </div>
     <div class="cal-grid" id="calendar"></div>
   </div>
@@ -186,10 +209,13 @@ canvas{width:100%;height:100%;display:block}
     </div>
   </div>
 
-  <!-- 3. 周期预测 -->
+  <!-- 3. 未来 12 个月生理期预测 -->
   <div class="card">
-    <div class="section-title">🔮 周期预测</div>
-    <div class="notice" id="prediction">正在计算周期...</div>
+    <div class="section-title">🔮 预测未来 12 个月姨妈期</div>
+    <div class="notice">
+      <div id="predSummary">正在分析周期历史...</div>
+      <div class="prediction-grid" id="predictionList"></div>
+    </div>
   </div>
 
   <!-- 4. 备份 -->
@@ -251,16 +277,16 @@ canvas{width:100%;height:100%;display:block}
           </div>
           <div class="field-group">
             <select id="poopSize">
-              <option>小</option>
-              <option>小偏中</option>
-              <option>中</option>
-              <option>中偏大</option>
-              <option>大</option>
+              <option value="小">小 (●)</option>
+              <option value="小偏中">小偏中 (●○)</option>
+              <option value="中">中 (●●)</option>
+              <option value="中偏大">中偏大 (●●○)</option>
+              <option value="大">大 (●●●)</option>
             </select>
           </div>
         </div>
         <div class="field-group">
-          <input id="poopNote" placeholder="备注（如：开塞露、较硬）">
+          <input id="poopNote" placeholder="备注（如：开塞露、硬）">
         </div>
         <button class="btn-primary" style="width:100%;padding:8px;font-size:13px" onclick="addPoop()">＋ 添加一次排便</button>
         <div id="poopContainer"></div>
@@ -270,7 +296,7 @@ canvas{width:100%;height:100%;display:block}
 </div>
 
 <script>
-const KEY="bodyDiaryV2";
+const KEY="bodyDiaryV3";
 let data=JSON.parse(localStorage.getItem(KEY)||'{"days":{}}');
 let selectedKey = "";
 let viewDate = new Date();
@@ -279,6 +305,24 @@ function pad(n){return String(n).padStart(2,"0")}
 function key(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
 function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function dayObj(k){return data.days[k] ||= {poops:[]}}
+
+// 转换大小为实心/空心圆点标记
+function sizeToDots(size){
+  switch(size){
+    case "小": return "●";
+    case "小偏中": return "●○";
+    case "中": return "●●";
+    case "中偏大": return "●●○";
+    case "大": return "●●●";
+    default: return "●";
+  }
+}
+
+// 评分用于选取当天最大体量进行日历展示
+function sizeRank(size){
+  const ranks = {"小":1, "小偏中":2, "中":3, "中偏大":4, "大":5};
+  return ranks[size] || 1;
+}
 
 function init(){
   const hSel = document.getElementById("poopHour");
@@ -297,13 +341,12 @@ function changeMonth(n){
   renderCalendar();
 }
 
-// 自动计算排卵期范围辅助方法
+// 计算预计排卵窗口
 function getOvulationDays(){
   const ovSet = new Set();
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
   starts.forEach(sKey=>{
     const d = new Date(sKey+"T00:00:00");
-    // 一般排卵日约在下次月经前14天，预估区间为第10-16天
     for(let i=10; i<=16; i++){
       const ovD = new Date(d);
       ovD.setDate(ovD.getDate() + i);
@@ -324,7 +367,6 @@ function renderCalendar(){
 
   let html = ["日","一","二","三","四","五","六"].map(x=>`<div class="dow">${x}</div>`).join("");
   
-  // 补齐上个月空白
   for(let i=0; i<first.getDay(); i++){
     html += `<div class="day-cell other-month"></div>`;
   }
@@ -334,11 +376,9 @@ function renderCalendar(){
     const k = key(dt);
     const dayData = data.days[k] || {};
     
-    // 判断生理期/排卵期带状渲染
     const isPeriod = dayData.period === "start" || dayData.period === "on";
     const isOvulation = dayData.ovulation === "on" || dayData.ovulation === "peak" || autoOvulation.has(k);
     
-    // 检查前后连贯性，以做圆角处理
     const prevKey = key(new Date(y, m, d-1));
     const nextKey = key(new Date(y, m, d+1));
     const prevPeriod = (data.days[prevKey]||{}).period;
@@ -355,10 +395,15 @@ function renderCalendar(){
       if(!autoOvulation.has(nextKey) && !(data.days[nextKey]||{}).ovulation) bandClasses += " band-end";
     }
 
-    // 指示标记：日历上只保留姨妈和拉屎
+    // 表达排便与生理期标记
     let dots = "";
     if(isPeriod) dots += `<span class="dot period-dot"></span>`;
-    if(dayData.poops && dayData.poops.length) dots += `<span class="dot poop-dot"></span>`;
+    
+    if(dayData.poops && dayData.poops.length){
+      // 找出体量最大的排便呈现点阵
+      let maxPoop = dayData.poops.reduce((prev, curr) => sizeRank(curr.size) > sizeRank(prev.size) ? curr : prev, dayData.poops[0]);
+      dots += `<span class="poop-dots">${sizeToDots(maxPoop.size)}</span>`;
+    }
 
     const isToday = k === todayStr;
 
@@ -455,13 +500,13 @@ function renderPoops(){
   }
   container.innerHTML = p.map((x,i)=>`
     <div class="poop-item">
-      <span>💩 ${x.hour}:00 · ${x.size}${x.note?` (${x.note})`:''}</span>
+      <span>💩 ${x.hour}:00 · ${x.size} [${sizeToDots(x.size)}] ${x.note?` (${x.note})`:''}</span>
       <button class="del-btn" onclick="removePoop(${i})">删除</button>
     </div>
   `).join("");
 }
 
-/* 体重曲线绘制 (自适应高清屏 & 手势拖拽) */
+/* 体重曲线绘制 */
 function drawChart(){
   const box = document.getElementById("chartBox");
   const canvas = document.getElementById("chart");
@@ -510,7 +555,6 @@ function drawChart(){
     ctx.clearRect(0,0,W,H);
     offset = Math.max(0, Math.min(offset, maxOffset));
 
-    // 背景网格线
     ctx.strokeStyle="#262a2b";
     ctx.lineWidth=1;
     for(let i=0;i<3;i++){
@@ -525,7 +569,6 @@ function drawChart(){
       val: e[1].weight
     }));
 
-    // 折线
     ctx.beginPath();
     let started = false;
     pts.forEach(p=>{
@@ -537,8 +580,7 @@ function drawChart(){
     ctx.lineWidth=2;
     ctx.stroke();
 
-    // 数据点
-    pts.forEach((p, idx)=>{
+    pts.forEach((p)=>{
       if(p.x >= padL - 5 && p.x <= W - padR + 5){
         ctx.beginPath();
         ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
@@ -547,7 +589,6 @@ function drawChart(){
       }
     });
 
-    // 选中点高亮
     if(selectedIdx >= 0 && pts[selectedIdx]){
       const p = pts[selectedIdx];
       if(p.x >= padL && p.x <= W - padR){
@@ -558,7 +599,6 @@ function drawChart(){
     }
   }
 
-  // 触控交互
   canvas.onpointerdown = e => {
     dragging = true; startX = e.clientX;
     canvas.setPointerCapture(e.pointerId);
@@ -583,32 +623,45 @@ function drawChart(){
   render();
 }
 
-/* 生理周期预测 */
+/* 预测未来 12 个月生理期 */
 function prediction(){
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
-  const el = document.getElementById("prediction");
+  const summaryEl = document.getElementById("predSummary");
+  const listEl = document.getElementById("predictionList");
+  
   if(starts.length < 2){
-    el.innerHTML = "标记 2 次及以上“姨妈第一天”，即可自动推算周期与预测排卵期。";
+    summaryEl.innerHTML = "标记 2 次及以上“姨妈第一天”，即可计算未来预测。";
+    listEl.innerHTML = "";
     return;
   }
+
   let diffs = [];
   for(let i=1; i<starts.length; i++){
     diffs.push((new Date(starts[i]) - new Date(starts[i-1])) / 86400000);
   }
   const avg = diffs.reduce((a,b)=>a+b,0) / diffs.length;
-  const last = new Date(starts.at(-1)+"T00:00:00");
-  
-  const nextP = new Date(last); nextP.setDate(nextP.getDate() + Math.round(avg));
-  const nextOv = new Date(nextP); nextOv.setDate(nextOv.getDate() - 14);
+  summaryEl.innerHTML = `根据历史记录，您的平均周期为 <b>${avg.toFixed(1)} 天</b>。未来 12 个月预计时间如下：`;
 
-  el.innerHTML = `
-    平均周期：<b>${avg.toFixed(1)} 天</b><br>
-    预计下次姨妈：<b>${nextP.getMonth()+1}月${nextP.getDate()}日</b> 前后<br>
-    预计下次排卵：<b>${nextOv.getMonth()+1}月${nextOv.getDate()}日</b> 前后
-  `;
+  let lastDate = new Date(starts.at(-1)+"T00:00:00");
+  let listHtml = "";
+
+  for(let i=1; i<=12; i++){
+    let nextDate = new Date(lastDate);
+    nextDate.setDate(nextDate.getDate() + Math.round(avg * i));
+    let y = nextDate.getFullYear();
+    let m = pad(nextDate.getMonth()+1);
+    let d = pad(nextDate.getDate());
+    
+    listHtml += `
+      <div class="pred-item">
+        <span class="m-label">${y}年${m}月</span>
+        <span class="d-label">${m}月${d}日前后</span>
+      </div>
+    `;
+  }
+  listEl.innerHTML = listHtml;
 }
 
-/* 导出与导入 */
 function exportData(){
   const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
   const a = document.createElement("a");
@@ -630,21 +683,64 @@ function importData(e){
       init();
       alert("导入成功！");
     } catch(err) {
-      alert("导入失败：无效的 JSON 备份文件。");
+      alert("导入失败：格式不正确。");
     }
   };
   reader.readAsText(file);
 }
 
-// 自动置入初始数据逻辑（保持老版本一致）
+// 包含所有历史姨妈期与 7-8 月全量用户数据的预置对象
 const preset = {
-  "2026-08-02":{period:"start",weight:52.1,poops:[{hour:10,size:"大"}]},
+  // 姨妈第一天
+  "2026-01-16":{period:"start"},
+  "2026-02-12":{period:"start"},
+  "2026-03-13":{period:"start"},
+  "2026-04-11":{period:"start"},
+  "2026-05-08":{period:"start"},
+  "2026-06-06":{period:"start"},
+  "2026-07-05":{period:"start"},
+  "2026-08-02":{period:"start"},
+
+  // 7月完整记录
+  "2026-07-06":{weight:52.1, poops:[{hour:8,size:"小"},{hour:13,size:"小"},{hour:18,size:"小偏中"}]},
+  "2026-07-07":{weight:52.2, poops:[{hour:11,size:"中"}]},
+  "2026-07-08":{weight:52.2},
+  "2026-07-09":{weight:52.4},
+  "2026-07-10":{weight:52.6, poops:[{hour:10,size:"小偏中"}]},
+  "2026-07-11":{weight:52.5, poops:[{hour:9,size:"中"},{hour:10,size:"大"}]},
+  "2026-07-12":{weight:52.2, poops:[{hour:10,size:"中"}]},
+  "2026-07-13":{weight:51.9},
+  "2026-07-14":{weight:52.2},
+  "2026-07-15":{weight:52.5, poops:[{hour:10,size:"大"}]},
+  "2026-07-16":{weight:52.6},
+  "2026-07-17":{weight:52.8, poops:[{hour:7,size:"大"}]},
+  "2026-07-18":{weight:52.7, poops:[{hour:17,size:"中"}]},
+  "2026-07-19":{weight:52.5, poops:[{hour:11,size:"中"}]},
+  "2026-07-20":{weight:52.1},
+  "2026-07-21":{weight:51.9},
+  "2026-07-22":{weight:52.6},
+  "2026-07-23":{weight:52.4},
+  "2026-07-24":{weight:52.1, poops:[{hour:7,size:"大"}]},
+  "2026-07-25":{weight:51.9, poops:[{hour:12,size:"大"}]},
+  "2026-07-26":{weight:52.0, poops:[{hour:11,size:"中"}]},
+  "2026-07-27":{weight:51.8},
+  "2026-07-28":{weight:52.2},
+  "2026-07-29":{weight:52.4, poops:[{hour:10,size:"中"}]},
+  "2026-07-30":{weight:52.2, poops:[{hour:7,size:"中"}]},
+  "2026-07-31":{weight:52.3, poops:[{hour:11,size:"中"}]},
+
+  // 8月记录
+  "2026-08-01":{weight:52.3, poops:[{hour:15,size:"小偏中"}]},
+  "2026-08-02":{weight:52.1, period:"start", poops:[{hour:10,size:"大"}]},
   "2026-08-03":{weight:51.9},
   "2026-08-04":{weight:52.1},
-  "2026-08-05":{weight:52.3,poops:[{hour:15,size:"中偏大"}]},
+  "2026-08-05":{weight:52.3, poops:[{hour:15,size:"中偏大"}]},
+  "2026-08-09":{poops:[{hour:12,size:"大"}]},
   "2026-08-12":{weight:52.4},
-  "2026-08-16":{weight:52.3,poops:[{hour:20,size:"硬",note:"开塞露"}]}
+  "2026-08-16":{weight:52.3, poops:[{hour:20,size:"大",note:"开塞露、较硬"}]},
+  "2026-08-17":{weight:52.3}
 };
+
 for(const [k,v] of Object.entries(preset)) data.days[k] ||= v;
 save();
 
