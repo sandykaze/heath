@@ -447,19 +447,14 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 
 /* 图表顶部数据预览卡 */
 .chart-top-card{
-  background: var(--glass-bg);
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  border:1px solid var(--glass-border);
-  border-radius:var(--radius-md);
-  padding:16px 18px;
-  margin-bottom:18px;
-  min-height:80px;
+  padding:4px 2px 14px;
+  margin-bottom:6px;
+  min-height:60px;
   display:flex;
   flex-direction:column;
   justify-content:center;
   gap:6px;
-  box-shadow: var(--glass-shadow);
+  border-bottom:1px dashed rgba(140, 120, 150, 0.18);
 }
 .top-card-row1{display:flex;justify-content:space-between;align-items:center}
 .top-card-date-wrap{display:flex;align-items:center;gap:8px}
@@ -760,8 +755,6 @@ canvas{width:100%;height:100%;display:block}
       <div class="chart-scrollbar-track" id="chartScrollTrack">
         <div class="chart-scrollbar-thumb" id="chartScrollThumb"></div>
       </div>
-
-      <div class="zoom-hint">支持左右滑动、双指拉开/缩放时间轴</div>
 
       <div class="statgrid">
         <div class="stat stat-editable" onclick="setTargetWeight()"><b id="targetW">—</b><span>目标体重</span></div>
@@ -1837,7 +1830,7 @@ function prediction(){
   }
 
   const avg = getAvgCycleLength();
-  summaryEl.innerHTML = `根据历史记录，您的平均周期为 <b>${avg} 天</b>。未来 12 个月预计日期：<span class="pred-hint">点击日期可跳转至日历定位</span>`;
+  summaryEl.innerHTML = `根据历史记录，您的平均周期为 <b>${avg} 天</b>。未来 12 个月预计日期：`;
 
   let lastDate = new Date(starts.at(-1)+"T00:00:00");
   let listHtml = "";
