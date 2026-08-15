@@ -51,8 +51,10 @@
   --radius-sm: 12px;
 
   /* 统一字体：西文用 Fredoka 撑起圆润气质，中文交给 Noto Sans SC 保持大气整洁，两者字重呼应 */
-  --font-main: 'Fredoka', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-num: 'Varela Round', 'Noto Sans SC', sans-serif;
+  /* 统一字体：除品牌区域外，其余数字与英文都与中文使用同一字体，视觉更统一 */
+  --font-main: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-num: 'Noto Sans SC', sans-serif;
+  --font-brand: 'Fredoka', 'Noto Sans SC', sans-serif;
 }
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -80,11 +82,12 @@ body{
   background: linear-gradient(135deg, #FF6B9B 0%, #FF8811 100%);
   color:#FFFFFF;
   font-size:24px;font-weight:700;
+  font-family:var(--font-brand);
   box-shadow:0 8px 18px rgba(255, 107, 155, 0.4);
   transform: rotate(-3deg);
 }
-h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);letter-spacing:0.02em;}
-.sub{color:var(--pop-pink);font-size:11px;letter-spacing:.18em;margin:6px 0 0;font-weight:600;}
+h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);letter-spacing:0.02em;font-family:var(--font-brand);}
+.sub{color:var(--pop-pink);font-size:11px;letter-spacing:.18em;margin:6px 0 0;font-weight:600;font-family:var(--font-brand);}
 
 /* Account 账号栏 */
 .account-bar{
@@ -196,7 +199,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 /* 英文缩写表头样式 */
 .dow{
   text-align:center;
-  color:var(--pop-purple);
+  color:var(--text-muted);
   font-size:11px;
   font-weight:700;
   padding:2px 0 6px;
@@ -335,25 +338,6 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .arrow-up{color:var(--diff-up);font-size:8px;font-weight:bold;margin-left:1px;}
 .arrow-down{color:var(--diff-down);font-size:8px;font-weight:bold;margin-left:1px;}
 
-.expand-caret{
-  position:absolute;
-  z-index:2;
-  bottom:2px;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:9px;
-  line-height:1;
-  color:var(--text-light);
-  opacity:0.6;
-  transition: transform .2s ease, opacity .2s ease;
-  pointer-events:none;
-}
-.day-cell.selected .expand-caret{
-  transform:translateX(-50%) rotate(180deg);
-  opacity:1;
-  color:var(--pop-pink);
-}
-
 /* 详情抽屉卡片 */
 .inline-detail-card {
   margin-top: 12px;
@@ -426,7 +410,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 
 /* 图表顶部数据预览卡 */
 .chart-top-card{
-  background: linear-gradient(135deg, #FFF9FA 0%, #F4F0FF 100%);
+  background: linear-gradient(135deg, #FFF9FA 0%, #FFF3EA 100%);
   border:2px solid #FFE5EC;
   border-radius:var(--radius-md);
   padding:16px 18px;
@@ -442,8 +426,9 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .top-card-date-wrap{display:flex;align-items:center;gap:8px}
 .top-card-row2{display:flex;align-items:center;font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;}
 
-.chart-top-card .date-val{font-size:16px;font-weight:700;color:var(--text-main)}
-.chart-top-card .weight-val{font-size:22px;font-weight:700;color:var(--pop-pink);font-family:var(--font-num);}
+.chart-top-card .date-val{font-size:19px;font-weight:700;color:var(--text-main);font-family:var(--font-num);}
+.chart-top-card .weight-val{font-size:19px;font-weight:700;color:var(--pop-pink);font-family:var(--font-num);}
+.chart-top-card .weight-val.muted{font-weight:500;color:var(--text-muted);}
 .chart-top-card .diff-val{font-size:13px;margin-left:4px;font-weight:700;font-family:var(--font-num);}
 
 .tag-phase{
@@ -458,6 +443,26 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 
 .chart-container{width:100%;height:260px;position:relative;touch-action:none}
 canvas{width:100%;height:100%;display:block}
+
+/* 图表下方的可拖动位置提示条：默认淡出，交互时淡入 */
+.chart-scrollbar-track{
+  position:relative;
+  height:4px;
+  border-radius:2px;
+  background:#FFE5EC;
+  margin:10px 20px 0;
+  opacity:0.25;
+  transition:opacity .35s ease;
+}
+.chart-scrollbar-track.active{opacity:1;}
+.chart-scrollbar-thumb{
+  position:absolute;
+  top:0;left:0;
+  height:100%;
+  min-width:8%;
+  border-radius:2px;
+  background:linear-gradient(90deg, var(--pop-pink), var(--pop-orange));
+}
 
 .zoom-hint{
   text-align:center;
@@ -674,7 +679,10 @@ canvas{width:100%;height:100%;display:block}
       <div class="chart-container" id="chartBox">
         <canvas id="chart"></canvas>
       </div>
-      
+      <div class="chart-scrollbar-track" id="chartScrollTrack">
+        <div class="chart-scrollbar-thumb" id="chartScrollThumb"></div>
+      </div>
+
       <div class="zoom-hint">支持左右滑动、双指拉开/缩放时间轴</div>
 
       <div class="statgrid">
@@ -1186,7 +1194,6 @@ function renderCalendar(){
         <div class="num-wrap">${dateDisplay}</div>
         ${poopHtml}
         <div class="weight-slot">${weightHtml}</div>
-        <div class="expand-caret">▾</div>
       </div>
     `;
     cellCount++;
@@ -1388,6 +1395,11 @@ function buildChartSeries(){
     curr.setDate(curr.getDate() + 1);
   }
 
+  /* 去掉最前面还没有体重记录的日子，避免缩放时把这段空白也算进去 */
+  const firstWeightIdx = rawList.findIndex(d => d.weight != null);
+  if(firstWeightIdx === -1) return [];
+  rawList = rawList.slice(firstWeightIdx);
+
   return rawList;
 }
 
@@ -1466,15 +1478,19 @@ function drawChart(){
 
   const series = buildChartSeries();
 
+  const scrollTrackEl = document.getElementById("chartScrollTrack");
+
   if(!series.length){
-    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Fredoka','Noto Sans SC',sans-serif"; ctx.textAlign="center";
+    if(scrollTrackEl) scrollTrackEl.style.visibility = "hidden";
+    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
     ctx.fillText("暂无数据", W/2, H/2);
     return;
   }
 
   const validWeights = series.map(x=>x.weight).filter(w=>w!=null);
   if(!validWeights.length){
-    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Fredoka','Noto Sans SC',sans-serif"; ctx.textAlign="center";
+    if(scrollTrackEl) scrollTrackEl.style.visibility = "hidden";
+    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
     ctx.fillText("无体重数据", W/2, H/2);
     return;
   }
@@ -1508,6 +1524,28 @@ function drawChart(){
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
+  const scrollTrack = document.getElementById("chartScrollTrack");
+  const scrollThumb = document.getElementById("chartScrollThumb");
+  let scrollbarFadeTimer = null;
+  function pokeScrollbar(){
+    if(!scrollTrack) return;
+    scrollTrack.classList.add("active");
+    clearTimeout(scrollbarFadeTimer);
+    scrollbarFadeTimer = setTimeout(()=> scrollTrack.classList.remove("active"), 700);
+  }
+  function updateScrollbar(totalW, offset, maxOffset){
+    if(!scrollTrack || !scrollThumb) return;
+    if(totalW <= plotW){
+      scrollTrack.style.visibility = "hidden";
+      return;
+    }
+    scrollTrack.style.visibility = "visible";
+    const thumbPct = Math.max(8, Math.min(100, (plotW / totalW) * 100));
+    const scrollRatio = maxOffset > 0 ? offset / maxOffset : 0;
+    scrollThumb.style.width = thumbPct + "%";
+    scrollThumb.style.left = (scrollRatio * (100 - thumbPct)) + "%";
+  }
+
   if(!userZoomed){
     userStep = Math.max(15, Math.min(150, plotW / (Math.min(DEFAULT_VISIBLE_DAYS, series.length) - 1 || 1)));
   }
@@ -1520,11 +1558,13 @@ function drawChart(){
 
   function updateTopCard(p){
     const dParts = p.date.split("-");
-    const dateFormatted = dParts.length === 3 ? `${parseInt(dParts[1],10)}月${parseInt(dParts[2],10)}日` : p.date;
+    const dateFormatted = dParts.length === 3 ? `${dParts[1]}-${dParts[2]}` : p.date;
     document.getElementById("topCardDate").textContent = dateFormatted;
     
+    const weightEl = document.getElementById("topCardWeight");
     if(p.weight != null){
-      document.getElementById("topCardWeight").textContent = fmt1(p.weight) + " kg";
+      weightEl.classList.remove("muted");
+      weightEl.textContent = fmt1(p.weight) + " kg";
       if(p.diff != null){
         if(p.diff === 0){
           document.getElementById("topCardDiff").textContent = "(±0)";
@@ -1538,7 +1578,8 @@ function drawChart(){
         document.getElementById("topCardDiff").textContent = "";
       }
     } else {
-      document.getElementById("topCardWeight").textContent = "未记录";
+      weightEl.classList.add("muted");
+      weightEl.textContent = "未记录";
       document.getElementById("topCardDiff").textContent = "";
     }
 
@@ -1564,6 +1605,7 @@ function drawChart(){
     const totalW = (series.length - 1) * userStep;
     const maxOffset = Math.max(0, totalW - plotW);
     offset = Math.max(0, Math.min(offset, maxOffset));
+    updateScrollbar(totalW, offset, maxOffset);
 
     ctx.strokeStyle="#FFE5EC";
     ctx.lineWidth=1.5;
@@ -1607,7 +1649,7 @@ function drawChart(){
         const labelInterval = Math.max(1, Math.round(60 / userStep));
         if(idx % labelInterval === 0){
           ctx.fillStyle="#8E7A93";
-          ctx.font="bold 11px 'Fredoka','Noto Sans SC',sans-serif";
+          ctx.font="bold 11px 'Noto Sans SC',sans-serif";
           ctx.textAlign="center";
           ctx.fillText(p.raw.date.slice(5), p.x, padT + plotH + 18);
         }
@@ -1647,6 +1689,7 @@ function drawChart(){
   canvas.onpointerdown = e => {
     canvas.setPointerCapture(e.pointerId);
     activePointers.push(e);
+    pokeScrollbar();
     if(activePointers.length === 1){
       dragging = true; startX = e.clientX;
     }
@@ -1663,12 +1706,14 @@ function drawChart(){
         const factor = dist / prevPinchDist;
         userStep = Math.max(15, Math.min(150, userStep * factor));
         userZoomed = true;
+        pokeScrollbar();
         render();
       }
       prevPinchDist = dist;
     } else if (dragging && activePointers.length === 1) {
       offset -= (e.clientX - startX);
       startX = e.clientX;
+      pokeScrollbar();
       render();
     }
   };
@@ -1693,6 +1738,7 @@ function drawChart(){
     if (e.deltaY < 0) userStep = Math.min(150, userStep * 1.1);
     else userStep = Math.max(15, userStep * 0.9);
     userZoomed = true;
+    pokeScrollbar();
     render();
   };
 
