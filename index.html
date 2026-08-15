@@ -664,7 +664,7 @@ async function submitAuth(){
       const {data:result,error}=await supabaseClient.auth.signUp({
         email,
         password,
-        options:{emailRedirectTo:window.location.href.split("#")[0]}
+        options:{emailRedirectTo:"https://sandykaze.github.io/heath/"}
       });
       if(error) throw error;
       if(result.session){
