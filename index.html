@@ -141,29 +141,32 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 }
 .account-btn:hover{transform: scale(1.05); box-shadow: 0 5px 14px rgba(157, 78, 221, 0.35);}
 
-/* 今日提示：logo/slogan 与 3 个菜单栏之间的单行跑马灯 */
+/* 今日提示：logo/slogan 与菜单栏之间，紧凑两行显示，前置 💡 小灯泡 */
 .today-tip{
-  overflow:hidden;
-  white-space:nowrap;
-  margin:0 6px 12px;
-  padding:2px 2px;
+  margin:0 16px 8px;
+  padding:2px 4px;
 }
-.today-tip-track{
-  display:inline-flex;
-  align-items:center;
-  animation: today-tip-scroll 16s linear infinite;
-  will-change: transform;
-}
-.today-tip-track span{
-  font-size:13px;
+.today-tip-inner{
+  display:flex;
+  align-items:flex-start;
+  gap:5px;
+  font-size:10.5px;
   font-weight:600;
-  color:var(--text-main);
-  padding-right:56px;
-  white-space:nowrap;
+  color:var(--text-muted);
+  line-height:1.45;
 }
-@keyframes today-tip-scroll{
-  0%{ transform: translateX(0); }
-  100%{ transform: translateX(-50%); }
+.today-tip-bulb{
+  flex-shrink:0;
+  font-size:11px;
+  line-height:1.45;
+}
+.today-tip-text{
+  flex:1;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
 /* Top Navigation Tabs 顶部分段导航 */
@@ -717,7 +720,10 @@ canvas{width:100%;height:100%;display:block}
   </div>
 
   <div class="today-tip" id="todayTip">
-    <div class="today-tip-track" id="todayTipTrack"><span></span></div>
+    <div class="today-tip-inner">
+      <span class="today-tip-bulb" aria-hidden="true">💡</span>
+      <span class="today-tip-text" id="todayTipText"></span>
+    </div>
   </div>
 
   <div class="nav-tabs">
@@ -1936,8 +1942,9 @@ function drawChart(){
 
 const POOP_LEVEL_MAP = {"小":1, "小偏中":2, "中":3, "中偏大":4, "大":5};
 const POOP_LEVEL_LABELS = ["小","小偏中","中","中偏大","大"];
-const POOP_AXIS_MAX = 6; /* 坐标轴最高只显示到6，超过6也按6显示 */
-const POOP_AXIS_MIN = -1; /* 在最底部给"未排便"层留 1 个单位的视觉缓冲，让空心圆完整显示 */
+const POOP_DATA_CAP = 6;   /* 数据上限：累计超过 6（多日大号）按 6 显示 */
+const POOP_AXIS_MAX = 7;   /* 视觉上限，比数据 cap 多 1 个单位，给 cap 天的圆点和选中标记完整显示空间 */
+const POOP_AXIS_MIN = -1;  /* 视觉下限，给"未排便"层的空心圆留缓冲 */
 
 function buildPoopChartSeries(){
   const allKeys = Object.keys(data.days).sort();
@@ -2011,10 +2018,11 @@ function updatePoopTopCard(p){
 function dayPoopLevel(d){
   if(!d.poops || !d.poops.length) return null;
   const total = d.poops.reduce((s,x)=> s + (POOP_LEVEL_MAP[x.size] || 1), 0);
-  return Math.min(POOP_AXIS_MAX, total);
+  return Math.min(POOP_DATA_CAP, total);
 }
 
 let poopUserStep = 40;
+let poopUserZoomed = false;
 
 function drawPoopChart(){
   const box = document.getElementById("poopChartBox");
@@ -2075,9 +2083,9 @@ function drawPoopChart(){
     scrollThumb.style.left = (scrollRatio * (100 - thumbPct)) + "%";
   }
 
-  const DEFAULT_VISIBLE_DAYS = 20;
-  if(!poopUserStep){
-    poopUserStep = Math.max(15, Math.min(150, plotW / (Math.min(DEFAULT_VISIBLE_DAYS, series.length) - 1 || 1)));
+  const POOP_DEFAULT_VISIBLE_DAYS = 20;
+  if(!poopUserZoomed){
+    poopUserStep = Math.max(15, Math.min(150, plotW / (Math.min(POOP_DEFAULT_VISIBLE_DAYS, series.length) - 1 || 1)));
   }
 
   let offset = Math.max(0, (series.length - 1) * poopUserStep - plotW);
@@ -2188,17 +2196,41 @@ function drawPoopChart(){
     });
   }
 
-  /* 仅需拖动，不需要缩放 */
+  /* 单指拖动平移 + 双指捏合缩放 + 滚轮缩放（与体重图一致） */
+  let activePointers = [];
+  let prevPinchDist = null;
   let dragging = false, startX = 0, dragMoved = false;
+
+  function getDistance(p1, p2) {
+    return Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+  }
 
   canvas.onpointerdown = e => {
     canvas.setPointerCapture(e.pointerId);
-    dragging = true; startX = e.clientX; dragMoved = false;
+    activePointers.push(e);
     pokeScrollbar();
+    if(activePointers.length === 1){
+      dragging = true; startX = e.clientX; dragMoved = false;
+    }
   };
 
   canvas.onpointermove = e => {
-    if(dragging){
+    const idx = activePointers.findIndex(p => p.pointerId === e.pointerId);
+    if(idx >= 0) activePointers[idx] = e;
+
+    if(activePointers.length === 2){
+      /* 进入双指模式就放弃单击选中 */
+      dragging = false; dragMoved = true;
+      const dist = getDistance(activePointers[0], activePointers[1]);
+      if(prevPinchDist){
+        const factor = dist / prevPinchDist;
+        poopUserStep = Math.max(15, Math.min(150, poopUserStep * factor));
+        poopUserZoomed = true;
+        pokeScrollbar();
+        render();
+      }
+      prevPinchDist = dist;
+    } else if(activePointers.length === 1 && dragging){
       const dx = e.clientX - startX;
       if(Math.abs(dx) > 3) dragMoved = true;
       offset -= dx;
@@ -2209,16 +2241,29 @@ function drawPoopChart(){
   };
 
   canvas.onpointerup = canvas.onpointercancel = e => {
-    if(dragging){
-      dragging = false;
-      if(!dragMoved){
-        const rect = canvas.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickedIdx = Math.round((clickX - padL + offset) / poopUserStep);
-        if(clickedIdx >= 0 && clickedIdx < series.length) selectedIdx = clickedIdx;
+    activePointers = activePointers.filter(p => p.pointerId !== e.pointerId);
+    if(activePointers.length < 2) prevPinchDist = null;
+    if(activePointers.length === 0){
+      if(dragging){
+        dragging = false;
+        if(!dragMoved){
+          const rect = canvas.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const clickedIdx = Math.round((clickX - padL + offset) / poopUserStep);
+          if(clickedIdx >= 0 && clickedIdx < series.length) selectedIdx = clickedIdx;
+        }
+        render();
       }
-      render();
     }
+  };
+
+  canvas.onwheel = e => {
+    e.preventDefault();
+    if(e.deltaY < 0) poopUserStep = Math.min(150, poopUserStep * 1.1);
+    else poopUserStep = Math.max(15, poopUserStep * 0.9);
+    poopUserZoomed = true;
+    pokeScrollbar();
+    render();
   };
 
   render();
@@ -2280,10 +2325,9 @@ function buildTodayTip(){
 }
 
 function renderTodayTip(){
-  const track = document.getElementById("todayTipTrack");
-  if(!track) return;
-  const text = buildTodayTip();
-  track.innerHTML = `<span>${text}</span><span>${text}</span>`;
+  const text = document.getElementById("todayTipText");
+  if(!text) return;
+  text.textContent = buildTodayTip();
 }
 
 function prediction(){
