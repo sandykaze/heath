@@ -155,13 +155,12 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   will-change: transform;
 }
 .today-tip-track span{
-  font-size:12px;
+  font-size:13px;
   font-weight:600;
   color:var(--text-main);
   padding-right:56px;
   white-space:nowrap;
 }
-.today-tip-track span::before{content:"✨ ";}
 @keyframes today-tip-scroll{
   0%{ transform: translateX(0); }
   100%{ transform: translateX(-50%); }
@@ -213,8 +212,8 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   box-shadow: 0 6px 18px rgba(255, 107, 155, 0.28);
 }
 .tab-btn.active.tab-cycle{
-  background: linear-gradient(135deg, #06D6A0, #118AB2);
-  box-shadow: 0 6px 18px rgba(17, 138, 178, 0.28);
+  background: linear-gradient(135deg, #FF6B9B 0%, #FF8811 100%);
+  box-shadow: 0 6px 18px rgba(255, 136, 17, 0.28);
 }
 
 /* Card Style 卡片全构架 */
@@ -1938,6 +1937,7 @@ function drawChart(){
 const POOP_LEVEL_MAP = {"小":1, "小偏中":2, "中":3, "中偏大":4, "大":5};
 const POOP_LEVEL_LABELS = ["小","小偏中","中","中偏大","大"];
 const POOP_AXIS_MAX = 6; /* 坐标轴最高只显示到6，超过6也按6显示 */
+const POOP_AXIS_MIN = -1; /* 在最底部给"未排便"层留 1 个单位的视觉缓冲，让空心圆完整显示 */
 
 function buildPoopChartSeries(){
   const allKeys = Object.keys(data.days).sort();
@@ -2048,8 +2048,8 @@ function drawPoopChart(){
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
-  const max = POOP_AXIS_MAX, min = 0, range = POOP_AXIS_MAX;
-  const unitScale = plotH / POOP_AXIS_MAX;
+  const max = POOP_AXIS_MAX, min = POOP_AXIS_MIN, range = POOP_AXIS_MAX - POOP_AXIS_MIN;
+  const unitScale = plotH / (POOP_AXIS_MAX - POOP_AXIS_MIN);
 
   const orangeColor = (getComputedStyle(document.documentElement).getPropertyValue('--pop-orange') || '#FF8811').trim();
 
@@ -2090,13 +2090,13 @@ function drawPoopChart(){
     offset = Math.max(0, Math.min(offset, maxOffset));
     updateScrollbar(totalW, offset, maxOffset);
 
-    /* 5 个层级网格线与标签（画在底层，最后不会被数据盖住，也不会被数据盖过去） */
+    /* 6 个层级网格线与标签（画在底层，最后不会被数据盖住，也不会被数据盖过去） */
     ctx.strokeStyle="rgba(140, 120, 150, 0.16)";
     ctx.lineWidth=1;
     ctx.font="10px 'Noto Sans SC',sans-serif";
     ctx.textAlign="left";
-    for(let lvl=1; lvl<=5; lvl++){
-      const y = padT + plotH - lvl*unitScale;
+    for(let lvl=0; lvl<=5; lvl++){
+      const y = padT + (max - lvl)/range * plotH;
       ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke();
     }
 
@@ -2109,8 +2109,9 @@ function drawPoopChart(){
     let lastValidLevel = 0;
     const pts = series.map((e,i)=>{
       const lvl = dayPoopLevel(e);
-      const val = lvl != null ? lvl : lastValidLevel;
-      if(lvl != null) lastValidLevel = lvl;
+      /* 未排便的日子 val=0，让折线在视觉上"拉到最下面"；
+         但 level 仍为 null，绘制时按空心圆显示 */
+      const val = lvl != null ? lvl : 0;
       return {
         x: padL + i*poopUserStep - offset,
         y: padT + (max - val)/range * plotH,
@@ -2119,9 +2120,9 @@ function drawPoopChart(){
       };
     });
 
-    const validPts = pts.filter(p=>p.level!=null);
-    if(validPts.length > 0){
-      drawMonotoneSpline(ctx, validPts, orangeColor);
+    /* 折线穿过所有点（包括未排便的日子），形成"下拉到未排便行"的视觉效果 */
+    if(pts.length > 1){
+      drawMonotoneSpline(ctx, pts, orangeColor);
     }
 
     pts.forEach((p)=>{
@@ -2168,8 +2169,10 @@ function drawPoopChart(){
     ctx.fillStyle="#8E7A93";
     ctx.font="10px 'Noto Sans SC',sans-serif";
     ctx.textAlign="left";
+    /* 未排便在最底部（level 0） */
+    ctx.fillText("未排便", 2, padT + (max - 0)/range * plotH + 3);
     for(let lvl=1; lvl<=5; lvl++){
-      const y = padT + plotH - lvl*unitScale;
+      const y = padT + (max - lvl)/range * plotH;
       ctx.fillText(POOP_LEVEL_LABELS[lvl-1], 2, y+3);
     }
 
