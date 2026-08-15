@@ -620,7 +620,115 @@ function pad(n){return String(n).padStart(2,"0")}
 function key(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())}
 function formatSlash(d){return d.getFullYear()+"/"+pad(d.getMonth()+1)+"/"+pad(d.getDate())}
 function fmt1(n){return n == null ? "" : Number(n).toFixed(1)}
-function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+let cloudSyncQueue=Promise.resolve();
+let cloudLoaded=false;
+let cloudUserId=null;
+
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(data));
+  if(cloudLoaded && cloudUserId) queueCloudSync();
+}
+
+function queueCloudSync(){
+  const snapshot=JSON.parse(JSON.stringify(data));
+  cloudSyncQueue=cloudSyncQueue
+    .then(()=>syncSnapshotToCloud(snapshot))
+    .catch(err=>console.error("云端同步失败:",err));
+  return cloudSyncQueue;
+}
+
+async function syncSnapshotToCloud(snapshot){
+  if(!cloudUserId) return;
+  const rows=Object.entries(snapshot.days||{}).map(([date,d])=>({
+    user_id:cloudUserId,
+    record_date:date,
+    weight:d?.weight==null?null:Number(d.weight),
+    period:d?.period||null,
+    poops:Array.isArray(d?.poops)?d.poops:[]
+  }));
+
+  if(rows.length){
+    const {error}=await supabaseClient.from("body_records").upsert(rows,{onConflict:"user_id,record_date"});
+    if(error) throw error;
+  }
+
+  const {data:remoteRows,error:readError}=await supabaseClient
+    .from("body_records").select("record_date").eq("user_id",cloudUserId);
+  if(readError) throw readError;
+  const keep=new Set(rows.map(r=>r.record_date));
+  const stale=(remoteRows||[]).map(r=>r.record_date).filter(d=>!keep.has(d));
+  if(stale.length){
+    const {error}=await supabaseClient.from("body_records")
+      .delete().eq("user_id",cloudUserId).in("record_date",stale);
+    if(error) throw error;
+  }
+
+  const {error:profileError}=await supabaseClient.from("profiles").upsert({
+    id:cloudUserId,
+    username:(snapshot.username||"") || undefined,
+    target_weight:Number(snapshot.targetWeight||50)
+  });
+  if(profileError) console.warn("目标体重同步失败:",profileError);
+}
+
+async function loadCloudData(user){
+  if(!user) return;
+  cloudUserId=user.id;
+  await ensureProfile(user);
+
+  const {data:rows,error}=await supabaseClient.from("body_records")
+    .select("record_date,weight,period,poops")
+    .eq("user_id",user.id)
+    .order("record_date");
+  if(error) throw error;
+
+  const {data:profile}=await supabaseClient.from("profiles")
+    .select("target_weight").eq("id",user.id).maybeSingle();
+
+  const localHasData=Object.keys(data.days||{}).length>0;
+  const cloudHasData=(rows||[]).length>0;
+
+  if(!cloudHasData && localHasData){
+    cloudLoaded=true;
+    await syncSnapshotToCloud(data);
+    return;
+  }
+
+  if(cloudHasData){
+    const days={};
+    for(const r of rows){
+      const d={poops:Array.isArray(r.poops)?r.poops:[]};
+      if(r.weight!=null) d.weight=Number(r.weight);
+      if(r.period) d.period=r.period;
+      if(!d.poops.length) delete d.poops;
+      days[r.record_date]=d;
+    }
+    data={
+      targetWeight: profile?.target_weight==null ? 50 : Number(profile.target_weight),
+      days
+    };
+    localStorage.setItem(KEY,JSON.stringify(data));
+  }else if(profile?.target_weight!=null){
+    data.targetWeight=Number(profile.target_weight);
+    localStorage.setItem(KEY,JSON.stringify(data));
+  }
+
+  cloudLoaded=true;
+  renderCalendar();
+  drawChart();
+  prediction();
+}
+
+async function handleSignedIn(user){
+  try{
+    await loadCloudData(user);
+    showAuthMessage("登录成功，数据已同步。 ");
+    updateAuthUI();
+  }catch(err){
+    console.error("读取云端数据失败:",err);
+    showAuthMessage("登录成功，但云端同步失败："+(err.message||err),true);
+  }
+}
 
 function openAuth(){
   const overlay=document.getElementById("authOverlay");
@@ -669,7 +777,8 @@ async function submitAuth(){
       if(error) throw error;
       if(result.session){
         await ensureProfile(result.user);
-        showAuthMessage("注册成功，已经登录。下一步就可以同步数据了。");
+        await handleSignedIn(result.user);
+        showAuthMessage("注册成功，数据已同步。");
       }else{
         showAuthMessage("注册成功！请检查邮箱并点击验证链接，然后回来登录。");
       }
@@ -677,8 +786,9 @@ async function submitAuth(){
       const {data:result,error}=await supabaseClient.auth.signInWithPassword({email,password});
       if(error) throw error;
       await ensureProfile(result.user);
-      showAuthMessage("登录成功！");
-      setTimeout(closeAuth,500);
+      await handleSignedIn(result.user);
+      showAuthMessage("登录成功，数据已同步！");
+      setTimeout(closeAuth,700);
     }
   }catch(err){
     console.error(err);
@@ -729,7 +839,15 @@ async function signOut(){
   updateAuthUI();
 }
 
-supabaseClient.auth.onAuthStateChange(()=>{updateAuthUI();});
+supabaseClient.auth.onAuthStateChange(async (_event,session)=>{
+  updateAuthUI();
+  if(session?.user){
+    await handleSignedIn(session.user);
+  }else{
+    cloudLoaded=false;
+    cloudUserId=null;
+  }
+});
 
 function dayObj(k){return data.days[k] ||= {poops:[]}}
 
