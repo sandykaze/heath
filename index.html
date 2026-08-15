@@ -141,16 +141,42 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 }
 .account-btn:hover{transform: scale(1.05); box-shadow: 0 5px 14px rgba(157, 78, 221, 0.35);}
 
+/* 今日提示：logo/slogan 与 3 个菜单栏之间的单行跑马灯 */
+.today-tip{
+  overflow:hidden;
+  white-space:nowrap;
+  margin:0 6px 12px;
+  padding:2px 2px;
+}
+.today-tip-track{
+  display:inline-flex;
+  align-items:center;
+  animation: today-tip-scroll 16s linear infinite;
+  will-change: transform;
+}
+.today-tip-track span{
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-main);
+  padding-right:56px;
+  white-space:nowrap;
+}
+.today-tip-track span::before{content:"✨ ";}
+@keyframes today-tip-scroll{
+  0%{ transform: translateX(0); }
+  100%{ transform: translateX(-50%); }
+}
+
 /* Top Navigation Tabs 顶部分段导航 */
 .nav-tabs{
   display:flex;
   background: var(--glass-bg);
   backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
-  padding:6px;
+  padding:4px;
   border-radius:var(--radius-lg);
-  margin-bottom:22px;
-  gap:6px;
+  margin-bottom:18px;
+  gap:5px;
   border: 1px solid var(--glass-border);
   box-shadow: var(--glass-shadow);
 }
@@ -158,8 +184,8 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   flex:1;
   border:0;
   background:transparent;
-  padding:12px 0;
-  font-size:14px;
+  padding:9px 0;
+  font-size:13px;
   font-weight:700;
   color:var(--text-muted);
   border-radius:var(--radius-md);
@@ -173,6 +199,22 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   color: #FFFFFF;
   box-shadow: 0 6px 18px rgba(255, 107, 155, 0.22);
   transform: scale(1.02);
+}
+.tab-btn.active.tab-record{
+  background: linear-gradient(135deg, #FF6B9B, #9D4EDD);
+  box-shadow: 0 6px 18px rgba(157, 78, 221, 0.28);
+}
+.tab-btn.active.tab-poop{
+  background: linear-gradient(135deg, #FFD166, #FF8811);
+  box-shadow: 0 6px 18px rgba(255, 136, 17, 0.28);
+}
+.tab-btn.active.tab-weight{
+  background: linear-gradient(135deg, #FFB3C6, #FF6B9B);
+  box-shadow: 0 6px 18px rgba(255, 107, 155, 0.28);
+}
+.tab-btn.active.tab-cycle{
+  background: linear-gradient(135deg, #06D6A0, #118AB2);
+  box-shadow: 0 6px 18px rgba(17, 138, 178, 0.28);
 }
 
 /* Card Style 卡片全构架 */
@@ -482,6 +524,11 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .chart-top-card .weight-val.muted{font-weight:500;color:var(--text-muted);}
 .chart-top-card .diff-val{font-size:13px;margin-left:4px;font-weight:700;font-family:var(--font-num);font-variant-numeric: tabular-nums;}
 
+/* 排便板块：与体重板块结构一致，高亮色改为排便打卡同款金桔色 */
+.poop-val{font-size:19px;font-weight:700;color:var(--pop-orange);font-family:var(--font-num);font-variant-numeric: tabular-nums;}
+.poop-stat-num{color:var(--pop-orange) !important;}
+.poop-scrollbar-thumb{background:linear-gradient(90deg, var(--pop-orange), var(--pop-yellow)) !important;}
+
 .tag-phase{
   display:inline-block;
   padding:4px 10px;
@@ -670,10 +717,15 @@ canvas{width:100%;height:100%;display:block}
     </div>
   </div>
 
+  <div class="today-tip" id="todayTip">
+    <div class="today-tip-track" id="todayTipTrack"><span></span></div>
+  </div>
+
   <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('calTab')">日历打卡</button>
-    <button class="tab-btn" onclick="switchTab('chartTab')">体重趋势</button>
-    <button class="tab-btn" onclick="switchTab('predTab')">周期预测</button>
+    <button class="tab-btn active tab-record" onclick="switchTab('calTab')">记录</button>
+    <button class="tab-btn tab-poop" onclick="switchTab('poopTab')">排便</button>
+    <button class="tab-btn tab-weight" onclick="switchTab('chartTab')">体重</button>
+    <button class="tab-btn tab-cycle" onclick="switchTab('predTab')">周期</button>
   </div>
 
   <div id="calTab" class="tab-content active">
@@ -746,6 +798,37 @@ canvas{width:100%;height:100%;display:block}
           </div>
           <button class="btn-secondary" style="width:100%;padding:10px;font-size:13px;" onclick="addPoop()">添加一次排便</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="poopTab" class="tab-content">
+    <div class="card">
+      <div class="chart-top-card poop-top-card">
+        <div class="top-card-row1">
+          <div class="top-card-date-wrap">
+            <span class="date-val" id="poopTopCardDate">滑动或点击点位查看</span>
+          </div>
+          <div>
+            <span class="poop-val" id="poopTopCardSize">—</span>
+          </div>
+        </div>
+        <div class="top-card-row2">
+          <span id="poopTopCardWeight">当日体重：—</span>
+        </div>
+      </div>
+
+      <div class="chart-container" id="poopChartBox">
+        <canvas id="poopChart"></canvas>
+      </div>
+      <div class="chart-scrollbar-track" id="poopChartScrollTrack">
+        <div class="chart-scrollbar-thumb poop-scrollbar-thumb" id="poopChartScrollThumb"></div>
+      </div>
+
+      <div class="statgrid">
+        <div class="stat"><b class="poop-stat-num" id="poopAvgDays">—</b><span>平均排便</span></div>
+        <div class="stat"><b class="poop-stat-num" id="poopMaxStreak">—</b><span>最长连续排便</span></div>
+        <div class="stat"><b class="poop-stat-num" id="poopMaxGap">—</b><span>最长连续便秘</span></div>
       </div>
     </div>
   </div>
@@ -1089,12 +1172,13 @@ function setTargetWeight(){
 
 function switchTab(tabId){
   document.querySelectorAll('.tab-btn').forEach((btn, idx)=>{
-    btn.classList.toggle('active', ['calTab','chartTab','predTab'][idx] === tabId);
+    btn.classList.toggle('active', ['calTab','poopTab','chartTab','predTab'][idx] === tabId);
   });
   document.querySelectorAll('.tab-content').forEach(el=>{
     el.classList.toggle('active', el.id === tabId);
   });
   if(tabId === 'chartTab') drawChart();
+  if(tabId === 'poopTab') drawPoopChart();
 }
 
 function getAvgCycleLength(){
@@ -1199,7 +1283,9 @@ function init(){
   viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
   renderCalendar();
   drawChart();
+  drawPoopChart();
   prediction();
+  renderTodayTip();
 }
 
 function changeMonth(n){
@@ -1401,7 +1487,9 @@ function saveDaily(){
   save();
   renderCalendar();
   drawChart();
+  drawPoopChart();
   prediction();
+  renderTodayTip();
   closeEditModal();
 }
 
@@ -1411,7 +1499,9 @@ function clearDaily(){
     save();
     renderCalendar();
     drawChart();
+    drawPoopChart();
     prediction();
+    renderTodayTip();
     closeEditModal();
   }
 }
@@ -1429,6 +1519,8 @@ function addPoop(){
   save();
   renderCalendar();
   renderPoops();
+  drawPoopChart();
+  renderTodayTip();
 }
 
 function removePoop(i){
@@ -1436,6 +1528,8 @@ function removePoop(i){
   save();
   renderCalendar();
   renderPoops();
+  drawPoopChart();
+  renderTodayTip();
 }
 
 function renderPoops(){
@@ -1839,6 +1933,356 @@ function drawChart(){
   render();
 }
 
+/* ===================== 排便板块（金桔色高亮） ===================== */
+
+const POOP_LEVEL_MAP = {"小":1, "小偏中":2, "中":3, "中偏大":4, "大":5};
+const POOP_LEVEL_LABELS = ["小","小偏中","中","中偏大","大"];
+const POOP_AXIS_MAX = 6; /* 坐标轴最高只显示到6，超过6也按6显示 */
+
+function buildPoopChartSeries(){
+  const allKeys = Object.keys(data.days).sort();
+  if(!allKeys.length) return [];
+
+  const startD = new Date(allKeys[0]+"T00:00:00");
+  const todayD = new Date(key(new Date())+"T00:00:00");
+  const endD = todayD;
+
+  let rawList = [];
+  let curr = new Date(startD);
+  while(curr <= endD){
+    const k = key(curr);
+    const dayData = data.days[k] || {};
+    rawList.push({
+      date: k,
+      weight: dayData.weight ?? null,
+      poops: dayData.poops || []
+    });
+    curr.setDate(curr.getDate() + 1);
+  }
+  return rawList;
+}
+
+function computePoopStats(series){
+  if(!series.length) return {avgPerWeek:null, maxStreak:0, maxGap:0};
+
+  const totalDays = series.length;
+  const poopDays = series.filter(d => d.poops && d.poops.length > 0).length;
+  const avgPerWeek = totalDays ? Number((poopDays/totalDays*7).toFixed(1)) : null;
+
+  let maxStreak=0, curStreak=0;
+  series.forEach(d=>{
+    if(d.poops && d.poops.length > 0){
+      curStreak++;
+      if(curStreak>maxStreak) maxStreak=curStreak;
+    } else {
+      curStreak=0;
+    }
+  });
+
+  /* 最长连续便秘天数：只统计"前后都有排便记录"之间的空档天数，
+     忽略第一次记录之前、以及最近一次记录之后（尚未继续记录）的天数 */
+  const poopIdxList = [];
+  series.forEach((d,i)=>{ if(d.poops && d.poops.length>0) poopIdxList.push(i); });
+  let maxGap = 0;
+  for(let i=1; i<poopIdxList.length; i++){
+    const gap = poopIdxList[i] - poopIdxList[i-1] - 1;
+    if(gap > maxGap) maxGap = gap;
+  }
+
+  return {avgPerWeek, maxStreak, maxGap};
+}
+
+function updatePoopTopCard(p){
+  const dParts = p.date.split("-");
+  const dateFormatted = dParts.length === 3 ? `${parseInt(dParts[1],10)}月${parseInt(dParts[2],10)}日` : p.date;
+  document.getElementById("poopTopCardDate").textContent = dateFormatted;
+
+  const sizeEl = document.getElementById("poopTopCardSize");
+  if(p.poops && p.poops.length){
+    sizeEl.textContent = p.poops.map(x => `${x.size}(${x.hour}:00)`).join("、");
+  } else {
+    sizeEl.textContent = "未排便";
+  }
+
+  const weightEl = document.getElementById("poopTopCardWeight");
+  weightEl.textContent = p.weight != null ? `当日体重：${fmt1(p.weight)}kg` : "当日体重：—";
+}
+
+function dayPoopLevel(d){
+  if(!d.poops || !d.poops.length) return null;
+  const total = d.poops.reduce((s,x)=> s + (POOP_LEVEL_MAP[x.size] || 1), 0);
+  return Math.min(POOP_AXIS_MAX, total);
+}
+
+let poopUserStep = 40;
+
+function drawPoopChart(){
+  const box = document.getElementById("poopChartBox");
+  const canvas = document.getElementById("poopChart");
+  const ctx = canvas.getContext("2d");
+
+  const dpr = window.devicePixelRatio || 1;
+  const W = box.clientWidth;
+  const H = box.clientHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+
+  const series = buildPoopChartSeries();
+  const scrollTrackEl = document.getElementById("poopChartScrollTrack");
+
+  const stats = computePoopStats(series);
+  document.getElementById("poopAvgDays").textContent = stats.avgPerWeek != null ? stats.avgPerWeek + "天/周" : "—";
+  document.getElementById("poopMaxStreak").textContent = stats.maxStreak ? stats.maxStreak + "天" : "—";
+  document.getElementById("poopMaxGap").textContent = stats.maxGap ? stats.maxGap + "天" : "—";
+
+  if(!series.length){
+    if(scrollTrackEl) scrollTrackEl.style.visibility = "hidden";
+    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
+    ctx.fillText("暂无数据", W/2, H/2);
+    updatePoopTopCard({date:key(new Date()), weight:null, poops:[]});
+    return;
+  }
+
+  const padL = 34, padR = 20, padT = 20, padB = 30;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  const max = POOP_AXIS_MAX, min = 0, range = POOP_AXIS_MAX;
+  const unitScale = plotH / POOP_AXIS_MAX;
+
+  const orangeColor = (getComputedStyle(document.documentElement).getPropertyValue('--pop-orange') || '#FF8811').trim();
+
+  const scrollTrack = document.getElementById("poopChartScrollTrack");
+  const scrollThumb = document.getElementById("poopChartScrollThumb");
+  let scrollbarFadeTimer = null;
+  function pokeScrollbar(){
+    if(!scrollTrack) return;
+    scrollTrack.classList.add("active");
+    clearTimeout(scrollbarFadeTimer);
+    scrollbarFadeTimer = setTimeout(()=> scrollTrack.classList.remove("active"), 700);
+  }
+  function updateScrollbar(totalW, offset, maxOffset){
+    if(!scrollTrack || !scrollThumb) return;
+    if(totalW <= plotW){
+      scrollTrack.style.visibility = "hidden";
+      return;
+    }
+    scrollTrack.style.visibility = "visible";
+    const thumbPct = Math.max(8, Math.min(100, (plotW / totalW) * 100));
+    const scrollRatio = maxOffset > 0 ? offset / maxOffset : 0;
+    scrollThumb.style.width = thumbPct + "%";
+    scrollThumb.style.left = (scrollRatio * (100 - thumbPct)) + "%";
+  }
+
+  const DEFAULT_VISIBLE_DAYS = 20;
+  if(!poopUserStep){
+    poopUserStep = Math.max(15, Math.min(150, plotW / (Math.min(DEFAULT_VISIBLE_DAYS, series.length) - 1 || 1)));
+  }
+
+  let offset = Math.max(0, (series.length - 1) * poopUserStep - plotW);
+  let selectedIdx = series.length - 1;
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    const totalW = (series.length - 1) * poopUserStep;
+    const maxOffset = Math.max(0, totalW - plotW);
+    offset = Math.max(0, Math.min(offset, maxOffset));
+    updateScrollbar(totalW, offset, maxOffset);
+
+    /* 5 个层级网格线与标签（画在底层，最后不会被数据盖住，也不会被数据盖过去） */
+    ctx.strokeStyle="rgba(140, 120, 150, 0.16)";
+    ctx.lineWidth=1;
+    ctx.font="10px 'Noto Sans SC',sans-serif";
+    ctx.textAlign="left";
+    for(let lvl=1; lvl<=5; lvl++){
+      const y = padT + plotH - lvl*unitScale;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke();
+    }
+
+    /* 折线与圆点绘制严格裁剪在图表区域内，避免拖动时遮挡左侧纵坐标文字 */
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(padL, padT, plotW, plotH);
+    ctx.clip();
+
+    let lastValidLevel = 0;
+    const pts = series.map((e,i)=>{
+      const lvl = dayPoopLevel(e);
+      const val = lvl != null ? lvl : lastValidLevel;
+      if(lvl != null) lastValidLevel = lvl;
+      return {
+        x: padL + i*poopUserStep - offset,
+        y: padT + (max - val)/range * plotH,
+        raw: e,
+        level: lvl
+      };
+    });
+
+    const validPts = pts.filter(p=>p.level!=null);
+    if(validPts.length > 0){
+      drawMonotoneSpline(ctx, validPts, orangeColor);
+    }
+
+    pts.forEach((p)=>{
+      if(p.x >= padL - 10 && p.x <= W - padR + 10){
+        ctx.beginPath();
+        if(p.level != null){
+          ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
+          ctx.fillStyle = orangeColor;
+          ctx.fill();
+        } else {
+          ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+          ctx.strokeStyle="#BCA3C3";
+          ctx.lineWidth=2;
+          ctx.fillStyle="#FFFFFF";
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+    });
+
+    if(selectedIdx >= 0 && pts[selectedIdx]){
+      const p = pts[selectedIdx];
+      if(p.x >= padL && p.x <= W - padR){
+        ctx.strokeStyle="rgba(255, 136, 17, 0.4)";
+        ctx.lineWidth=2;
+        ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(p.x, padT); ctx.lineTo(p.x, padT+plotH); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 7, 0, Math.PI*2);
+        ctx.fillStyle="#FFD166";
+        ctx.fill();
+        ctx.lineWidth=3;
+        ctx.strokeStyle=orangeColor;
+        ctx.stroke();
+      }
+      updatePoopTopCard(pts[selectedIdx].raw);
+    }
+
+    ctx.restore();
+
+    /* 纵坐标层级文字画在最上层，永远不会被折线/圆点盖住 */
+    ctx.fillStyle="#8E7A93";
+    ctx.font="10px 'Noto Sans SC',sans-serif";
+    ctx.textAlign="left";
+    for(let lvl=1; lvl<=5; lvl++){
+      const y = padT + plotH - lvl*unitScale;
+      ctx.fillText(POOP_LEVEL_LABELS[lvl-1], 2, y+3);
+    }
+
+    /* 日期标签画在图表下方，不受裁剪影响 */
+    const labelInterval = Math.max(1, Math.round(60 / poopUserStep));
+    pts.forEach((p, idx)=>{
+      if(p.x >= padL - 10 && p.x <= W - padR + 10 && idx % labelInterval === 0){
+        ctx.fillStyle="#8E7A93";
+        ctx.font="bold 11px 'DM Sans','Noto Sans SC',sans-serif";
+        ctx.textAlign="center";
+        ctx.fillText(p.raw.date.slice(5), p.x, padT + plotH + 18);
+      }
+    });
+  }
+
+  /* 仅需拖动，不需要缩放 */
+  let dragging = false, startX = 0, dragMoved = false;
+
+  canvas.onpointerdown = e => {
+    canvas.setPointerCapture(e.pointerId);
+    dragging = true; startX = e.clientX; dragMoved = false;
+    pokeScrollbar();
+  };
+
+  canvas.onpointermove = e => {
+    if(dragging){
+      const dx = e.clientX - startX;
+      if(Math.abs(dx) > 3) dragMoved = true;
+      offset -= dx;
+      startX = e.clientX;
+      pokeScrollbar();
+      render();
+    }
+  };
+
+  canvas.onpointerup = canvas.onpointercancel = e => {
+    if(dragging){
+      dragging = false;
+      if(!dragMoved){
+        const rect = canvas.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickedIdx = Math.round((clickX - padL + offset) / poopUserStep);
+        if(clickedIdx >= 0 && clickedIdx < series.length) selectedIdx = clickedIdx;
+      }
+      render();
+    }
+  };
+
+  render();
+}
+
+/* ===================== 今日提示跑马灯 ===================== */
+
+
+function buildTodayTip(){
+  const todayKey = key(new Date());
+  const phases = computeCyclePhases();
+  let phaseText = "平常期";
+  const todayPeriod = (data.days[todayKey]||{}).period;
+  if(todayPeriod === "start" || todayPeriod === "on"){
+    phaseText = "姨妈期";
+  } else if(phases[todayKey]){
+    if(phases[todayKey].phase === "period") phaseText = "姨妈期";
+    else if(phases[todayKey].phase === "ovulation") phaseText = "排卵期";
+  }
+
+  let weightText = "";
+  const sortedW = Object.keys(data.days).filter(k => data.days[k].weight != null).sort();
+  if(sortedW.length){
+    const latestK = sortedW.at(-1);
+    const latestW = data.days[latestK].weight;
+    const twoAgoDate = new Date(latestK+"T00:00:00");
+    twoAgoDate.setDate(twoAgoDate.getDate() - 2);
+    const twoAgoKey = key(twoAgoDate);
+    const past = sortedW.filter(k => k <= twoAgoKey);
+    if(past.length){
+      const pastW = data.days[past.at(-1)].weight;
+      const diff = Number((latestW - pastW).toFixed(1));
+      if(diff > 0) weightText = `这两天体重上升了${diff}kg`;
+      else if(diff < 0) weightText = `这两天体重下降了${Math.abs(diff)}kg`;
+      else weightText = `这两天体重很稳定`;
+    }
+  }
+
+  let poopText = "";
+  const poopSeries = buildPoopChartSeries();
+  if(poopSeries.length){
+    const lastHasPoop = poopSeries.at(-1).poops && poopSeries.at(-1).poops.length > 0;
+    let streak = 0;
+    for(let i=poopSeries.length-1; i>=0; i--){
+      const has = poopSeries[i].poops && poopSeries[i].poops.length > 0;
+      if(has === lastHasPoop) streak++; else break;
+    }
+    poopText = lastHasPoop ? `已连续排便${streak}天` : `已经${streak}天没有排便`;
+  }
+
+  const encourages = ["今天也要元气满满哦～","照顾好自己，慢慢来～","身体的每一点变化都值得被记录～","坚持记录，你已经很棒啦～","多喝水，肠胃会感谢你的～"];
+  const encourage = encourages[Math.floor(Math.random()*encourages.length)];
+
+  const parts = [`今天是${phaseText}`];
+  if(weightText) parts.push(weightText);
+  if(poopText) parts.push(poopText);
+  parts.push(encourage);
+  return parts.join("，");
+}
+
+function renderTodayTip(){
+  const track = document.getElementById("todayTipTrack");
+  if(!track) return;
+  const text = buildTodayTip();
+  track.innerHTML = `<span>${text}</span><span>${text}</span>`;
+}
+
 function prediction(){
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
   const summaryEl = document.getElementById("predSummary");
@@ -1914,7 +2358,7 @@ function importData(e){
 // 正式版不再向新用户注入测试/演示数据。用户首次打开时从空白本地数据开始。
 
 window.onload = init;
-window.onresize = drawChart;
+window.onresize = function(){ drawChart(); drawPoopChart(); };
 </script>
 </body>
 </html>
