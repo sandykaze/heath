@@ -91,14 +91,22 @@ body{
 }
 .wrap{max-width:580px;margin:auto;padding:24px 18px 80px}
 
-/* Header 页头品牌区域 */
+/* Header 页头品牌区域：左侧 Logo，右侧集成账号状态 */
 .brand{
   display:flex;
   align-items:center;
-  gap:14px;
+  justify-content:space-between;
+  gap:10px;
   margin:12px 4px 24px;
 }
+.brand-left{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  min-width:0;
+}
 .brand-mark{
+  flex-shrink:0;
   width:48px;height:48px;border-radius:18px;
   display:grid;place-items:center;
   background: linear-gradient(135deg, #FF6B9B 0%, #FF8811 100%);
@@ -111,29 +119,27 @@ body{
 h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);letter-spacing:0.02em;font-family:var(--font-brand);}
 .sub{color:var(--pop-pink);font-size:11px;letter-spacing:.18em;margin:6px 0 0;font-weight:600;font-family:var(--font-brand);}
 
-/* Account 账号栏 */
-.account-bar{
-  display:flex;align-items:center;justify-content:space-between;
-  margin:0 0 18px;padding:12px 16px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-  border:1px solid var(--glass-border);
-  border-radius:var(--radius-md);
-  box-shadow: var(--glass-shadow);
+/* Account 账号信息：集成在页头右上角的小组件 */
+.account-mini{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:5px;
+  flex-shrink:0;
 }
-.account-status{font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;font-weight:600;}
-.account-status.logged{color:var(--text-main);}
+.account-status{font-size:10.5px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px;font-weight:600;}
+.account-status.logged{color:var(--pop-pink);}
 .account-btn{
   border:0;
   background: linear-gradient(135deg, #FF6B9B, #9D4EDD);
   color:#fff;
-  border-radius:12px;padding:8px 14px;
-  font-size:12px;font-weight:700;cursor:pointer;
-  box-shadow: 0 4px 12px rgba(255, 107, 155, 0.3);
+  border-radius:10px;padding:5px 12px;
+  font-size:11px;font-weight:700;cursor:pointer;
+  white-space:nowrap;
+  box-shadow: 0 3px 10px rgba(255, 107, 155, 0.28);
   transition:all .2s ease;
 }
-.account-btn:hover{transform: scale(1.05); box-shadow: 0 6px 16px rgba(157, 78, 221, 0.4);}
+.account-btn:hover{transform: scale(1.05); box-shadow: 0 5px 14px rgba(157, 78, 221, 0.35);}
 
 /* Top Navigation Tabs 顶部分段导航 */
 .nav-tabs{
@@ -650,16 +656,17 @@ canvas{width:100%;height:100%;display:block}
 
 <div class="wrap">
   <div class="brand">
-    <span class="brand-mark">P</span>
-    <div>
-      <h1>Piiisuke</h1>
-      <p class="sub">BODY & CYCLE TRACKER</p>
+    <div class="brand-left">
+      <span class="brand-mark">P</span>
+      <div>
+        <h1>Piiisuke</h1>
+        <p class="sub">BODY & CYCLE TRACKER</p>
+      </div>
     </div>
-  </div>
-
-  <div class="account-bar">
-    <span class="account-status" id="accountStatus">未登录 · 数据目前保存在本机</span>
-    <button class="account-btn" id="accountBtn" onclick="openAuth()">登录 / 注册</button>
+    <div class="account-mini">
+      <span class="account-status" id="accountStatus" title="未登录 · 数据目前保存在本机">未登录</span>
+      <button class="account-btn" id="accountBtn" onclick="openAuth()">登录</button>
+    </div>
   </div>
 
   <div class="nav-tabs">
@@ -1039,14 +1046,16 @@ async function updateAuthUI(){
   const btn=document.getElementById("accountBtn");
   if(!status||!btn) return;
   if(session?.user){
-    status.textContent=`已登录 · ${session.user.email}`;
+    status.textContent="已登录";
+    status.title=`已登录 · ${session.user.email}`;
     status.classList.add("logged");
     btn.textContent="退出";
     btn.onclick=signOut;
   }else{
-    status.textContent="未登录 · 数据目前保存在本机";
+    status.textContent="未登录";
+    status.title="未登录 · 数据目前保存在本机";
     status.classList.remove("logged");
-    btn.textContent="登录 / 注册";
+    btn.textContent="登录";
     btn.onclick=openAuth;
   }
 }
