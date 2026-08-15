@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#FF99C8">
 <title>Piiisuke — Personal Body Log</title>
-<!-- 引入可爱大气的 Google Fonts (Fredoka & Varela Round) -->
+<!-- 引入可爱大气的 Google Fonts (Fredoka 品牌区 & Poppins 数字 & Noto Sans SC 中文) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Varela+Round&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
 <style>
 /* 🎨 极具活力与治愈感的多巴胺糖果配色体系 */
@@ -43,6 +43,9 @@
   --diff-up: var(--pop-orange);
   --diff-zero: #A09383;
 
+  /* 高级偏粉色调，用于生理期预测等需要区别于亮粉的强调色 */
+  --rose-mauve: #B8557A;
+
   /* 多巴胺糖果感阴影与大圆角 */
   --shadow-soft: 0 16px 36px rgba(255, 107, 155, 0.12);
   --shadow-hover: 0 8px 20px rgba(157, 78, 221, 0.15);
@@ -51,9 +54,11 @@
   --radius-sm: 12px;
 
   /* 统一字体：西文用 Fredoka 撑起圆润气质，中文交给 Noto Sans SC 保持大气整洁，两者字重呼应 */
-  /* 统一字体：除品牌区域外，其余数字与英文都与中文使用同一字体，视觉更统一 */
+  /* 统一字体：中文用 Noto Sans SC 保证清爽好读；数字单独换成 Poppins——
+     比圆体数字更修长、更有高级感，混入的中文（如"天"）仍自动落回 Noto Sans SC，
+     不会出现整段文字字体不统一的问题 */
   --font-main: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-num: 'Noto Sans SC', sans-serif;
+  --font-num: 'Poppins', 'Noto Sans SC', sans-serif;
   --font-brand: 'Fredoka', 'Noto Sans SC', sans-serif;
 }
 
@@ -337,6 +342,13 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 }
 .arrow-up{color:var(--diff-up);font-size:8px;font-weight:bold;margin-left:1px;}
 .arrow-down{color:var(--diff-down);font-size:8px;font-weight:bold;margin-left:1px;}
+.arrow-slot{
+  display:inline-block;
+  width:7px;
+  margin-left:1px;
+  text-align:center;
+  line-height:1;
+}
 
 /* 详情抽屉卡片 */
 .inline-detail-card {
@@ -480,7 +492,8 @@ canvas{width:100%;height:100%;display:block}
 .stat span{font-size:11px;color:var(--text-muted);font-weight:600;}
 .stat-editable{cursor:pointer;}
 
-.notice{background:#F4F0FF;border:2px solid #E8DEF8;border-radius:var(--radius-md);padding:18px;font-size:13px;line-height:1.6;color:var(--text-main);font-weight:600;}
+.notice{background:#FFF4F6;border:2px solid #FFDCE6;border-radius:var(--radius-md);padding:18px;font-size:13px;line-height:1.6;color:var(--text-main);font-weight:600;}
+.notice b{color:var(--rose-mauve);}
 .prediction-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -492,15 +505,15 @@ canvas{width:100%;height:100%;display:block}
 }
 .pred-item{
   background:#FFFFFF;
-  border:2px solid #E8DEF8;
+  border:2px solid #FFE3EC;
   border-radius:14px;
-  padding:10px 12px;
-  font-size:12px;
+  padding:12px;
+  font-size:13px;
   display:flex;
-  justify-content:space-between;
+  align-items:center;
+  justify-content:center;
 }
-.pred-item .m-label{color:var(--text-muted);font-weight:600;}
-.pred-item .d-label{color:var(--pop-purple);font-weight:700;font-family:var(--font-num);}
+.pred-item .d-label{color:var(--rose-mauve);font-weight:700;font-family:var(--font-num);}
 
 /* 备份控制与表单 */
 .backup-box{margin-top:24px}
@@ -1170,9 +1183,11 @@ function renderCalendar(){
     if(dayData.weight != null){
       const formattedW = fmt1(dayData.weight);
       const diffVal = weightDiffs[k];
-      let arrowHtml = "";
-      if(diffVal != null && diffVal !== 0){
-        arrowHtml = diffVal > 0 ? `<span class="arrow-up">↑</span>` : `<span class="arrow-down">↓</span>`;
+      let arrowHtml = `<span class="arrow-slot"></span>`;
+      if(diffVal != null && diffVal > 0){
+        arrowHtml = `<span class="arrow-slot arrow-up">↑</span>`;
+      } else if(diffVal != null && diffVal < 0){
+        arrowHtml = `<span class="arrow-slot arrow-down">↓</span>`;
       }
       weightHtml = `<div class="weight-tag">${formattedW}${arrowHtml}</div>`;
     }
@@ -1558,7 +1573,7 @@ function drawChart(){
 
   function updateTopCard(p){
     const dParts = p.date.split("-");
-    const dateFormatted = dParts.length === 3 ? `${dParts[1]}-${dParts[2]}` : p.date;
+    const dateFormatted = dParts.length === 3 ? `${parseInt(dParts[1],10)}月${parseInt(dParts[2],10)}日` : p.date;
     document.getElementById("topCardDate").textContent = dateFormatted;
     
     const weightEl = document.getElementById("topCardWeight");
@@ -1649,7 +1664,7 @@ function drawChart(){
         const labelInterval = Math.max(1, Math.round(60 / userStep));
         if(idx % labelInterval === 0){
           ctx.fillStyle="#8E7A93";
-          ctx.font="bold 11px 'Noto Sans SC',sans-serif";
+          ctx.font="bold 11px 'Poppins','Noto Sans SC',sans-serif";
           ctx.textAlign="center";
           ctx.fillText(p.raw.date.slice(5), p.x, padT + plotH + 18);
         }
@@ -1766,12 +1781,10 @@ function prediction(){
     let nextDate = new Date(lastDate);
     nextDate.setDate(nextDate.getDate() + Math.round(avg * i));
     
-    let yearM = `${nextDate.getFullYear()}/${pad(nextDate.getMonth()+1)}`;
     let fullD = formatSlash(nextDate);
     
     listHtml += `
       <div class="pred-item">
-        <span class="m-label">${yearM}</span>
         <span class="d-label">${fullD}</span>
       </div>
     `;
