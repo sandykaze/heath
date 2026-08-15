@@ -1966,6 +1966,12 @@ function buildPoopChartSeries(){
     });
     curr.setDate(curr.getDate() + 1);
   }
+
+  /* 去掉最前面还没有排便记录的日子，避免缩放时把这段空白也算进去（与体重图逻辑一致） */
+  const firstPoopIdx = rawList.findIndex(d => d.poops && d.poops.length > 0);
+  if(firstPoopIdx === -1) return [];
+  rawList = rawList.slice(firstPoopIdx);
+
   return rawList;
 }
 
@@ -2052,7 +2058,7 @@ function drawPoopChart(){
     return;
   }
 
-  const padL = 34, padR = 20, padT = 20, padB = 30;
+  const padL = 40, padR = 20, padT = 20, padB = 30;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
@@ -2108,10 +2114,11 @@ function drawPoopChart(){
       ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke();
     }
 
-    /* 折线与圆点绘制严格裁剪在图表区域内，避免拖动时遮挡左侧纵坐标文字 */
+    /* 折线与圆点绘制裁剪：左侧严格贴住 padL，避免拖动时遮挡纵坐标文字；
+       右侧/上下多留一点余量，避免最新一天的圆点紧贴边界被切掉半个圆 */
     ctx.save();
     ctx.beginPath();
-    ctx.rect(padL, padT, plotW, plotH);
+    ctx.rect(padL, padT - 10, (W - padR + 10) - padL, plotH + 20);
     ctx.clip();
 
     let lastValidLevel = 0;
@@ -2173,15 +2180,17 @@ function drawPoopChart(){
 
     ctx.restore();
 
-    /* 纵坐标层级文字画在最上层，永远不会被折线/圆点盖住 */
+    /* 纵坐标层级文字画在最上层，永远不会被折线/圆点盖住；
+       统一右对齐紧贴网格线，不同字数的标签也能整齐排列，不再显得参差违和 */
     ctx.fillStyle="#8E7A93";
     ctx.font="10px 'Noto Sans SC',sans-serif";
-    ctx.textAlign="left";
+    ctx.textAlign="right";
+    const axisLabelX = padL - 8;
     /* 未排便在最底部（level 0） */
-    ctx.fillText("未排便", 2, padT + (max - 0)/range * plotH + 3);
+    ctx.fillText("未排便", axisLabelX, padT + (max - 0)/range * plotH + 3);
     for(let lvl=1; lvl<=5; lvl++){
       const y = padT + (max - lvl)/range * plotH;
-      ctx.fillText(POOP_LEVEL_LABELS[lvl-1], 2, y+3);
+      ctx.fillText(POOP_LEVEL_LABELS[lvl-1], axisLabelX, y+3);
     }
 
     /* 日期标签画在图表下方，不受裁剪影响 */
