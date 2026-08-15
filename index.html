@@ -3,133 +3,186 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f7f9f8">
+<meta name="theme-color" content="#FF99C8">
 <title>Piiisuke — Personal Body Log</title>
-<style>
-:root{
-  --bg-gradient: linear-gradient(170deg, #f7f9f8 0%, #eef2f0 100%);
-  --card-bg: rgba(255, 255, 255, 0.90);
-  --card-border: rgba(225, 232, 228, 0.8);
-  --text-main: #2d3436;
-  --text-muted: #889290;
-  
-  --rose: #e8889a;
-  --rose-bg: rgba(232, 136, 154, 0.18);
-  --purple: #9f86c0;
-  --purple-bg: rgba(159, 134, 192, 0.18);
-  --poop-gray: #8E8E93;
-  
-  --diff-down: #48bb78;
-  --diff-up: #e53e3e;
-  --diff-zero: #a0aab0;
+<!-- 引入可爱大气的 Google Fonts (Fredoka & Varela Round) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Varela+Round&display=swap" rel="stylesheet">
 
-  --shadow: 0 10px 30px rgba(160, 175, 170, 0.12);
-  --radius: 20px;
+<style>
+/* 🎨 极具活力与治愈感的多巴胺糖果配色体系 */
+:root {
+  /* 基础背景：渐变亮黄/柠檬糖暖色 */
+  --bg-gradient: linear-gradient(135deg, #FFF0F5 0%, #FFFAEB 50%, #E8F0FE 100%);
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-border: #FFF0F5;
+  
+  /* 多巴胺核心高亮配色 */
+  --pop-pink: #FF6B9B;      /* 主视觉/活力粉 */
+  --pop-purple: #9D4EDD;    /* 薰衣草紫/排卵期 */
+  --pop-yellow: #FFD166;    /* 明黄/卡片强调/今日 */
+  --pop-green: #06D6A0;     /* 罗勒绿/体重下降 */
+  --pop-orange: #FF8811;    /* 落日橙/体重上升 */
+  --pop-blue: #118AB2;      /* 薄荷蓝/按钮 hover */
+
+  /* 文字颜色：高对比度、不闷沉的浓郁墨紫与明亮字调 */
+  --text-main: #3D2B42;     
+  --text-muted: #8E7A93;
+  --text-light: #BCA3C3;
+
+  /* 姨妈期与排卵期柔和高亮底色 */
+  --rose: var(--pop-pink);
+  --rose-bg: rgba(255, 107, 155, 0.18);
+  --purple: var(--pop-purple);
+  --purple-bg: rgba(157, 78, 221, 0.18);
+  --poop-gray: #D4A373;
+
+  /* 数据对比色 */
+  --diff-down: var(--pop-green);
+  --diff-up: var(--pop-orange);
+  --diff-zero: #A09383;
+
+  /* 多巴胺糖果感阴影与大圆角 */
+  --shadow-soft: 0 16px 36px rgba(255, 107, 155, 0.12);
+  --shadow-hover: 0 8px 20px rgba(157, 78, 221, 0.15);
+  --radius-lg: 28px;
+  --radius-md: 20px;
+  --radius-sm: 12px;
 }
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{
   margin:0;
   background: var(--bg-gradient);
+  background-attachment: fixed;
   color: var(--text-main);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Noto Sans SC", sans-serif;
-  letter-spacing: .01em;
+  font-family: 'Fredoka', 'Varela Round', -apple-system, BlinkMacSystemFont, sans-serif;
+  letter-spacing: .02em;
   min-height: 100vh;
 }
-.wrap{max-width:600px;margin:auto;padding:24px 16px 88px}
+.wrap{max-width:580px;margin:auto;padding:24px 18px 80px}
 
-/* Header */
-.brand{display:flex;align-items:center;gap:12px;margin:8px 4px 16px}
-.brand-mark{
-  width:36px;height:36px;border-radius:50%;
-  display:grid;place-items:center;
-  background:#2d3436;color:#fff;
-  font-size:16px;font-weight:800;
+/* Header 页头品牌区域 */
+.brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin:12px 4px 24px;
 }
-h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
-.sub{color:var(--text-muted);font-size:10px;letter-spacing:.12em;margin:3px 0 0}
+.brand-mark{
+  width:48px;height:48px;border-radius:18px;
+  display:grid;place-items:center;
+  background: linear-gradient(135deg, #FF6B9B 0%, #FF8811 100%);
+  color:#FFFFFF;
+  font-size:24px;font-weight:700;
+  box-shadow:0 8px 18px rgba(255, 107, 155, 0.4);
+  transform: rotate(-3deg);
+}
+h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);letter-spacing:0.02em;}
+.sub{color:var(--pop-pink);font-size:11px;letter-spacing:.18em;margin:6px 0 0;font-weight:600;}
 
-/* Top Navigation Tabs */
+/* Account 账号栏 */
+.account-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin:0 0 18px;padding:12px 16px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border:2px solid #FFE5EC;
+  border-radius:var(--radius-md);
+  box-shadow: 0 4px 15px rgba(255, 182, 193, 0.2);
+}
+.account-status{font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;font-weight:600;}
+.account-status.logged{color:var(--text-main);}
+.account-btn{
+  border:0;
+  background: linear-gradient(135deg, #FF6B9B, #9D4EDD);
+  color:#fff;
+  border-radius:12px;padding:8px 14px;
+  font-size:12px;font-weight:700;cursor:pointer;
+  box-shadow: 0 4px 12px rgba(255, 107, 155, 0.3);
+  transition:all .2s ease;
+}
+.account-btn:hover{transform: scale(1.05); box-shadow: 0 6px 16px rgba(157, 78, 221, 0.4);}
+
+/* Top Navigation Tabs 顶部分段导航 */
 .nav-tabs{
   display:flex;
-  background:rgba(230, 236, 233, 0.6);
-  padding:4px;
-  border-radius:14px;
-  margin-bottom:16px;
-  gap:4px;
+  background: rgba(255, 255, 255, 0.6);
+  padding:6px;
+  border-radius:var(--radius-lg);
+  margin-bottom:22px;
+  gap:6px;
+  border: 2px solid #FFF;
 }
 .tab-btn{
   flex:1;
   border:0;
   background:transparent;
-  padding:8px 0;
-  font-size:13px;
-  font-weight:600;
+  padding:12px 0;
+  font-size:14px;
+  font-weight:700;
   color:var(--text-muted);
-  border-radius:10px;
+  border-radius:var(--radius-md);
   cursor:pointer;
-  transition:all .2s ease;
+  transition:all .25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .tab-btn.active{
-  background:#ffffff;
-  color:var(--text-main);
-  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  background: #FFFFFF;
+  color: var(--pop-pink);
+  box-shadow: 0 6px 18px rgba(255, 107, 155, 0.2);
+  transform: scale(1.02);
 }
 
-/* Card Style */
+/* Card Style 卡片全构架 */
 .card{
   background: var(--card-bg);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--card-border);
-  border-radius: var(--radius);
-  padding: 20px 18px;
-  box-shadow: var(--shadow);
+  backdrop-filter: blur(20px);
+  border: 3px solid #FFFFFF;
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  box-shadow: var(--shadow-soft);
 }
 .tab-content{display:none}
 .tab-content.active{display:block}
 
-/* Toolbar & Legend */
-.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+/* Toolbar & Legend 日历顶部工具栏 */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
 .toolbar button{
-  width:32px;height:32px;background:#ffffff;color:#555;
-  border:1px solid #e2e8e5;border-radius:50%;font-size:16px;
+  width:38px;height:38px;background:#FFF0F5;color:var(--pop-pink);
+  border:2px solid #FFD6E0;border-radius:50%;font-size:18px;font-weight:bold;
   cursor:pointer;display:grid;place-items:center;
+  box-shadow:0 4px 10px rgba(255, 107, 155, 0.15);
+  transition:all .2s ease;
 }
-.month{font-weight:700;font-size:20px;letter-spacing:.02em;color:#242a29}
-.legend{display:flex;gap:18px;color:var(--text-muted);font-size:13px;margin-bottom:16px;justify-content:center}
-.legend span{display:flex;align-items:center;gap:5px}
-.legend span:before{content:"";width:9px;height:9px;border-radius:50%;display:inline-block}
-.legend .leg-period:before{background:var(--rose)}
-.legend .leg-ovulation:before{background:var(--purple)}
+.toolbar button:hover{background:var(--pop-pink);color:#FFF;transform:scale(1.1);}
+.month{font-weight:700;font-size:20px;color:var(--text-main);letter-spacing:0.01em;}
+
+.legend{display:flex;gap:18px;color:var(--text-muted);font-size:12px;margin-bottom:20px;justify-content:center;font-weight:600;}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend span:before{content:"";width:10px;height:10px;border-radius:50%;display:inline-block}
+.legend .leg-period:before{background:var(--pop-pink)}
+.legend .leg-ovulation:before{background:var(--pop-purple)}
 .legend .leg-poop:before{background:var(--poop-gray)}
 
-/* Calendar Grid */
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:10px;column-gap:5px;position:relative}
-.dow{text-align:center;color:#7f8986;font-size:13px;font-weight:600;padding:3px 0 6px;letter-spacing:.04em}
+/* Calendar Grid 日历网格改造 */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:12px;column-gap:6px;position:relative}
+.dow{text-align:center;color:var(--pop-purple);font-size:13px;font-weight:700;padding:2px 0;letter-spacing:.05em;}
+
 .day-cell{
   position:relative;
-  height:82px;
+  height:86px;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:flex-start;
-  padding-top:3px;
+  padding-top:6px;
   cursor:pointer;
   user-select:none;
-  border-radius:12px;
-  transition:background .15s ease;
-  padding-left:2px;padding-right:2px;
+  border-radius:var(--radius-md);
+  transition:all .2s ease;
 }
-.day-cell:active{background:rgba(0,0,0,0.03)}
-
-/* Refined calendar hierarchy */
-.day-cell.has-data .num-wrap{font-size:18px;font-weight:750;color:#202624;}
-.day-cell.has-data .weight-tag{font-size:12px;color:#4a5551;font-weight:650;}
-.day-cell.has-data .poop-flag{font-size:10px;opacity:.9;}
-.day-cell:not(.has-data) .weight-tag{font-size:11px;color:#aeb6b3;font-weight:450;}
-.day-cell.selected{background:rgba(45,52,54,.035);}
-.day-cell.selected .num-wrap{transform:scale(1.04);}
-
+.day-cell:active{transform: scale(0.95);}
 
 .week-detail-row{
   grid-column: 1 / -1;
@@ -143,302 +196,290 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
 
 .day-bg-band{
   position:absolute;
-  top:2px;bottom:2px;left:-2px;right:-2px;
+  top:2px;bottom:2px;left:-3px;right:-3px;
   z-index:1;
   pointer-events:none;
 }
 .day-bg-band.period{background:var(--rose-bg)}
 .day-bg-band.ovulation{background:var(--purple-bg)}
-.day-bg-band.pred{opacity:0.65;}
-.day-bg-band.pred.period{border:1px dashed var(--rose);background:rgba(232, 136, 154, 0.08)}
-.day-bg-band.pred.ovulation{border:1px dashed var(--purple);background:rgba(159, 134, 192, 0.08)}
-.day-bg-band.band-start{border-top-left-radius:10px;border-bottom-left-radius:10px;left:2px}
-.day-bg-band.band-end{border-top-right-radius:10px;border-bottom-right-radius:10px;right:2px}
+.day-bg-band.pred{opacity:0.8;}
+.day-bg-band.pred.period{border:2px dashed var(--pop-pink);background:rgba(255, 107, 155, 0.1)}
+.day-bg-band.pred.ovulation{border:2px dashed var(--pop-purple);background:rgba(157, 78, 221, 0.1)}
+.day-bg-band.band-start{border-top-left-radius:14px;border-bottom-left-radius:14px;left:2px}
+.day-bg-band.band-end{border-top-right-radius:14px;border-bottom-right-radius:14px;right:2px}
 
 .num-wrap{
   position:relative;
   z-index:2;
-  width:34px;
-  height:34px;
+  width:30px;
+  height:30px;
   border-radius:50%;
   display:grid;
   place-items:center;
-  font-size:17px;
+  font-size:14px;
   font-weight:700;
-  color:#2d3436;
+  color:var(--text-main);
   transition: all 0.2s ease;
 }
 .day-cell.selected .num-wrap{
-  background:#333336 !important;
-  color:#ffffff !important;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  background: var(--pop-pink) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(255, 107, 155, 0.4);
 }
-.day-cell.today:not(.selected) .num-wrap{background:#E5E5EA;color:#2d3436;font-size:17px;}
-.day-cell.other-month{opacity:0.2}
 
-.cell-info{
-  position:relative;
-  z-index:2;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  margin-top:1px;
-  line-height:1.1;
+.day-cell.today:not(.selected) .num-wrap{
+  background: var(--pop-yellow);
+  color: var(--text-main);
+  font-size:14px;
+  font-weight:700;
+  box-shadow:0 4px 10px rgba(255, 209, 102, 0.5);
 }
+.day-cell.today:not(.selected)::after{
+  content:"";
+  position:absolute;
+  top:4px;left:50%;width:34px;height:34px;
+  transform:translateX(-50%);
+  border:2px solid var(--pop-yellow);
+  border-radius:50%;
+  pointer-events:none;
+  z-index:2;
+}
+.day-cell.other-month{opacity:0.25}
+
+.cell-info{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;margin-top:4px;line-height:1;width:100%;}
+.weight-slot,.poop-slot{height:15px;display:flex;align-items:center;justify-content:center;}
 .weight-tag{
   font-size:11px;
-  color:#68736f;
-  font-weight:600;
+  color:var(--text-main);
+  font-weight:700;
   white-space:nowrap;
 }
-.arrow-up{color:var(--diff-up);font-size:10px;}
-.arrow-down{color:var(--diff-down);font-size:10px;}
+.arrow-up{color:var(--diff-up);font-size:10px;font-weight:bold;}
+.arrow-down{color:var(--diff-down);font-size:10px;font-weight:bold;}
 
-.poop-flag{font-size:10px;line-height:1;margin-top:3px;opacity:0.82;}
+.poop-flag{font-size:12px;line-height:1;}
 
 .expand-caret{
   position:absolute;
   z-index:2;
-  bottom:3px;
+  bottom:2px;
   left:50%;
   transform:translateX(-50%);
-  font-size:8px;
+  font-size:10px;
   line-height:1;
-  color:#c3cac6;
-  opacity:0.5;
-  transition: transform .2s ease, opacity .2s ease, color .2s ease;
+  color:var(--text-light);
+  opacity:0.7;
+  transition: transform .2s ease, opacity .2s ease;
   pointer-events:none;
 }
 .day-cell.selected .expand-caret{
   transform:translateX(-50%) rotate(180deg);
-  opacity:0.9;
-  color:var(--rose);
+  opacity:1;
+  color:var(--pop-pink);
 }
 
+/* 详情抽屉卡片 */
 .inline-detail-card {
   margin-top: 12px;
-  background: #ffffff;
-  border: 1px solid #e2e8e5;
-  border-radius: 13px;
-  padding: 12px 14px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  background: #FFF9FA;
+  border: 2px solid #FFE5EC;
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-hover);
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 12px;
 }
 .inline-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f0f4f2;
-  padding-bottom: 8px;
+  border-bottom: 2px dashed #FFD6E0;
+  padding-bottom: 10px;
 }
-.inline-date { font-size: 13px; font-weight: 500; color: #2d3436; display: flex; align-items: center; gap: 8px;}
+.inline-date { font-size: 15px; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;}
 .inline-edit-btn {
-  background: #f4f6f5; border: 0; padding: 5px 9px; border-radius: 7px;
-  font-size: 11px; font-weight: 500; color: #2d3436; cursor: pointer;
+  background: linear-gradient(135deg, #FFD166, #FF8811);
+  border: 0; padding: 6px 14px; border-radius: 10px;
+  font-size: 12px; font-weight: 700; color: #FFF; cursor: pointer;
+  box-shadow: 0 3px 8px rgba(255, 136, 17, 0.3);
+  transition: transform .2s;
 }
+.inline-edit-btn:hover { transform: scale(1.05); }
+
 .inline-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; background: #f8faf9; padding: 10px 11px; border-radius: 10px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; background: #FFFFFF; padding: 12px; border-radius: 14px;
 }
-.inline-item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.inline-item label { font-size: 11px; color: #929c98; font-weight: 500; letter-spacing: .04em; }
-.inline-item val { font-size: 14px; font-weight: 450; color: #a0aaa6; line-height: 1.4; }
-.inline-item val.has-record { font-size: 16px; font-weight: 550; color: #37413e; }
-.inline-item val.diff-record { font-size: 14px; font-weight: 550; color: #59635f; }
-.inline-item val.no-record { color: #b7bfbc; }
-.inline-poop-val { font-size: 14px !important; font-weight: 450 !important; color: #a0aaa6 !important; line-height: 1.55; }
-.inline-poop-val.has-record { font-size: 15px !important; font-weight: 500 !important; color: #46504d !important; }
+.inline-item { display: flex; flex-direction: column; gap: 2px; }
+.inline-item label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.inline-item val { font-size: 14px; font-weight: 700; color: var(--text-main); }
+.inline-poop-val { font-size: 13px !important; font-weight: 600 !important; color: var(--text-main) !important; line-height: 1.45; }
 
-.inline-edit-panel {
-  border-top: 1px dashed #e2e8e5;
-  padding-top: 14px;
-  margin-top: 4px;
-  display: none;
-}
-.inline-edit-panel.active { display: block; }
-
-/* Edit Modal */
+/* 弹窗样式表 */
 .modal-overlay{
   position:fixed; inset:0;
-  background:rgba(45,52,54,0.45);
+  background:rgba(61, 43, 66, 0.4);
+  backdrop-filter: blur(6px);
   display:flex; align-items:flex-end; justify-content:center;
   z-index:1000;
   opacity:0; pointer-events:none;
-  transition:opacity .2s ease;
+  transition:opacity .25s ease;
 }
 .modal-overlay.active{opacity:1; pointer-events:auto;}
 .modal-panel{
-  background:#ffffff;
-  width:100%; max-width:600px;
-  border-radius:20px 20px 0 0;
-  padding:20px 18px calc(20px + env(safe-area-inset-bottom));
-  box-shadow:0 -10px 30px rgba(0,0,0,0.15);
+  background:#FFFFFF;
+  width:100%; max-width:580px;
+  border-radius:28px 28px 0 0;
+  padding:26px 22px calc(24px + env(safe-area-inset-bottom));
+  box-shadow:0 -12px 40px rgba(255, 107, 155, 0.2);
   transform:translateY(100%);
-  transition:transform .25s ease;
+  transition:transform .28s cubic-bezier(0.16, 1, 0.3, 1);
   max-height:85vh;
   overflow-y:auto;
 }
 .modal-overlay.active .modal-panel{transform:translateY(0);}
 .modal-header{
   display:flex; justify-content:space-between; align-items:center;
-  margin-bottom:14px;
+  margin-bottom:18px;
 }
-.modal-header span{font-size:16px;font-weight:700;color:#2d3436}
+.modal-header span{font-size:18px;font-weight:700;color:var(--text-main)}
 .modal-close{
-  background:#f0f4f2; border:0; width:28px; height:28px; border-radius:50%;
-  font-size:13px; color:#4a5568; cursor:pointer; display:grid; place-items:center;
+  background:#FFF0F5; border:0; width:32px; height:32px; border-radius:50%;
+  font-size:16px; color:var(--pop-pink); font-weight:bold; cursor:pointer; display:grid; place-items:center;
 }
 
+/* 图表顶部数据预览卡 */
 .chart-top-card{
-  background:#ffffff;
-  border:1px solid #e2e8e5;
-  border-radius:14px;
-  padding:12px 16px;
-  margin-bottom:12px;
-  min-height:72px;
+  background: linear-gradient(135deg, #FFF9FA 0%, #F4F0FF 100%);
+  border:2px solid #FFE5EC;
+  border-radius:var(--radius-md);
+  padding:16px 18px;
+  margin-bottom:18px;
+  min-height:80px;
   display:flex;
   flex-direction:column;
   justify-content:center;
   gap:6px;
+  box-shadow: 0 4px 15px rgba(255, 107, 155, 0.08);
 }
 .top-card-row1{display:flex;justify-content:space-between;align-items:center}
-.top-card-date-wrap{display:flex;align-items:center;gap:6px}
-.top-card-row2{display:flex;align-items:center;font-size:12px;color:var(--poop-gray);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-card-date-wrap{display:flex;align-items:center;gap:8px}
+.top-card-row2{display:flex;align-items:center;font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;}
 
-.chart-top-card .date-val{font-size:14px;font-weight:700;color:#2d3436}
-.chart-top-card .weight-val{font-size:18px;font-weight:700;color:#1c1e1f}
-.chart-top-card .diff-val{font-size:12px;margin-left:4px;font-weight:600}
+.chart-top-card .date-val{font-size:16px;font-weight:700;color:var(--text-main)}
+.chart-top-card .weight-val{font-size:22px;font-weight:700;color:var(--pop-pink)}
+.chart-top-card .diff-val{font-size:13px;margin-left:4px;font-weight:700}
 
 .tag-phase{
   display:inline-block;
-  padding:2px 6px;
-  border-radius:4px;
-  font-size:10px;
-  font-weight:600;
+  padding:4px 10px;
+  border-radius:8px;
+  font-size:11px;
+  font-weight:700;
 }
-.tag-phase.period{background:var(--rose-bg);color:var(--rose)}
-.tag-phase.ovulation{background:var(--purple-bg);color:var(--purple)}
+.tag-phase.period{background:var(--rose-bg);color:var(--pop-pink)}
+.tag-phase.ovulation{background:var(--purple-bg);color:var(--pop-purple)}
 
 .chart-container{width:100%;height:260px;position:relative;touch-action:none}
 canvas{width:100%;height:100%;display:block}
 
 .zoom-hint{
   text-align:center;
-  font-size:10px;
-  color:#a0aab0;
-  margin-top:6px;
-  margin-bottom:12px;
+  font-size:12px;
+  color:var(--text-muted);
+  margin-top:10px;
+  margin-bottom:18px;
+  font-weight:600;
 }
 
-.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.stat{background:#f8faf9;border:1px solid #eaefe2;border-radius:12px;padding:8px 10px;text-align:center;position:relative}
-.stat b{display:block;font-size:14px;color:#2d3436;margin-top:2px;font-weight:700}
-.stat span{font-size:10px;color:var(--text-muted)}
+/* 底部数据网格 */
+.statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stat{background:#FFF0F5;border:2px solid #FFE5EC;border-radius:var(--radius-md);padding:12px;text-align:center;}
+.stat b{display:block;font-size:17px;color:var(--pop-pink);margin-top:4px;font-weight:700}
+.stat span{font-size:11px;color:var(--text-muted);font-weight:600;}
 .stat-editable{cursor:pointer;}
 
-.notice{background:#f8faf9;border:1px solid #eae2e5;border-radius:14px;padding:14px;font-size:13px;line-height:1.6;color:#4a5568}
+.notice{background:#F4F0FF;border:2px solid #E8DEF8;border-radius:var(--radius-md);padding:18px;font-size:13px;line-height:1.6;color:var(--text-main);font-weight:600;}
 .prediction-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:8px;
-  margin-top:12px;
+  gap:10px;
+  margin-top:14px;
   max-height:260px;
   overflow-y:auto;
   padding-right:2px;
 }
 .pred-item{
-  background:#ffffff;
-  border:1px solid #eef2f0;
-  border-radius:10px;
-  padding:8px 10px;
+  background:#FFFFFF;
+  border:2px solid #E8DEF8;
+  border-radius:14px;
+  padding:10px 12px;
   font-size:12px;
   display:flex;
   justify-content:space-between;
 }
-.pred-item .m-label{color:var(--text-muted)}
-.pred-item .d-label{color:var(--rose);font-weight:600;font-family:monospace}
+.pred-item .m-label{color:var(--text-muted);font-weight:600;}
+.pred-item .d-label{color:var(--pop-purple);font-weight:700;font-family:'Fredoka', monospace}
 
-.backup-box{margin-top:20px}
-.backup{display:flex;gap:10px}
+/* 备份控制与表单 */
+.backup-box{margin-top:24px}
+.backup{display:flex;gap:12px}
 .backup button{
-  flex:1;padding:10px;border-radius:12px;
-  background:#ffffff;border:1px solid #e2e8e5;
-  color:#4a5568;font-size:12px;font-weight:500;
-  cursor:pointer;
+  flex:1;padding:12px;border-radius:16px;
+  background:#FFFFFF;border:2px solid #FFE5EC;
+  color:var(--pop-pink);font-size:13px;font-weight:700;
+  cursor:pointer;box-shadow: 0 4px 12px rgba(255, 107, 155, 0.1);
+  transition: all .2s;
 }
+.backup button:hover{background:#FFF0F5; transform:scale(1.02);}
 
 .field-group{margin-bottom:14px}
-.field-group label{display:block;color:var(--text-muted);font-size:12px;margin-bottom:6px}
+.field-group label{display:block;color:var(--text-muted);font-size:12px;font-weight:600;margin-bottom:6px}
 .field-group input,.field-group select{
-  width:100%;border:1px solid #e2e8e5;border-radius:10px;padding:10px 12px;
-  background:#f8faf9;color:#2d3436;font-size:14px;outline:none;
+  width:100%;border:2px solid #FFE5EC;border-radius:12px;padding:10px 12px;
+  background:#FFF9FA;color:var(--text-main);font-size:14px;outline:none;
+  font-family: inherit; font-weight:600;
 }
+.field-group input:focus,.field-group select:focus{border-color:var(--pop-pink);}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.actions{display:flex;gap:10px;margin-top:16px}
-.btn-primary{background:#2d3436;color:#ffffff;border:0;padding:11px;border-radius:10px;font-weight:600;flex:1;cursor:pointer}
-.btn-secondary{background:#f0f4f2;color:#2d3436;border:0;padding:11px;border-radius:10px;font-weight:600;flex:1;cursor:pointer}
-.btn-danger{background:#fff0f2;color:var(--rose);border:1px solid #fce4e8;padding:11px;border-radius:10px;cursor:pointer;font-weight:600}
-.poop-list{margin-top:14px;border-top:1px solid #f0f4f2;padding-top:12px}
-.poop-section-title{
-  color:var(--text-muted);
-  font-size:12px;
-  font-weight:500;
-  display:block;
-  margin-bottom:9px;
-  letter-spacing:.1px;
+.actions{display:flex;gap:10px;margin-top:18px}
+.btn-primary{
+  background: linear-gradient(135deg, #FF6B9B, #FF8811);
+  color:#FFFFFF;border:0;padding:12px;border-radius:14px;font-weight:700;flex:1;cursor:pointer;
+  box-shadow:0 4px 12px rgba(255, 107, 155, 0.3);
 }
-.poop-add-divider{
-  border-top:1px solid #edf2ef;
-  margin:15px 0;
+.btn-secondary{
+  background:#F4F0FF;color:var(--pop-purple);border:2px solid #E8DEF8;padding:12px;border-radius:14px;font-weight:700;flex:1;cursor:pointer
 }
-.poop-item{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:8px 0;
-  font-size:13px;
-  border-bottom:1px solid #f3f6f4;
+.btn-danger{
+  background:#FFF0F2;color:var(--pop-pink);border:2px solid #FFD6E0;padding:12px;border-radius:14px;cursor:pointer;font-weight:700
 }
-.poop-item:last-child{
-  border-bottom:none;
-}
-.poop-item .poop-record-text{
-  color:#3f4744;
-  font-weight:400;
-  letter-spacing:.1px;
-}
-.poop-item .del-btn{
-  opacity:.55;
-  font-size:11px;
-}
-.poop-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;border-bottom:1px solid #f5f8f6}
-.del-btn{background:none;border:0;color:#a0aab0;font-size:12px;cursor:pointer}
 
-.footer{color:#a0aab0;font-size:10px;text-align:center;margin-top:24px}
+.poop-list{margin-top:18px;border-top:2px dashed #FFE5EC;padding-top:16px}
+.poop-section-title{color:var(--text-muted);font-size:12px;font-weight:700;display:block;margin-bottom:10px;}
+.poop-add-divider{border-top:2px dashed #FFE5EC;margin:16px 0;}
+.poop-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;border-bottom:1px solid #FFF0F5}
+.poop-item .poop-record-text{color:var(--text-main);font-weight:600;}
+.del-btn{background:none;border:0;color:var(--pop-pink);font-size:12px;font-weight:700;cursor:pointer}
 
-/* Account */
-.account-bar{display:flex;align-items:center;justify-content:space-between;margin:0 4px 14px;padding:9px 11px;background:rgba(255,255,255,.72);border:1px solid var(--card-border);border-radius:12px;}
-.account-status{font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:72%;}
-.account-status.logged{color:#59635f;}
-.account-btn{border:0;background:#2d3436;color:#fff;border-radius:9px;padding:6px 10px;font-size:11px;cursor:pointer;}
-.account-btn.secondary{background:#f0f4f2;color:#4a5350;}
-.auth-overlay{position:fixed;inset:0;background:rgba(45,52,54,.45);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1200;opacity:0;pointer-events:none;transition:opacity .2s ease;}
+.footer{color:var(--text-muted);font-size:12px;text-align:center;margin-top:32px;font-weight:600;}
+
+/* 登录/注册弹窗 */
+.auth-overlay{position:fixed;inset:0;background:rgba(61, 43, 66, 0.4);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1200;opacity:0;pointer-events:none;transition:opacity .25s ease;}
 .auth-overlay.active{opacity:1;pointer-events:auto;}
-.auth-panel{width:100%;max-width:390px;background:#fff;border-radius:20px;padding:22px 20px;box-shadow:0 12px 40px rgba(0,0,0,.15);}
-.auth-title{font-size:18px;font-weight:700;margin:0 0 5px;color:#2d3436;}
-.auth-sub{font-size:11px;color:var(--text-muted);margin:0 0 18px;line-height:1.5;}
-.auth-field{margin-bottom:11px;}
-.auth-field label{display:block;font-size:11px;color:#66716d;margin-bottom:5px;}
-.auth-field input{width:100%;padding:10px 11px;border:1px solid #e0e7e3;border-radius:10px;outline:none;font-size:13px;background:#fafcfb;}
-.auth-field input:focus{border-color:#b9c9c1;background:#fff;}
-.auth-actions{display:flex;gap:8px;margin-top:14px;}
-.auth-actions button{flex:1;padding:10px;border:0;border-radius:10px;font-size:12px;cursor:pointer;}
-.auth-primary{background:#2d3436;color:#fff;}
-.auth-secondary{background:#f0f4f2;color:#4a5350;}
-.auth-message{font-size:11px;line-height:1.5;color:#6b7471;margin-top:11px;min-height:16px;}
-.auth-message.error{color:#c65b68;}
-
+.auth-panel{width:100%;max-width:380px;background:#fff;border-radius:28px;padding:26px 24px;box-shadow:0 12px 40px rgba(255, 107, 155, 0.25);}
+.auth-title{font-size:20px;font-weight:700;margin:0 0 4px;color:var(--text-main);}
+.auth-sub{font-size:12px;color:var(--text-muted);margin:0 0 18px;line-height:1.5;font-weight:600;}
+.auth-field{margin-bottom:14px;}
+.auth-field label{display:block;font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:6px;}
+.auth-field input{width:100%;padding:10px 12px;border:2px solid #FFE5EC;border-radius:12px;outline:none;font-size:14px;background:#FFF9FA;font-family:inherit;}
+.auth-field input:focus{border-color:var(--pop-pink);background:#fff;}
+.auth-actions{display:flex;gap:10px;margin-top:18px;}
+.auth-actions button{flex:1;padding:12px;border:0;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;}
+.auth-primary{background: linear-gradient(135deg, #FF6B9B, #9D4EDD);color:#fff;box-shadow: 0 4px 12px rgba(255, 107, 155, 0.3);}
+.auth-secondary{background:#FFF0F5;color:var(--pop-pink);}
+.auth-message{font-size:12px;line-height:1.5;color:var(--text-muted);margin-top:12px;min-height:16px;font-weight:600;}
+.auth-message.error{color:var(--pop-pink);}
 </style>
 </head>
 <body>
@@ -451,7 +492,6 @@ canvas{width:100%;height:100%;display:block}
       <p class="sub">BODY & CYCLE TRACKER</p>
     </div>
   </div>
-
 
   <div class="account-bar">
     <span class="account-status" id="accountStatus">未登录 · 数据目前保存在本机</span>
@@ -531,7 +571,7 @@ canvas{width:100%;height:100%;display:block}
           <div class="field-group">
             <input id="poopNote" placeholder="备注（如：硬、拉稀、开塞露）">
           </div>
-          <button class="btn-secondary" style="width:100%;padding:8px;font-size:13px;" onclick="addPoop()">添加一次排便</button>
+          <button class="btn-secondary" style="width:100%;padding:10px;font-size:13px;" onclick="addPoop()">添加一次排便</button>
         </div>
       </div>
     </div>
@@ -585,7 +625,6 @@ canvas{width:100%;height:100%;display:block}
       <input id="file" type="file" accept=".json" hidden onchange="importData(event)">
     </div>
   </div>
-
 
   <div class="auth-overlay" id="authOverlay" onclick="closeAuth()">
     <div class="auth-panel" onclick="event.stopPropagation()">
@@ -702,13 +741,9 @@ async function loadCloudData(user){
   const localHasData=Object.keys(data.days||{}).length>0;
   const cloudHasData=(rows||[]).length>0;
 
-  // First login migration: the old July-August local records belong to the
-  // first account that is intentionally used as the personal owner.
-  // After migration, localStorage is no longer used as a shared data source.
   if(!cloudHasData && localHasData){
-    await syncSnapshotToCloud(data);
     cloudLoaded=true;
-    localStorage.removeItem(KEY);
+    await syncSnapshotToCloud(data);
     return;
   }
 
@@ -854,14 +889,6 @@ async function updateAuthUI(){
 
 async function signOut(){
   await supabaseClient.auth.signOut();
-  cloudLoaded=false;
-  cloudUserId=null;
-  selectedKey=null;
-  data={targetWeight:50.0,days:{}};
-  localStorage.removeItem(KEY);
-  renderCalendar();
-  drawChart();
-  prediction();
   updateAuthUI();
 }
 
@@ -1093,8 +1120,8 @@ function renderCalendar(){
         ${phaseType ? `<div class="day-bg-band ${bandClasses}"></div>` : ''}
         <div class="num-wrap">${dateDisplay}</div>
         <div class="cell-info">
-          ${weightHtml}
-          ${poopHtml}
+          <div class="weight-slot">${weightHtml}</div>
+          <div class="poop-slot">${poopHtml}</div>
         </div>
         <div class="expand-caret">▾</div>
       </div>
@@ -1130,26 +1157,21 @@ function buildDetailRowHtml(k, phases, weightDiffs){
     phaseTagHtml = `<span class="tag-phase ${cls}">${pText}</span>`;
   }
 
-  let weightVal = "未记录", weightClass = "no-record";
-  let diffVal = "—", diffClass = "no-record";
+  let weightVal = "未记录", diffVal = "—";
   if(dayData.weight != null){
     weightVal = fmt1(dayData.weight) + " kg";
-    weightClass = "has-record";
     const diff = weightDiffs[k];
     if(diff != null){
       diffVal = diff === 0 ? "±0 kg" : (diff > 0 ? "+" : "") + fmt1(diff) + " kg";
-      diffClass = "diff-record";
     } else {
       diffVal = "首次记录";
-      diffClass = "diff-record";
     }
   }
 
   const poops = dayData.poops || [];
-  let poopVal = "无记录", poopClass = "no-record";
+  let poopVal = "无";
   if(poops.length){
     poopVal = poops.map(p => `${p.size} (${p.hour}:00)${p.note?` [${p.note}]`:''}`).join("，");
-    poopClass = "has-record";
   }
 
   return `
@@ -1166,15 +1188,15 @@ function buildDetailRowHtml(k, phases, weightDiffs){
         <div class="inline-grid">
           <div class="inline-item">
             <label>体重</label>
-            <val class="${weightClass}">${weightVal}</val>
+            <val>${weightVal}</val>
           </div>
           <div class="inline-item">
             <label>变化</label>
-            <val class="${diffClass}">${diffVal}</val>
+            <val>${diffVal}</val>
           </div>
           <div class="inline-item" style="grid-column: span 2;">
             <label>排便记录</label>
-            <val class="inline-poop-val ${poopClass}">${poopVal}</val>
+            <val class="inline-poop-val">${poopVal}</val>
           </div>
         </div>
       </div>
@@ -1256,7 +1278,7 @@ function renderPoops(){
   const p = (data.days[selectedKey]||{}).poops || [];
   const container = document.getElementById("poopContainer");
   if(!p.length){
-    container.innerHTML = `<div style="color:var(--text-muted);font-size:12px;padding:8px 0">暂无排便记录</div>`;
+    container.innerHTML = `<div style="color:var(--text-muted);font-size:12px;padding:8px 0;font-weight:600">暂无排便记录</div>`;
     return;
   }
   container.innerHTML = p.map((x,i)=>`
@@ -1313,7 +1335,7 @@ function drawMonotoneSpline(ctx, points, color) {
     ctx.moveTo(points[0].x, points[0].y);
     ctx.lineTo(points[1].x, points[1].y);
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3.5;
     ctx.stroke();
     return;
   }
@@ -1359,7 +1381,7 @@ function drawMonotoneSpline(ctx, points, color) {
   }
 
   ctx.strokeStyle = color;
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 3.5;
   ctx.stroke();
 }
 
@@ -1382,14 +1404,14 @@ function drawChart(){
   const series = buildChartSeries();
 
   if(!series.length){
-    ctx.fillStyle="#a0aab0"; ctx.font="12px sans-serif"; ctx.textAlign="center";
+    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Fredoka', sans-serif"; ctx.textAlign="center";
     ctx.fillText("暂无数据", W/2, H/2);
     return;
   }
 
   const validWeights = series.map(x=>x.weight).filter(w=>w!=null);
   if(!validWeights.length){
-    ctx.fillStyle="#a0aab0"; ctx.font="12px sans-serif"; ctx.textAlign="center";
+    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Fredoka', sans-serif"; ctx.textAlign="center";
     ctx.fillText("无体重数据", W/2, H/2);
     return;
   }
@@ -1480,8 +1502,8 @@ function drawChart(){
     const maxOffset = Math.max(0, totalW - plotW);
     offset = Math.max(0, Math.min(offset, maxOffset));
 
-    ctx.strokeStyle="#edf2f0";
-    ctx.lineWidth=1;
+    ctx.strokeStyle="#FFE5EC";
+    ctx.lineWidth=1.5;
     for(let i=0;i<3;i++){
       let y = padT + i * plotH / 2;
       ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
@@ -1500,29 +1522,29 @@ function drawChart(){
 
     const validPts = pts.filter(p=>p.raw.weight!=null);
     if(validPts.length > 0){
-      drawMonotoneSpline(ctx, validPts, "#e8889a");
+      drawMonotoneSpline(ctx, validPts, "#FF6B9B");
     }
 
     pts.forEach((p, idx)=>{
       if(p.x >= padL - 10 && p.x <= W - padR + 10){
         ctx.beginPath();
         if(p.raw.weight != null){
-          ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
-          ctx.fillStyle="#e8889a";
+          ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
+          ctx.fillStyle="#FF6B9B";
           ctx.fill();
         } else {
-          ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
-          ctx.strokeStyle="#a0aab0";
-          ctx.lineWidth=1.5;
-          ctx.fillStyle="#ffffff";
+          ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+          ctx.strokeStyle="#BCA3C3";
+          ctx.lineWidth=2;
+          ctx.fillStyle="#FFFFFF";
           ctx.fill();
           ctx.stroke();
         }
 
         const labelInterval = Math.max(1, Math.round(60 / userStep));
         if(idx % labelInterval === 0){
-          ctx.fillStyle="#a0aab0";
-          ctx.font="10px sans-serif";
+          ctx.fillStyle="#8E7A93";
+          ctx.font="bold 11px 'Fredoka', sans-serif";
           ctx.textAlign="center";
           ctx.fillText(p.raw.date.slice(5), p.x, padT + plotH + 18);
         }
@@ -1532,18 +1554,18 @@ function drawChart(){
     if(selectedIdx >= 0 && pts[selectedIdx]){
       const p = pts[selectedIdx];
       if(p.x >= padL && p.x <= W - padR){
-        ctx.strokeStyle="rgba(232, 136, 154, 0.4)";
-        ctx.lineWidth=1;
-        ctx.setLineDash([3,3]);
+        ctx.strokeStyle="rgba(255, 107, 155, 0.4)";
+        ctx.lineWidth=2;
+        ctx.setLineDash([4,4]);
         ctx.beginPath();ctx.moveTo(p.x, padT);ctx.lineTo(p.x, padT+plotH);ctx.stroke();
         ctx.setLineDash([]);
 
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 6, 0, Math.PI*2);
-        ctx.fillStyle="#E5E5EA";
+        ctx.arc(p.x, p.y, 7, 0, Math.PI*2);
+        ctx.fillStyle="#FFD166";
         ctx.fill();
-        ctx.lineWidth=2;
-        ctx.strokeStyle="#e8889a";
+        ctx.lineWidth=3;
+        ctx.strokeStyle="#FF6B9B";
         ctx.stroke();
 
         updateTopCard(p.raw);
@@ -1675,8 +1697,56 @@ function importData(e){
   reader.readAsText(file);
 }
 
-// Legacy July-August seed data has been migrated to the personal account on first login.
-// Do not seed it here: new users must start with an empty dataset.
+const preset = {
+  "2026-01-16":{period:"start"},
+  "2026-02-12":{period:"start"},
+  "2026-03-13":{period:"start"},
+  "2026-04-11":{period:"start"},
+  "2026-05-08":{period:"start"},
+  "2026-06-06":{period:"start"},
+  "2026-07-05":{period:"start"},
+  "2026-08-02":{period:"start"},
+
+  "2026-07-06":{weight:52.1, poops:[{hour:8,size:"小"},{hour:13,size:"小"}]},
+  "2026-07-07":{weight:52.2, poops:[{hour:11,size:"中"}]},
+  "2026-07-08":{weight:52.2},
+  "2026-07-09":{weight:52.4},
+  "2026-07-10":{weight:52.6, poops:[{hour:10,size:"小偏中"}]},
+  "2026-07-11":{weight:52.5, poops:[{hour:9,size:"中"},{hour:10,size:"大"}]},
+  "2026-07-12":{weight:52.2, poops:[{hour:10,size:"中"}]},
+  "2026-07-13":{weight:51.9},
+  "2026-07-14":{weight:52.2},
+  "2026-07-15":{weight:52.5, poops:[{hour:10,size:"大"}]},
+  "2026-07-16":{weight:52.0},
+  "2026-07-17":{weight:52.8, poops:[{hour:7,size:"大"}]},
+  "2026-07-18":{weight:52.7, poops:[{hour:17,size:"中"}]},
+  "2026-07-19":{weight:52.5, poops:[{hour:11,size:"中"}]},
+  "2026-07-20":{weight:52.1},
+  "2026-07-21":{weight:51.9},
+  "2026-07-22":{weight:52.6},
+  "2026-07-23":{weight:52.4},
+  "2026-07-24":{weight:52.1, poops:[{hour:7,size:"大"}]},
+  "2026-07-25":{weight:51.9, poops:[{hour:12,size:"大"}]},
+  "2026-07-26":{weight:52.0, poops:[{hour:11,size:"中"}]},
+  "2026-07-27":{weight:51.8},
+  "2026-07-28":{weight:52.2},
+  "2026-07-29":{weight:52.4, poops:[{hour:10,size:"中"}]},
+  "2026-07-30":{weight:52.2, poops:[{hour:7,size:"中"}]},
+  "2026-07-31":{weight:52.3, poops:[{hour:11,size:"中"}]},
+
+  "2026-08-01":{weight:52.3, poops:[{hour:15,size:"小偏中"}]},
+  "2026-08-02":{weight:52.1, period:"start", poops:[{hour:10,size:"大"}]},
+  "2026-08-03":{weight:51.9},
+  "2026-08-04":{weight:52.1},
+  "2026-08-05":{weight:52.3, poops:[{hour:15,size:"中偏大"}]},
+  "2026-08-09":{poops:[{hour:12,size:"大"}]},
+  "2026-08-12":{weight:52.4},
+  "2026-08-15":{weight:52.0, poops:[{hour:18,size:"中偏大",note:"较为顺畅"}]},
+  "2026-08-16":{weight:51.8}
+};
+
+for(const [k,v] of Object.entries(preset)) data.days[k] ||= v;
+save();
 
 window.onload = init;
 window.onresize = drawChart;
