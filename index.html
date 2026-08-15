@@ -231,10 +231,14 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
 .inline-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; background: #f8faf9; padding: 10px 11px; border-radius: 10px;
 }
-.inline-item { display: flex; flex-direction: column; gap: 2px; }
-.inline-item label { font-size: 10px; color: var(--text-muted); font-weight: 400; }
-.inline-item val { font-size: 13px; font-weight: 400; color: #4a5350; }
-.inline-poop-val { font-size: 12px !important; font-weight: 400 !important; color: #4a5350 !important; line-height: 1.45; }
+.inline-item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.inline-item label { font-size: 10px; color: #a0aaa6; font-weight: 400; letter-spacing: .02em; }
+.inline-item val { font-size: 12px; font-weight: 400; color: #a0aaa6; line-height: 1.35; }
+.inline-item val.has-record { font-size: 14px; font-weight: 500; color: #3f4845; }
+.inline-item val.diff-record { font-size: 12.5px; font-weight: 500; color: #59635f; }
+.inline-item val.no-record { color: #b7bfbc; }
+.inline-poop-val { font-size: 12px !important; font-weight: 400 !important; color: #a0aaa6 !important; line-height: 1.5; }
+.inline-poop-val.has-record { font-size: 13px !important; font-weight: 450 !important; color: #4b5551 !important; }
 
 .inline-edit-panel {
   border-top: 1px dashed #e2e8e5;
@@ -688,9 +692,13 @@ async function loadCloudData(user){
   const localHasData=Object.keys(data.days||{}).length>0;
   const cloudHasData=(rows||[]).length>0;
 
+  // First login migration: the old July-August local records belong to the
+  // first account that is intentionally used as the personal owner.
+  // After migration, localStorage is no longer used as a shared data source.
   if(!cloudHasData && localHasData){
-    cloudLoaded=true;
     await syncSnapshotToCloud(data);
+    cloudLoaded=true;
+    localStorage.removeItem(KEY);
     return;
   }
 
@@ -836,6 +844,14 @@ async function updateAuthUI(){
 
 async function signOut(){
   await supabaseClient.auth.signOut();
+  cloudLoaded=false;
+  cloudUserId=null;
+  selectedKey=null;
+  data={targetWeight:50.0,days:{}};
+  localStorage.removeItem(KEY);
+  renderCalendar();
+  drawChart();
+  prediction();
   updateAuthUI();
 }
 
@@ -1104,21 +1120,26 @@ function buildDetailRowHtml(k, phases, weightDiffs){
     phaseTagHtml = `<span class="tag-phase ${cls}">${pText}</span>`;
   }
 
-  let weightVal = "未记录", diffVal = "—";
+  let weightVal = "未记录", weightClass = "no-record";
+  let diffVal = "—", diffClass = "no-record";
   if(dayData.weight != null){
     weightVal = fmt1(dayData.weight) + " kg";
+    weightClass = "has-record";
     const diff = weightDiffs[k];
     if(diff != null){
       diffVal = diff === 0 ? "±0 kg" : (diff > 0 ? "+" : "") + fmt1(diff) + " kg";
+      diffClass = "diff-record";
     } else {
       diffVal = "首次记录";
+      diffClass = "diff-record";
     }
   }
 
   const poops = dayData.poops || [];
-  let poopVal = "无";
+  let poopVal = "无记录", poopClass = "no-record";
   if(poops.length){
     poopVal = poops.map(p => `${p.size} (${p.hour}:00)${p.note?` [${p.note}]`:''}`).join("，");
+    poopClass = "has-record";
   }
 
   return `
@@ -1135,15 +1156,15 @@ function buildDetailRowHtml(k, phases, weightDiffs){
         <div class="inline-grid">
           <div class="inline-item">
             <label>体重</label>
-            <val>${weightVal}</val>
+            <val class="${weightClass}">${weightVal}</val>
           </div>
           <div class="inline-item">
             <label>变化</label>
-            <val>${diffVal}</val>
+            <val class="${diffClass}">${diffVal}</val>
           </div>
           <div class="inline-item" style="grid-column: span 2;">
             <label>排便记录</label>
-            <val class="inline-poop-val">${poopVal}</val>
+            <val class="inline-poop-val ${poopClass}">${poopVal}</val>
           </div>
         </div>
       </div>
@@ -1644,56 +1665,8 @@ function importData(e){
   reader.readAsText(file);
 }
 
-const preset = {
-  "2026-01-16":{period:"start"},
-  "2026-02-12":{period:"start"},
-  "2026-03-13":{period:"start"},
-  "2026-04-11":{period:"start"},
-  "2026-05-08":{period:"start"},
-  "2026-06-06":{period:"start"},
-  "2026-07-05":{period:"start"},
-  "2026-08-02":{period:"start"},
-
-  "2026-07-06":{weight:52.1, poops:[{hour:8,size:"小"},{hour:13,size:"小"}]},
-  "2026-07-07":{weight:52.2, poops:[{hour:11,size:"中"}]},
-  "2026-07-08":{weight:52.2},
-  "2026-07-09":{weight:52.4},
-  "2026-07-10":{weight:52.6, poops:[{hour:10,size:"小偏中"}]},
-  "2026-07-11":{weight:52.5, poops:[{hour:9,size:"中"},{hour:10,size:"大"}]},
-  "2026-07-12":{weight:52.2, poops:[{hour:10,size:"中"}]},
-  "2026-07-13":{weight:51.9},
-  "2026-07-14":{weight:52.2},
-  "2026-07-15":{weight:52.5, poops:[{hour:10,size:"大"}]},
-  "2026-07-16":{weight:52.0},
-  "2026-07-17":{weight:52.8, poops:[{hour:7,size:"大"}]},
-  "2026-07-18":{weight:52.7, poops:[{hour:17,size:"中"}]},
-  "2026-07-19":{weight:52.5, poops:[{hour:11,size:"中"}]},
-  "2026-07-20":{weight:52.1},
-  "2026-07-21":{weight:51.9},
-  "2026-07-22":{weight:52.6},
-  "2026-07-23":{weight:52.4},
-  "2026-07-24":{weight:52.1, poops:[{hour:7,size:"大"}]},
-  "2026-07-25":{weight:51.9, poops:[{hour:12,size:"大"}]},
-  "2026-07-26":{weight:52.0, poops:[{hour:11,size:"中"}]},
-  "2026-07-27":{weight:51.8},
-  "2026-07-28":{weight:52.2},
-  "2026-07-29":{weight:52.4, poops:[{hour:10,size:"中"}]},
-  "2026-07-30":{weight:52.2, poops:[{hour:7,size:"中"}]},
-  "2026-07-31":{weight:52.3, poops:[{hour:11,size:"中"}]},
-
-  "2026-08-01":{weight:52.3, poops:[{hour:15,size:"小偏中"}]},
-  "2026-08-02":{weight:52.1, period:"start", poops:[{hour:10,size:"大"}]},
-  "2026-08-03":{weight:51.9},
-  "2026-08-04":{weight:52.1},
-  "2026-08-05":{weight:52.3, poops:[{hour:15,size:"中偏大"}]},
-  "2026-08-09":{poops:[{hour:12,size:"大"}]},
-  "2026-08-12":{weight:52.4},
-  "2026-08-15":{weight:52.0, poops:[{hour:18,size:"中偏大",note:"较为顺畅"}]},
-  "2026-08-16":{weight:51.8}
-};
-
-for(const [k,v] of Object.entries(preset)) data.days[k] ||= v;
-save();
+// Legacy July-August seed data has been migrated to the personal account on first login.
+// Do not seed it here: new users must start with an empty dataset.
 
 window.onload = init;
 window.onresize = drawChart;
