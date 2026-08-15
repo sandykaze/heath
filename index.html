@@ -8,7 +8,7 @@
 <!-- 引入可爱大气的 Google Fonts (Fredoka & Varela Round) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Varela+Round&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Varela+Round&family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 
 <style>
 /* 🎨 极具活力与治愈感的多巴胺糖果配色体系 */
@@ -31,9 +31,9 @@
   --text-muted: #8E7A93;
   --text-light: #BCA3C3;
 
-  /* 姨妈期与排卵期柔和高亮底色 */
+  /* 姨妈期与排卵期柔和高亮底色（姨妈期加深，与边框/背景形成区分） */
   --rose: var(--pop-pink);
-  --rose-bg: rgba(255, 107, 155, 0.18);
+  --rose-bg: rgba(255, 107, 155, 0.32);
   --purple: var(--pop-purple);
   --purple-bg: rgba(157, 78, 221, 0.18);
   --poop-gray: #D4A373;
@@ -49,6 +49,10 @@
   --radius-lg: 28px;
   --radius-md: 20px;
   --radius-sm: 12px;
+
+  /* 统一字体：西文用 Fredoka 撑起圆润气质，中文交给 Noto Sans SC 保持大气整洁，两者字重呼应 */
+  --font-main: 'Fredoka', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-num: 'Varela Round', 'Noto Sans SC', sans-serif;
 }
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -57,7 +61,7 @@ body{
   background: var(--bg-gradient);
   background-attachment: fixed;
   color: var(--text-main);
-  font-family: 'Fredoka', 'Varela Round', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-main);
   letter-spacing: .02em;
   min-height: 100vh;
 }
@@ -140,7 +144,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   backdrop-filter: blur(20px);
   border: 3px solid #FFFFFF;
   border-radius: var(--radius-lg);
-  padding: 24px 20px;
+  padding: 24px 16px;
   box-shadow: var(--shadow-soft);
 }
 .tab-content{display:none}
@@ -158,31 +162,89 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .toolbar button:hover{background:var(--pop-pink);color:#FFF;transform:scale(1.1);}
 .month{font-weight:700;font-size:20px;color:var(--text-main);letter-spacing:0.01em;}
 
-.legend{display:flex;gap:18px;color:var(--text-muted);font-size:12px;margin-bottom:20px;justify-content:center;font-weight:600;}
-.legend span{display:flex;align-items:center;gap:6px}
-.legend span:before{content:"";width:10px;height:10px;border-radius:50%;display:inline-block}
+.legend{display:flex;gap:16px;color:var(--text-muted);font-size:12px;margin-bottom:20px;justify-content:center;font-weight:600;flex-wrap:wrap;}
+.legend label{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;transition:opacity .2s ease;}
+.legend label:has(input:not(:checked)){opacity:.45;}
+.legend label:before{content:"";width:10px;height:10px;border-radius:50%;display:inline-block}
 .legend .leg-period:before{background:var(--pop-pink)}
 .legend .leg-ovulation:before{background:var(--pop-purple)}
-.legend .leg-poop:before{background:var(--poop-gray)}
+.legend .leg-poop:before{background:linear-gradient(135deg, #FF6B9B, #FF8811)}
+.legend input[type="checkbox"]{
+  appearance:none;-webkit-appearance:none;
+  width:14px;height:14px;
+  border:2px solid #E8DEF8;
+  border-radius:5px;
+  margin:0;
+  cursor:pointer;
+  position:relative;
+  background:#FFFFFF;
+  transition:all .15s ease;
+}
+.legend .leg-period input[type="checkbox"]:checked{background:var(--pop-pink);border-color:var(--pop-pink);}
+.legend .leg-ovulation input[type="checkbox"]:checked{background:var(--pop-purple);border-color:var(--pop-purple);}
+.legend .leg-poop input[type="checkbox"]:checked{background:linear-gradient(135deg, #FF6B9B, #FF8811);border-color:#FF8811;}
+.legend input[type="checkbox"]:checked:after{
+  content:"✓";
+  position:absolute;inset:0;
+  display:grid;place-items:center;
+  color:#FFFFFF;font-size:10px;font-weight:800;
+}
 
-/* Calendar Grid 日历网格改造 */
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:12px;column-gap:6px;position:relative}
-.dow{text-align:center;color:var(--pop-purple);font-size:13px;font-weight:700;padding:2px 0;letter-spacing:.05em;}
+/* Calendar Grid 日历独立卡片小格子网格 */
+.cal-grid{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:8px;
+  position:relative;
+}
+/* 英文缩写表头样式 */
+.dow{
+  text-align:center;
+  color:var(--pop-purple);
+  font-size:11px;
+  font-weight:700;
+  padding:2px 0 6px;
+  letter-spacing:.08em;
+  font-family: var(--font-main);
+  text-transform: uppercase;
+}
 
 .day-cell{
   position:relative;
-  height:86px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:flex-start;
-  padding-top:6px;
+  height:76px;
+  background: #FFFFFF;
+  border: 2px solid #FFE5EC;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 3px 10px rgba(255, 107, 155, 0.05);
   cursor:pointer;
   user-select:none;
-  border-radius:var(--radius-md);
   transition:all .2s ease;
+  overflow:hidden;
 }
-.day-cell:active{transform: scale(0.95);}
+.day-cell:hover{
+  border-color: #FFD6E0;
+  transform: translateY(-2px);
+}
+.day-cell:active{transform: scale(0.96);}
+
+/* 今天以后的日期稍微淡化显示 */
+.day-cell.future-day{
+  opacity: 0.55;
+  background: #FAF8F9;
+  border-color: #F0E6EA;
+}
+.day-cell.future-day:hover{
+  transform: none;
+  border-color: #F0E6EA;
+}
+
+.day-cell.other-month{
+  opacity:0.25;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
 
 .week-detail-row{
   grid-column: 1 / -1;
@@ -194,70 +256,88 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   to{ opacity:1; transform:translateY(0); }
 }
 
+/* 经期/排卵期在小格子内的独立半透明遮罩与正确外边框颜色 */
 .day-bg-band{
   position:absolute;
-  top:2px;bottom:2px;left:-3px;right:-3px;
+  inset:0;
   z-index:1;
   pointer-events:none;
+  border-radius:10px;
 }
-.day-bg-band.period{background:var(--rose-bg)}
-.day-bg-band.ovulation{background:var(--purple-bg)}
-.day-bg-band.pred{opacity:0.8;}
-.day-bg-band.pred.period{border:2px dashed var(--pop-pink);background:rgba(255, 107, 155, 0.1)}
-.day-bg-band.pred.ovulation{border:2px dashed var(--pop-purple);background:rgba(157, 78, 221, 0.1)}
-.day-bg-band.band-start{border-top-left-radius:14px;border-bottom-left-radius:14px;left:2px}
-.day-bg-band.band-end{border-top-right-radius:14px;border-bottom-right-radius:14px;right:2px}
+.day-bg-band.period{
+  background:var(--rose-bg);
+}
+.day-bg-band.ovulation{
+  background:var(--purple-bg);
+}
+/* 预测中的姨妈/排卵期不再画边框，仅用更淡的底色区分 */
+.day-bg-band.pred.period{background:rgba(255, 107, 155, 0.16)}
+.day-bg-band.pred.ovulation{background:rgba(157, 78, 221, 0.1)}
 
+/* 左上角日期数字样式（突出品质感） */
 .num-wrap{
-  position:relative;
+  position:absolute;
+  top:4px;
+  left:4px;
   z-index:2;
-  width:30px;
-  height:30px;
+  width:22px;
+  height:22px;
   border-radius:50%;
   display:grid;
   place-items:center;
-  font-size:14px;
+  font-size:12px;
   font-weight:700;
+  font-family: var(--font-main);
   color:var(--text-main);
   transition: all 0.2s ease;
+}
+.day-cell.selected{
+  border-color: var(--pop-pink) !important;
+  box-shadow: 0 4px 14px rgba(255, 107, 155, 0.25);
 }
 .day-cell.selected .num-wrap{
   background: var(--pop-pink) !important;
   color: #FFFFFF !important;
-  box-shadow: 0 4px 12px rgba(255, 107, 155, 0.4);
 }
 
 .day-cell.today:not(.selected) .num-wrap{
   background: var(--pop-yellow);
   color: var(--text-main);
-  font-size:14px;
-  font-weight:700;
-  box-shadow:0 4px 10px rgba(255, 209, 102, 0.5);
+  box-shadow:0 2px 6px rgba(255, 209, 102, 0.6);
 }
-.day-cell.today:not(.selected)::after{
-  content:"";
-  position:absolute;
-  top:4px;left:50%;width:34px;height:34px;
-  transform:translateX(-50%);
-  border:2px solid var(--pop-yellow);
-  border-radius:50%;
-  pointer-events:none;
-  z-index:2;
-}
-.day-cell.other-month{opacity:0.25}
 
-.cell-info{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;margin-top:4px;line-height:1;width:100%;}
-.weight-slot,.poop-slot{height:15px;display:flex;align-items:center;justify-content:center;}
+/* 排便打卡标签：占据日期小框右上角的渐变色块，与"保存修改"按钮同色系 */
+.poop-tag{
+  position:absolute;
+  top:0;
+  right:0;
+  z-index:2;
+  width:34px;
+  height:34px;
+  background: linear-gradient(135deg, #FF6B9B, #FF8811);
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+  pointer-events:none;
+}
+
+/* 右下角体重数值与箭头样式（区分字体调性） */
+.weight-slot{
+  position:absolute;
+  bottom:5px;
+  right:5px;
+  z-index:2;
+  display:flex;
+  align-items:center;
+}
 .weight-tag{
   font-size:11px;
-  color:var(--text-main);
-  font-weight:700;
+  color:#523B58;
+  font-weight:600;
+  font-family: var(--font-num);
   white-space:nowrap;
+  letter-spacing:-0.02em;
 }
-.arrow-up{color:var(--diff-up);font-size:10px;font-weight:bold;}
-.arrow-down{color:var(--diff-down);font-size:10px;font-weight:bold;}
-
-.poop-flag{font-size:12px;line-height:1;}
+.arrow-up{color:var(--diff-up);font-size:10px;font-weight:bold;margin-left:1px;}
+.arrow-down{color:var(--diff-down);font-size:10px;font-weight:bold;margin-left:1px;}
 
 .expand-caret{
   position:absolute;
@@ -265,10 +345,10 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   bottom:2px;
   left:50%;
   transform:translateX(-50%);
-  font-size:10px;
+  font-size:9px;
   line-height:1;
   color:var(--text-light);
-  opacity:0.7;
+  opacity:0.6;
   transition: transform .2s ease, opacity .2s ease;
   pointer-events:none;
 }
@@ -312,7 +392,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 }
 .inline-item { display: flex; flex-direction: column; gap: 2px; }
 .inline-item label { font-size: 11px; color: var(--text-muted); font-weight: 600; }
-.inline-item val { font-size: 14px; font-weight: 700; color: var(--text-main); }
+.inline-item val { font-size: 14px; font-weight: 700; color: var(--text-main); font-family: var(--font-num);}
 .inline-poop-val { font-size: 13px !important; font-weight: 600 !important; color: var(--text-main) !important; line-height: 1.45; }
 
 /* 弹窗样式表 */
@@ -367,8 +447,8 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .top-card-row2{display:flex;align-items:center;font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;}
 
 .chart-top-card .date-val{font-size:16px;font-weight:700;color:var(--text-main)}
-.chart-top-card .weight-val{font-size:22px;font-weight:700;color:var(--pop-pink)}
-.chart-top-card .diff-val{font-size:13px;margin-left:4px;font-weight:700}
+.chart-top-card .weight-val{font-size:22px;font-weight:700;color:var(--pop-pink);font-family:var(--font-num);}
+.chart-top-card .diff-val{font-size:13px;margin-left:4px;font-weight:700;font-family:var(--font-num);}
 
 .tag-phase{
   display:inline-block;
@@ -395,7 +475,7 @@ canvas{width:100%;height:100%;display:block}
 /* 底部数据网格 */
 .statgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 .stat{background:#FFF0F5;border:2px solid #FFE5EC;border-radius:var(--radius-md);padding:12px;text-align:center;}
-.stat b{display:block;font-size:17px;color:var(--pop-pink);margin-top:4px;font-weight:700}
+.stat b{display:block;font-size:17px;color:var(--pop-pink);margin-top:4px;font-weight:700;font-family:var(--font-num);}
 .stat span{font-size:11px;color:var(--text-muted);font-weight:600;}
 .stat-editable{cursor:pointer;}
 
@@ -419,7 +499,7 @@ canvas{width:100%;height:100%;display:block}
   justify-content:space-between;
 }
 .pred-item .m-label{color:var(--text-muted);font-weight:600;}
-.pred-item .d-label{color:var(--pop-purple);font-weight:700;font-family:'Fredoka', monospace}
+.pred-item .d-label{color:var(--pop-purple);font-weight:700;font-family:var(--font-num);}
 
 /* 备份控制与表单 */
 .backup-box{margin-top:24px}
@@ -499,7 +579,7 @@ canvas{width:100%;height:100%;display:block}
   </div>
 
   <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('calTab')">日历视图</button>
+    <button class="tab-btn active" onclick="switchTab('calTab')">日历打卡</button>
     <button class="tab-btn" onclick="switchTab('chartTab')">体重趋势</button>
     <button class="tab-btn" onclick="switchTab('predTab')">生理期预测</button>
   </div>
@@ -512,9 +592,9 @@ canvas{width:100%;height:100%;display:block}
         <button onclick="changeMonth(1)">›</button>
       </div>
       <div class="legend">
-        <span class="leg-period">姨妈期</span>
-        <span class="leg-ovulation">排卵期</span>
-        <span class="leg-poop">排便</span>
+        <label class="leg-period"><input type="checkbox" checked onchange="toggleFilter('period', this.checked)">姨妈期</label>
+        <label class="leg-ovulation"><input type="checkbox" checked onchange="toggleFilter('ovulation', this.checked)">排卵期</label>
+        <label class="leg-poop"><input type="checkbox" checked onchange="toggleFilter('poop', this.checked)">排便打卡</label>
       </div>
       <div class="cal-grid" id="calendar"></div>
     </div>
@@ -667,6 +747,12 @@ if(!data.targetWeight) data.targetWeight = 50.0;
 
 let selectedKey = null;
 let viewDate = new Date();
+let calFilters = { period:true, ovulation:true, poop:true };
+
+function toggleFilter(type, checked){
+  calFilters[type] = checked;
+  renderCalendar();
+}
 let currentPickerWeight = 52.0;
 
 function pad(n){return String(n).padStart(2,"0")}
@@ -923,17 +1009,6 @@ function switchTab(tabId){
   if(tabId === 'chartTab') drawChart();
 }
 
-function sizeToDots(size){
-  switch(size){
-    case "小": return "●";
-    case "小偏中": return "●○";
-    case "中": return "●●";
-    case "中偏大": return "●●○";
-    case "大": return "●●●";
-    default: return "●";
-  }
-}
-
 function getAvgCycleLength(){
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
   if(starts.length < 2) return 28;
@@ -964,7 +1039,8 @@ function computeCyclePhases(){
       let p = null;
       if(i < 5){
         p = "period";
-      } else if(i >= cycleDays - 19 && i <= cycleDays - 13){
+      } else if(i >= 13 && i <= 15){
+        /* 排卵期固定为姨妈第一天 +13~+15 天，共 3 天 */
         p = "ovulation";
       }
       if(p) phases[k] = { phase: p, isPred: false };
@@ -986,7 +1062,8 @@ function computeCyclePhases(){
       let p = null;
       if(i < 5){
         p = "period";
-      } else if(i >= avgCycle - 19 && i <= avgCycle - 13){
+      } else if(i >= 13 && i <= 15){
+        /* 预测周期同样固定为姨妈第一天 +13~+15 天，共 3 天 */
         p = "ovulation";
       }
       if(p) phases[k] = { phase: p, isPred: true };
@@ -1048,12 +1125,15 @@ function renderCalendar(){
   
   const first = new Date(y, m, 1);
   const last = new Date(y, m+1, 0);
-  const todayStr = key(new Date());
+  const todayObj = new Date();
+  todayObj.setHours(0,0,0,0);
+  const todayStr = key(todayObj);
   
   const phases = computeCyclePhases();
   const weightDiffs = computeWeightDifferences();
 
-  let html = ["日","一","二","三","四","五","六"].map(x=>`<div class="dow">${x}</div>`).join("");
+  /* 星期表头改为英文三字母缩写 */
+  let html = ["SUN","MON","TUE","WED","THU","FRI","SAT"].map(x=>`<div class="dow">${x}</div>`).join("");
 
   let cellCount = 0;
   let weekKeys = [];
@@ -1076,24 +1156,19 @@ function renderCalendar(){
 
   for(let d=1; d<=last.getDate(); d++){
     const dt = new Date(y, m, d);
+    dt.setHours(0,0,0,0);
     const k = key(dt);
     const dayData = data.days[k] || {};
     const phaseInfo = phases[k] || {};
     
     let phaseType = phaseInfo.phase;
     if(dayData.period === "start" || dayData.period === "on") phaseType = "period";
+    if(phaseType && !calFilters[phaseType]) phaseType = null;
 
     const isPred = phaseInfo.isPred;
-
-    const prevKey = key(new Date(y, m, d-1));
-    const nextKey = key(new Date(y, m, d+1));
-    const prevPhase = (phases[prevKey]||{}).phase;
-    const nextPhase = (phases[nextKey]||{}).phase;
     
     let bandClasses = phaseType ? ` ${phaseType}` : '';
     if(isPred) bandClasses += " pred";
-    if(prevPhase !== phaseType) bandClasses += " band-start";
-    if(nextPhase !== phaseType) bandClasses += " band-end";
 
     let weightHtml = "";
     if(dayData.weight != null){
@@ -1106,23 +1181,23 @@ function renderCalendar(){
       weightHtml = `<div class="weight-tag">${formattedW}${arrowHtml}</div>`;
     }
 
+    /* 排便打卡标签：右上角色块，受筛选开关控制 */
     let poopHtml = "";
-    if(dayData.poops && dayData.poops.length){
-      poopHtml = `<div class="poop-flag">💩</div>`;
+    if(calFilters.poop && dayData.poops && dayData.poops.length){
+      poopHtml = `<div class="poop-tag"></div>`;
     }
 
     const isToday = k === todayStr;
+    const isFuture = dt > todayObj;
     const isSelected = k === selectedKey;
     const dateDisplay = isToday ? "今" : d;
 
     html += `
-      <div class="day-cell ${isToday?'today':''} ${isSelected?'selected':''}" onclick="selectDay('${k}')">
+      <div class="day-cell ${isToday?'today':''} ${isFuture?'future-day':''} ${isSelected?'selected':''}" onclick="selectDay('${k}')">
         ${phaseType ? `<div class="day-bg-band ${bandClasses}"></div>` : ''}
         <div class="num-wrap">${dateDisplay}</div>
-        <div class="cell-info">
-          <div class="weight-slot">${weightHtml}</div>
-          <div class="poop-slot">${poopHtml}</div>
-        </div>
+        ${poopHtml}
+        <div class="weight-slot">${weightHtml}</div>
         <div class="expand-caret">▾</div>
       </div>
     `;
@@ -1404,14 +1479,14 @@ function drawChart(){
   const series = buildChartSeries();
 
   if(!series.length){
-    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Fredoka', sans-serif"; ctx.textAlign="center";
+    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Fredoka','Noto Sans SC',sans-serif"; ctx.textAlign="center";
     ctx.fillText("暂无数据", W/2, H/2);
     return;
   }
 
   const validWeights = series.map(x=>x.weight).filter(w=>w!=null);
   if(!validWeights.length){
-    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Fredoka', sans-serif"; ctx.textAlign="center";
+    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Fredoka','Noto Sans SC',sans-serif"; ctx.textAlign="center";
     ctx.fillText("无体重数据", W/2, H/2);
     return;
   }
@@ -1544,7 +1619,7 @@ function drawChart(){
         const labelInterval = Math.max(1, Math.round(60 / userStep));
         if(idx % labelInterval === 0){
           ctx.fillStyle="#8E7A93";
-          ctx.font="bold 11px 'Fredoka', sans-serif";
+          ctx.font="bold 11px 'Fredoka','Noto Sans SC',sans-serif";
           ctx.textAlign="center";
           ctx.fillText(p.raw.date.slice(5), p.x, padT + plotH + 18);
         }
