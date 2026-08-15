@@ -36,7 +36,7 @@ body{
   letter-spacing: .01em;
   min-height: 100vh;
 }
-.wrap{max-width:600px;margin:auto;padding:20px 16px 80px}
+.wrap{max-width:600px;margin:auto;padding:24px 16px 88px}
 
 /* Header */
 .brand{display:flex;align-items:center;gap:12px;margin:8px 4px 16px}
@@ -95,20 +95,20 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
   border:1px solid #e2e8e5;border-radius:50%;font-size:16px;
   cursor:pointer;display:grid;place-items:center;
 }
-.month{font-weight:700;font-size:17px;color:#2d3436}
-.legend{display:flex;gap:14px;color:var(--text-muted);font-size:12px;margin-bottom:14px;justify-content:center}
+.month{font-weight:700;font-size:20px;letter-spacing:.02em;color:#242a29}
+.legend{display:flex;gap:18px;color:var(--text-muted);font-size:13px;margin-bottom:16px;justify-content:center}
 .legend span{display:flex;align-items:center;gap:5px}
-.legend span:before{content:"";width:8px;height:8px;border-radius:50%;display:inline-block}
+.legend span:before{content:"";width:9px;height:9px;border-radius:50%;display:inline-block}
 .legend .leg-period:before{background:var(--rose)}
 .legend .leg-ovulation:before{background:var(--purple)}
 .legend .leg-poop:before{background:var(--poop-gray)}
 
 /* Calendar Grid */
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:8px;column-gap:4px;position:relative}
-.dow{text-align:center;color:#a0aab0;font-size:12px;font-weight:600;padding:2px 0}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:10px;column-gap:5px;position:relative}
+.dow{text-align:center;color:#7f8986;font-size:13px;font-weight:600;padding:3px 0 6px;letter-spacing:.04em}
 .day-cell{
   position:relative;
-  height:74px;
+  height:82px;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -116,10 +116,20 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
   padding-top:3px;
   cursor:pointer;
   user-select:none;
-  border-radius:10px;
+  border-radius:12px;
   transition:background .15s ease;
+  padding-left:2px;padding-right:2px;
 }
 .day-cell:active{background:rgba(0,0,0,0.03)}
+
+/* Refined calendar hierarchy */
+.day-cell.has-data .num-wrap{font-size:18px;font-weight:750;color:#202624;}
+.day-cell.has-data .weight-tag{font-size:12px;color:#4a5551;font-weight:650;}
+.day-cell.has-data .poop-flag{font-size:10px;opacity:.9;}
+.day-cell:not(.has-data) .weight-tag{font-size:11px;color:#aeb6b3;font-weight:450;}
+.day-cell.selected{background:rgba(45,52,54,.035);}
+.day-cell.selected .num-wrap{transform:scale(1.04);}
+
 
 .week-detail-row{
   grid-column: 1 / -1;
@@ -148,12 +158,12 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
 .num-wrap{
   position:relative;
   z-index:2;
-  width:28px;
-  height:28px;
+  width:34px;
+  height:34px;
   border-radius:50%;
   display:grid;
   place-items:center;
-  font-size:14px;
+  font-size:17px;
   font-weight:700;
   color:#2d3436;
   transition: all 0.2s ease;
@@ -163,7 +173,7 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
   color:#ffffff !important;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
-.day-cell.today:not(.selected) .num-wrap{background:#E5E5EA;color:#2d3436;font-size:14px;}
+.day-cell.today:not(.selected) .num-wrap{background:#E5E5EA;color:#2d3436;font-size:17px;}
 .day-cell.other-month{opacity:0.2}
 
 .cell-info{
@@ -176,15 +186,15 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
   line-height:1.1;
 }
 .weight-tag{
-  font-size:10px;
-  color:var(--text-muted);
-  font-weight:500;
+  font-size:11px;
+  color:#68736f;
+  font-weight:600;
   white-space:nowrap;
 }
-.arrow-up{color:var(--diff-up);font-size:9px;}
-.arrow-down{color:var(--diff-down);font-size:9px;}
+.arrow-up{color:var(--diff-up);font-size:10px;}
+.arrow-down{color:var(--diff-down);font-size:10px;}
 
-.poop-flag{font-size:9px;line-height:1;margin-top:2px;opacity:0.7;}
+.poop-flag{font-size:10px;line-height:1;margin-top:3px;opacity:0.82;}
 
 .expand-caret{
   position:absolute;
@@ -232,13 +242,13 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; background: #f8faf9; padding: 10px 11px; border-radius: 10px;
 }
 .inline-item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.inline-item label { font-size: 10px; color: #a0aaa6; font-weight: 400; letter-spacing: .02em; }
-.inline-item val { font-size: 12px; font-weight: 400; color: #a0aaa6; line-height: 1.35; }
-.inline-item val.has-record { font-size: 14px; font-weight: 500; color: #3f4845; }
-.inline-item val.diff-record { font-size: 12.5px; font-weight: 500; color: #59635f; }
+.inline-item label { font-size: 11px; color: #929c98; font-weight: 500; letter-spacing: .04em; }
+.inline-item val { font-size: 14px; font-weight: 450; color: #a0aaa6; line-height: 1.4; }
+.inline-item val.has-record { font-size: 16px; font-weight: 550; color: #37413e; }
+.inline-item val.diff-record { font-size: 14px; font-weight: 550; color: #59635f; }
 .inline-item val.no-record { color: #b7bfbc; }
-.inline-poop-val { font-size: 12px !important; font-weight: 400 !important; color: #a0aaa6 !important; line-height: 1.5; }
-.inline-poop-val.has-record { font-size: 13px !important; font-weight: 450 !important; color: #4b5551 !important; }
+.inline-poop-val { font-size: 14px !important; font-weight: 450 !important; color: #a0aaa6 !important; line-height: 1.55; }
+.inline-poop-val.has-record { font-size: 15px !important; font-weight: 500 !important; color: #46504d !important; }
 
 .inline-edit-panel {
   border-top: 1px dashed #e2e8e5;
