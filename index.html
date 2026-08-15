@@ -665,7 +665,7 @@ canvas{width:100%;height:100%;display:block}
       </div>
     </div>
     <div class="account-mini">
-      <span class="account-status" id="accountStatus" title="未登录 · 数据目前保存在本机">未登录</span>
+      <span class="account-status" id="accountStatus" title="未登录 · 数据仅保存在本机，无法同步">未登录</span>
       <button class="account-btn" id="accountBtn" onclick="openAuth()">登录</button>
     </div>
   </div>
@@ -1054,7 +1054,7 @@ async function updateAuthUI(){
     btn.onclick=signOut;
   }else{
     status.textContent="未登录";
-    status.title="未登录 · 数据目前保存在本机";
+    status.title="未登录 · 数据仅保存在本机，无法同步";
     status.classList.remove("logged");
     btn.textContent="登录";
     btn.onclick=openAuth;
@@ -1911,56 +1911,7 @@ function importData(e){
   reader.readAsText(file);
 }
 
-const preset = {
-  "2026-01-16":{period:"start"},
-  "2026-02-12":{period:"start"},
-  "2026-03-13":{period:"start"},
-  "2026-04-11":{period:"start"},
-  "2026-05-08":{period:"start"},
-  "2026-06-06":{period:"start"},
-  "2026-07-05":{period:"start"},
-  "2026-08-02":{period:"start"},
-
-  "2026-07-06":{weight:52.1, poops:[{hour:8,size:"小"},{hour:13,size:"小"}]},
-  "2026-07-07":{weight:52.2, poops:[{hour:11,size:"中"}]},
-  "2026-07-08":{weight:52.2},
-  "2026-07-09":{weight:52.4},
-  "2026-07-10":{weight:52.6, poops:[{hour:10,size:"小偏中"}]},
-  "2026-07-11":{weight:52.5, poops:[{hour:9,size:"中"},{hour:10,size:"大"}]},
-  "2026-07-12":{weight:52.2, poops:[{hour:10,size:"中"}]},
-  "2026-07-13":{weight:51.9},
-  "2026-07-14":{weight:52.2},
-  "2026-07-15":{weight:52.5, poops:[{hour:10,size:"大"}]},
-  "2026-07-16":{weight:52.0},
-  "2026-07-17":{weight:52.8, poops:[{hour:7,size:"大"}]},
-  "2026-07-18":{weight:52.7, poops:[{hour:17,size:"中"}]},
-  "2026-07-19":{weight:52.5, poops:[{hour:11,size:"中"}]},
-  "2026-07-20":{weight:52.1},
-  "2026-07-21":{weight:51.9},
-  "2026-07-22":{weight:52.6},
-  "2026-07-23":{weight:52.4},
-  "2026-07-24":{weight:52.1, poops:[{hour:7,size:"大"}]},
-  "2026-07-25":{weight:51.9, poops:[{hour:12,size:"大"}]},
-  "2026-07-26":{weight:52.0, poops:[{hour:11,size:"中"}]},
-  "2026-07-27":{weight:51.8},
-  "2026-07-28":{weight:52.2},
-  "2026-07-29":{weight:52.4, poops:[{hour:10,size:"中"}]},
-  "2026-07-30":{weight:52.2, poops:[{hour:7,size:"中"}]},
-  "2026-07-31":{weight:52.3, poops:[{hour:11,size:"中"}]},
-
-  "2026-08-01":{weight:52.3, poops:[{hour:15,size:"小偏中"}]},
-  "2026-08-02":{weight:52.1, period:"start", poops:[{hour:10,size:"大"}]},
-  "2026-08-03":{weight:51.9},
-  "2026-08-04":{weight:52.1},
-  "2026-08-05":{weight:52.3, poops:[{hour:15,size:"中偏大"}]},
-  "2026-08-09":{poops:[{hour:12,size:"大"}]},
-  "2026-08-12":{weight:52.4},
-  "2026-08-15":{weight:52.0, poops:[{hour:18,size:"中偏大",note:"较为顺畅"}]},
-  "2026-08-16":{weight:51.8}
-};
-
-for(const [k,v] of Object.entries(preset)) data.days[k] ||= v;
-save();
+// 正式版不再向新用户注入测试/演示数据。用户首次打开时从空白本地数据开始。
 
 window.onload = init;
 window.onresize = drawChart;
