@@ -108,7 +108,7 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
 .dow{text-align:center;color:#a0aab0;font-size:12px;font-weight:600;padding:2px 0}
 .day-cell{
   position:relative;
-  height:70px;
+  height:74px;
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -148,13 +148,13 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
 .num-wrap{
   position:relative;
   z-index:2;
-  width:26px;
-  height:26px;
+  width:28px;
+  height:28px;
   border-radius:50%;
   display:grid;
   place-items:center;
-  font-size:12px;
-  font-weight:500;
+  font-size:14px;
+  font-weight:700;
   color:#2d3436;
   transition: all 0.2s ease;
 }
@@ -163,7 +163,7 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
   color:#ffffff !important;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
-.day-cell.today:not(.selected) .num-wrap{background:#E5E5EA;color:#2d3436;font-size:12px;}
+.day-cell.today:not(.selected) .num-wrap{background:#E5E5EA;color:#2d3436;font-size:14px;}
 .day-cell.other-month{opacity:0.2}
 
 .cell-info{
@@ -172,19 +172,38 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
   display:flex;
   flex-direction:column;
   align-items:center;
-  margin-top:2px;
-  line-height:1.15;
+  margin-top:1px;
+  line-height:1.1;
 }
 .weight-tag{
-  font-size:11px;
-  color:#4a5568;
-  font-weight:600;
+  font-size:10px;
+  color:var(--text-muted);
+  font-weight:500;
   white-space:nowrap;
 }
-.arrow-up{color:var(--diff-up);font-size:10px;}
-.arrow-down{color:var(--diff-down);font-size:10px;}
+.arrow-up{color:var(--diff-up);font-size:9px;}
+.arrow-down{color:var(--diff-down);font-size:9px;}
 
-.poop-flag{font-size:10px;line-height:1;margin-top:2px;}
+.poop-flag{font-size:9px;line-height:1;margin-top:2px;opacity:0.7;}
+
+.expand-caret{
+  position:absolute;
+  z-index:2;
+  bottom:3px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:8px;
+  line-height:1;
+  color:#c3cac6;
+  opacity:0.5;
+  transition: transform .2s ease, opacity .2s ease, color .2s ease;
+  pointer-events:none;
+}
+.day-cell.selected .expand-caret{
+  transform:translateX(-50%) rotate(180deg);
+  opacity:0.9;
+  color:var(--rose);
+}
 
 .inline-detail-card {
   margin-top: 16px;
@@ -725,6 +744,7 @@ function renderCalendar(){
           ${weightHtml}
           ${poopHtml}
         </div>
+        <div class="expand-caret">▾</div>
       </div>
     `;
     cellCount++;
@@ -895,7 +915,8 @@ function buildChartSeries(){
   if(!allKeys.length) return [];
 
   const startD = new Date(allKeys[0]+"T00:00:00");
-  const endD = new Date(allKeys.at(-1)+"T00:00:00");
+  const todayD = new Date(key(new Date())+"T00:00:00");
+  const endD = todayD;
   
   let rawList = [];
   let curr = new Date(startD);
@@ -1142,7 +1163,7 @@ function drawChart(){
         }
 
         const labelInterval = Math.max(1, Math.round(60 / userStep));
-        if(idx % labelInterval === 0 || idx === selectedIdx){
+        if(idx % labelInterval === 0){
           ctx.fillStyle="#a0aab0";
           ctx.font="10px sans-serif";
           ctx.textAlign="center";
