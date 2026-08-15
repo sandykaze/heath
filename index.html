@@ -712,7 +712,7 @@ function renderCalendar(){
 
     const isToday = k === todayStr;
     const isSelected = k === selectedKey;
-    const dateDisplay = isToday ? "今日" : d;
+    const dateDisplay = isToday ? "今" : d;
 
     html += `
       <div class="day-cell ${isToday?'today':''} ${isSelected?'selected':''}" onclick="selectDay('${k}')">
