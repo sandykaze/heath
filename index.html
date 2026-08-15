@@ -1112,7 +1112,7 @@ function computeCyclePhases(){
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
   const avgCycle = getAvgCycleLength();
 
-  if(!starts.length) return phases;
+  if(starts.length < 2) return phases;
 
   starts.forEach((sKey, idx) => {
     const sDate = new Date(sKey+"T00:00:00");
@@ -1127,8 +1127,8 @@ function computeCyclePhases(){
       let p = null;
       if(i < 5){
         p = "period";
-      } else if(i >= 13 && i <= 15){
-        /* 排卵期固定为姨妈第一天 +13~+15 天，共 3 天 */
+      } else if(i >= Math.max(1, cycleDays - 16) && i <= Math.max(1, cycleDays - 14)){
+        /* 最容易受孕的3天：按历史周期长度动态定位在预计排卵日前后 */
         p = "ovulation";
       }
       if(p) phases[k] = { phase: p, isPred: false };
@@ -1150,8 +1150,8 @@ function computeCyclePhases(){
       let p = null;
       if(i < 5){
         p = "period";
-      } else if(i >= 13 && i <= 15){
-        /* 预测周期同样固定为姨妈第一天 +13~+15 天，共 3 天 */
+      } else if(i >= Math.max(1, avgCycle - 16) && i <= Math.max(1, avgCycle - 14)){
+        /* 预测排卵期：根据历史平均周期，显示最容易受孕的3天 */
         p = "ovulation";
       }
       if(p) phases[k] = { phase: p, isPred: true };
