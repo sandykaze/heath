@@ -206,34 +206,35 @@ h1{font-size:20px;line-height:1;margin:0;font-weight:700;color:#2d3436}
 }
 
 .inline-detail-card {
-  margin-top: 16px;
+  margin-top: 12px;
   background: #ffffff;
   border: 1px solid #e2e8e5;
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 13px;
+  padding: 12px 14px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 9px;
 }
 .inline-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #f0f4f2;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
 }
-.inline-date { font-size: 16px; font-weight: 700; color: #2d3436; display: flex; align-items: center; gap: 8px;}
+.inline-date { font-size: 13px; font-weight: 500; color: #2d3436; display: flex; align-items: center; gap: 8px;}
 .inline-edit-btn {
-  background: #f0f4f2; border: 0; padding: 6px 12px; border-radius: 8px;
-  font-size: 12px; font-weight: 600; color: #2d3436; cursor: pointer;
+  background: #f4f6f5; border: 0; padding: 5px 9px; border-radius: 7px;
+  font-size: 11px; font-weight: 500; color: #2d3436; cursor: pointer;
 }
 .inline-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #f8faf9; padding: 12px; border-radius: 12px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; background: #f8faf9; padding: 10px 11px; border-radius: 10px;
 }
 .inline-item { display: flex; flex-direction: column; gap: 2px; }
-.inline-item label { font-size: 11px; color: var(--text-muted); }
-.inline-item val { font-size: 15px; font-weight: 700; color: #2d3436; }
+.inline-item label { font-size: 10px; color: var(--text-muted); font-weight: 400; }
+.inline-item val { font-size: 13px; font-weight: 400; color: #4a5350; }
+.inline-poop-val { font-size: 12px !important; font-weight: 400 !important; color: #4a5350 !important; line-height: 1.45; }
 
 .inline-edit-panel {
   border-top: 1px dashed #e2e8e5;
@@ -365,6 +366,38 @@ canvas{width:100%;height:100%;display:block}
 .btn-secondary{background:#f0f4f2;color:#2d3436;border:0;padding:11px;border-radius:10px;font-weight:600;flex:1;cursor:pointer}
 .btn-danger{background:#fff0f2;color:var(--rose);border:1px solid #fce4e8;padding:11px;border-radius:10px;cursor:pointer;font-weight:600}
 .poop-list{margin-top:14px;border-top:1px solid #f0f4f2;padding-top:12px}
+.poop-section-title{
+  color:var(--text-muted);
+  font-size:12px;
+  font-weight:500;
+  display:block;
+  margin-bottom:9px;
+  letter-spacing:.1px;
+}
+.poop-add-divider{
+  border-top:1px solid #edf2ef;
+  margin:15px 0;
+}
+.poop-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 0;
+  font-size:13px;
+  border-bottom:1px solid #f3f6f4;
+}
+.poop-item:last-child{
+  border-bottom:none;
+}
+.poop-item .poop-record-text{
+  color:#3f4744;
+  font-weight:400;
+  letter-spacing:.1px;
+}
+.poop-item .del-btn{
+  opacity:.55;
+  font-size:11px;
+}
 .poop-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;border-bottom:1px solid #f5f8f6}
 .del-btn{background:none;border:0;color:#a0aab0;font-size:12px;cursor:pointer}
 
@@ -433,7 +466,11 @@ canvas{width:100%;height:100%;display:block}
         </div>
 
         <div class="poop-list">
-          <label style="color:var(--text-muted);font-size:12px;display:block;margin-bottom:8px">新增/删减排便记录</label>
+          <label class="poop-section-title">已记录的排便</label>
+          <div id="poopContainer"></div>
+
+          <div class="poop-add-divider"></div>
+          <label class="poop-section-title">新增排便记录</label>
           <div class="grid-2">
             <div class="field-group">
               <select id="poopHour"></select>
@@ -452,7 +489,6 @@ canvas{width:100%;height:100%;display:block}
             <input id="poopNote" placeholder="备注（如：硬、拉稀、开塞露）">
           </div>
           <button class="btn-secondary" style="width:100%;padding:8px;font-size:13px;" onclick="addPoop()">添加一次排便</button>
-          <div id="poopContainer"></div>
         </div>
       </div>
     </div>
@@ -808,16 +844,16 @@ function buildDetailRowHtml(k, phases, weightDiffs){
 
         <div class="inline-grid">
           <div class="inline-item">
-            <label>体重记录</label>
+            <label>体重</label>
             <val>${weightVal}</val>
           </div>
           <div class="inline-item">
-            <label>对比上次变化</label>
+            <label>变化</label>
             <val>${diffVal}</val>
           </div>
           <div class="inline-item" style="grid-column: span 2;">
             <label>排便记录</label>
-            <val style="font-size:13px;font-weight: normal;color:#4a5568;">${poopVal}</val>
+            <val class="inline-poop-val">${poopVal}</val>
           </div>
         </div>
       </div>
@@ -899,12 +935,12 @@ function renderPoops(){
   const p = (data.days[selectedKey]||{}).poops || [];
   const container = document.getElementById("poopContainer");
   if(!p.length){
-    container.innerHTML = `<div style="color:var(--text-muted);font-size:12px;padding:8px 0">无排便记录</div>`;
+    container.innerHTML = `<div style="color:var(--text-muted);font-size:12px;padding:8px 0">暂无排便记录</div>`;
     return;
   }
   container.innerHTML = p.map((x,i)=>`
     <div class="poop-item">
-      <span>${x.hour}:00 · ${x.size}${x.note?` (${x.note})`:''}</span>
+      <span class="poop-record-text">${x.hour}:00 · ${x.size}${x.note?` (${x.note})`:''}</span>
       <button class="del-btn" onclick="removePoop(${i})">删除</button>
     </div>
   `).join("");
