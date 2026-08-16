@@ -55,13 +55,20 @@
   --purple-bg: rgba(157, 78, 221, 0.18);
   --poop-gray: #D4A373;
 
-  /* 数据对比色 */
-  --diff-down: var(--pop-green);
-  --diff-up: var(--pop-orange);
-  --diff-zero: #A09383;
+  /* 数据对比色：日历格子上"↑ / ↓"箭头的颜色统一为淡灰，
+     让增减不再因为颜色（绿 / 橙 / 棕）而显得花哨，方向本身已经能说明增减 */
+  --diff-down: #A89B91;
+  --diff-up: #A89B91;
+  --diff-zero: #A89B91;
 
   /* 高级偏粉色调，用于生理期预测等需要区别于亮粉的强调色 */
   --rose-mauve: #B8557A;
+
+  /* 运动主题色：尤加利薄荷 → 嫩薄荷 渐变 */
+  --pop-exercise-1: #62C6A5;   /* 尤加利（偏冷、有蓝调的薄荷） */
+  --pop-exercise-2: #9BD9A1;   /* 嫩薄荷（明快、清新的果绿） */
+  --exercise: var(--pop-exercise-2);
+  --exercise-bg: rgba(155, 217, 161, 0.18);
 
   /* 多巴胺糖果感阴影与大圆角 */
   --shadow-soft: 0 16px 40px rgba(120, 90, 130, 0.10);
@@ -218,6 +225,10 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   background: linear-gradient(135deg, #FF6B9B 0%, #FF8811 100%);
   box-shadow: 0 6px 18px rgba(255, 136, 17, 0.28);
 }
+.tab-btn.active.tab-exercise{
+  background: linear-gradient(135deg, #62C6A5, #9BD9A1);
+  box-shadow: 0 6px 18px rgba(98, 198, 165, 0.30);
+}
 
 /* Card Style 卡片全构架 */
 .card{
@@ -295,6 +306,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .legend .leg-ovulation .chk input[type="checkbox"]:checked ~ .chk-box{background:var(--pop-purple);border-color:var(--pop-purple);}
 .legend .leg-poop .chk input[type="checkbox"]:checked ~ .chk-box{background:linear-gradient(135deg, #FF6B9B, #FF8811);border-color:#FF8811;}
 .legend .leg-weight .chk input[type="checkbox"]:checked ~ .chk-box{background:#54524F;border-color:#54524F;}
+.legend .leg-exercise .chk input[type="checkbox"]:checked ~ .chk-box{background:linear-gradient(135deg, #62C6A5, #9BD9A1);border-color:#62C6A5;}
 
 /* Calendar Grid 日历独立卡片小格子网格 */
 .cal-grid{
@@ -426,6 +438,21 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   pointer-events:none;
 }
 
+/* 运动打卡标签：紧挨在排便小点正下方，与排便保持相同尺寸（10x10），
+   只是颜色换成运动主题薄荷绿，方便视觉上区分 */
+.exercise-tag{
+  position:absolute;
+  top:20px;
+  right:6px;
+  z-index:2;
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background: linear-gradient(135deg, #62C6A5, #9BD9A1);
+  box-shadow: 0 1px 3px rgba(98, 198, 165, 0.35);
+  pointer-events:none;
+}
+
 /* 右下角体重数值与箭头样式（区分字体调性） */
 .weight-slot{
   position:absolute;
@@ -513,20 +540,20 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   border: 1px solid rgba(255, 255, 255, 0.6);
   border-bottom: none;
   width:100%; max-width:580px;
-  border-radius:28px 28px 0 0;
-  padding:26px 22px calc(24px + env(safe-area-inset-bottom));
+  border-radius:24px 24px 0 0;
+  padding:18px 20px calc(20px + env(safe-area-inset-bottom));
   /* 只保留一层顶部柔光阴影，去掉原来叠加的 inset 高光，
      避免在底部安全区附近看起来像多了一层阴影 */
   box-shadow:0 -10px 34px rgba(120, 90, 130, 0.18);
   transform:translateY(100%);
   transition:transform .28s cubic-bezier(0.16, 1, 0.3, 1);
-  max-height:85vh;
+  max-height:88vh;
   overflow-y:auto;
 }
 .modal-overlay.active .modal-panel{transform:translateY(0);}
 .modal-header{
   display:flex; justify-content:space-between; align-items:center;
-  margin-bottom:18px;
+  margin-bottom:12px;
 }
 .modal-header span{font-size:18px;font-weight:700;color:var(--text-main)}
 .modal-close{
@@ -559,6 +586,14 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .poop-val{font-size:19px;font-weight:700;color:var(--pop-orange);font-family:var(--font-num);font-variant-numeric: tabular-nums;}
 .poop-stat-num{color:var(--pop-orange) !important;}
 .poop-scrollbar-thumb{background:linear-gradient(90deg, var(--pop-orange), var(--pop-yellow)) !important;}
+
+/* 运动板块：复用排便的整体结构，仅替换主题色为橄榄黄绿→果绿渐变 */
+.exercise-val{font-size:19px;font-weight:700;color:var(--pop-exercise-2);font-family:var(--font-num);font-variant-numeric: tabular-nums;}
+.exercise-stat-num{color:var(--pop-exercise-2) !important;}
+.exercise-scrollbar-thumb{background:linear-gradient(90deg, #62C6A5, #9BD9A1) !important;}
+
+.inline-exercise-val{ font-size:13px !important; font-weight:600 !important; color:var(--text-main) !important; line-height:1.45;}
+.inline-exercise-types{ color:var(--pop-exercise-2); font-weight:700; }
 
 .tag-phase{
   display:inline-block;
@@ -682,16 +717,16 @@ canvas{width:100%;height:100%;display:block}
 }
 .backup button:hover{background:var(--glass-bg-strong); transform:scale(1.02);}
 
-.field-group{margin-bottom:14px}
-.field-group label{display:block;color:var(--text-muted);font-size:12px;font-weight:600;margin-bottom:6px}
+.field-group{margin-bottom:9px}
+.field-group label{display:block;color:var(--text-muted);font-size:12px;font-weight:600;margin-bottom:5px}
 .field-group input,.field-group select{
   width:100%;border:1px solid var(--glass-border);border-radius:12px;padding:10px 12px;
   background:rgba(255, 255, 255, 0.32);color:var(--text-main);font-size:14px;outline:none;
   font-family: inherit; font-weight:600;
 }
 .field-group input:focus,.field-group select:focus{border-color:var(--pop-pink);}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.actions{display:flex;gap:10px;margin-top:18px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.actions{display:flex;gap:10px;margin-top:14px}
 .btn-primary{
   background: linear-gradient(135deg, #FF6B9B, #FF8811);
   color:#FFFFFF;border:0;padding:12px;border-radius:14px;font-weight:700;flex:1;cursor:pointer;
@@ -704,12 +739,74 @@ canvas{width:100%;height:100%;display:block}
   background:rgba(255, 255, 255, 0.5);color:var(--pop-pink);border:1px solid var(--glass-border);padding:12px;border-radius:14px;cursor:pointer;font-weight:700
 }
 
-.poop-list{margin-top:18px;border-top:1px dashed rgba(255, 107, 155, 0.2);padding-top:16px}
-.poop-section-title{color:var(--text-muted);font-size:12px;font-weight:700;display:block;margin-bottom:10px;}
-.poop-add-divider{border-top:1px dashed rgba(255, 107, 155, 0.2);margin:16px 0;}
-.poop-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;border-bottom:1px solid rgba(255, 255, 255, 0.5)}
+.poop-list{margin-top:12px;border-top:1px dashed rgba(255, 107, 155, 0.2);padding-top:10px}
+.poop-section-title{color:var(--text-muted);font-size:12px;font-weight:700;display:block;margin-bottom:6px;}
+.poop-add-divider{border-top:1px dashed rgba(255, 107, 155, 0.2);margin:10px 0;}
+.poop-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;border-bottom:1px solid rgba(255, 255, 255, 0.5)}
 .poop-item .poop-record-text{color:var(--text-main);font-weight:600;}
 .del-btn{background:none;border:0;color:var(--pop-pink);font-size:12px;font-weight:700;cursor:pointer}
+
+/* 运动编辑区复选 pill 列表：紧凑横排，选中用运动主题色 */
+.exercise-form-row{
+  display:grid;
+  grid-template-columns: 130px 1fr;
+  gap:8px;
+  align-items:stretch;
+  margin-bottom:8px;
+}
+.exercise-form-row .field-group{ margin-bottom:0; }
+.exercise-types{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  align-content:flex-start;
+  padding:8px 10px;
+  background:rgba(255,255,255,0.42);
+  border:1px solid var(--glass-border);
+  border-radius:12px;
+  min-height:42px;
+}
+.exercise-type-chk{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:12.5px;
+  color:var(--text-main);
+  font-weight:600;
+  background:rgba(255,255,255,0.55);
+  padding:5px 10px;
+  border-radius:999px;
+  border:1px solid var(--glass-border);
+  cursor:pointer;
+  user-select:none;
+  transition:all .15s ease;
+  line-height:1.2;
+}
+.exercise-type-chk input{
+  margin:0;
+  accent-color:var(--text-main);
+  width:14px;
+  height:14px;
+  cursor:pointer;
+}
+.exercise-type-chk:has(input:checked){
+  background:rgba(255,255,255,0.85);
+  border-color:rgba(60,60,60,0.45);
+  color:var(--text-main);
+  box-shadow: inset 0 0 0 1px rgba(60,60,60,0.08);
+}
+.exercise-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:5px 0;
+  font-size:13px;
+  border-bottom:1px solid rgba(255, 255, 255, 0.5);
+  gap:10px;
+}
+.exercise-item .exercise-record-text{color:var(--text-main);font-weight:600;flex:1;min-width:0; line-height:1.4;}
+.exercise-item .exercise-record-types{color:var(--text-main);font-weight:700;}
+.exercise-item .del-btn{ flex-shrink:0; }
 
 .footer{color:var(--text-muted);font-size:12px;text-align:center;margin-top:32px;font-weight:600;}
 
@@ -758,6 +855,7 @@ canvas{width:100%;height:100%;display:block}
   <div class="nav-tabs">
     <button class="tab-btn active tab-record" onclick="switchTab('calTab')">记录</button>
     <button class="tab-btn tab-poop" onclick="switchTab('poopTab')">排便</button>
+    <button class="tab-btn tab-exercise" onclick="switchTab('exerciseTab')">运动</button>
     <button class="tab-btn tab-weight" onclick="switchTab('chartTab')">体重</button>
     <button class="tab-btn tab-cycle" onclick="switchTab('predTab')">周期</button>
   </div>
@@ -773,6 +871,7 @@ canvas{width:100%;height:100%;display:block}
         <label class="leg-period"><span class="chk"><input type="checkbox" checked onchange="toggleFilter('period', this.checked)"><span class="chk-box"></span></span>姨妈期</label>
         <label class="leg-ovulation"><span class="chk"><input type="checkbox" checked onchange="toggleFilter('ovulation', this.checked)"><span class="chk-box"></span></span>排卵期</label>
         <label class="leg-poop"><span class="chk"><input type="checkbox" checked onchange="toggleFilter('poop', this.checked)"><span class="chk-box"></span></span>排便</label>
+        <label class="leg-exercise"><span class="chk"><input type="checkbox" checked onchange="toggleFilter('exercise', this.checked)"><span class="chk-box"></span></span>运动</label>
         <label class="leg-weight"><span class="chk"><input type="checkbox" checked onchange="toggleFilter('weight', this.checked)"><span class="chk-box"></span></span>体重</label>
       </div>
       <div class="cal-grid" id="calendar"></div>
@@ -831,6 +930,30 @@ canvas{width:100%;height:100%;display:block}
             <input id="poopNote" placeholder="备注（如：硬、拉稀、开塞露）">
           </div>
           <button class="btn-secondary" style="width:100%;padding:10px;font-size:13px;" onclick="addPoop()">添加一次排便</button>
+
+          <div class="poop-add-divider"></div>
+          <label class="poop-section-title">已记录的运动</label>
+          <div id="exerciseContainer"></div>
+
+          <div class="poop-add-divider"></div>
+          <label class="poop-section-title">新增运动记录</label>
+          <div class="exercise-form-row">
+            <div class="field-group">
+              <select id="exerciseMin" aria-label="运动时间"></select>
+            </div>
+            <div class="exercise-types" id="exerciseTypes" role="group" aria-label="运动项目">
+              <label class="exercise-type-chk"><input type="checkbox" value="椭圆机">椭圆机</label>
+              <label class="exercise-type-chk"><input type="checkbox" value="户外徒步">户外徒步</label>
+              <label class="exercise-type-chk"><input type="checkbox" value="户外骑行">户外骑行</label>
+              <label class="exercise-type-chk"><input type="checkbox" value="力量训练">力量训练</label>
+              <label class="exercise-type-chk"><input type="checkbox" value="功能性训练">功能性训练</label>
+              <label class="exercise-type-chk"><input type="checkbox" value="其他">其他</label>
+            </div>
+          </div>
+          <div class="field-group">
+            <input id="exerciseNote" placeholder="备注（如：椭圆机 30 分钟、感觉很累）">
+          </div>
+          <button class="btn-secondary" style="width:100%;padding:10px;font-size:13px;" onclick="addExercise()">添加一次运动</button>
         </div>
       </div>
     </div>
@@ -863,6 +986,40 @@ canvas{width:100%;height:100%;display:block}
         <div class="stat"><b class="poop-stat-num" id="poopAvgDays">—</b><span>平均排便</span></div>
         <div class="stat"><b class="poop-stat-num" id="poopMaxStreak">—</b><span>最长连续排便</span></div>
         <div class="stat"><b class="poop-stat-num" id="poopMaxGap">—</b><span>最长连续便秘</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="exerciseTab" class="tab-content">
+    <div class="card">
+      <div class="chart-top-card exercise-top-card">
+        <div class="top-card-row1">
+          <div class="top-card-date-wrap">
+            <span class="date-val" id="exerciseTopCardDate">滑动或点击点位查看</span>
+          </div>
+          <div>
+            <span class="exercise-val" id="exerciseTopCardMin">—</span>
+          </div>
+        </div>
+        <div class="top-card-row2">
+          <span id="exerciseTopCardTypes">当日运动：—</span>
+        </div>
+        <div class="top-card-row2" style="margin-top:2px;">
+          <span id="exerciseTopCardWeight">当日体重：—</span>
+        </div>
+      </div>
+
+      <div class="chart-container" id="exerciseChartBox">
+        <canvas id="exerciseChart"></canvas>
+      </div>
+      <div class="chart-scrollbar-track" id="exerciseChartScrollTrack">
+        <div class="chart-scrollbar-thumb exercise-scrollbar-thumb" id="exerciseChartScrollThumb"></div>
+      </div>
+
+      <div class="statgrid">
+        <div class="stat"><b class="exercise-stat-num" id="exerciseAvgDays">—</b><span>周均运动</span></div>
+        <div class="stat"><b class="exercise-stat-num" id="exerciseAvgMin">—</b><span>日均运动</span></div>
+        <div class="stat"><b class="exercise-stat-num" id="exerciseMaxStreak">—</b><span>最长连续运动</span></div>
       </div>
     </div>
   </div>
@@ -952,7 +1109,7 @@ let selectedKey = null;
 let viewDate = new Date();
 /* 4 个日历筛选 checkbox 的状态从 localStorage 恢复，避免每次刷新都被重置为全选 */
 const FILTER_KEY = "bodyDiaryV3_filters";
-let calFilters = { period:true, ovulation:true, poop:true, weight:true };
+let calFilters = { period:true, ovulation:true, poop:true, weight:true, exercise:true };
 
 function toggleFilter(type, checked){
   calFilters[type] = checked;
@@ -965,7 +1122,7 @@ function loadFilters(){
   try {
     const saved = JSON.parse(localStorage.getItem(FILTER_KEY) || "null");
     if (saved && typeof saved === "object"){
-      for (const k of ["period","ovulation","poop","weight"]){
+      for (const k of ["period","ovulation","poop","weight","exercise"]){
         if (k in saved) calFilters[k] = !!saved[k];
       }
     }
@@ -974,7 +1131,8 @@ function loadFilters(){
     "leg-period":"period",
     "leg-ovulation":"ovulation",
     "leg-poop":"poop",
-    "leg-weight":"weight"
+    "leg-weight":"weight",
+    "leg-exercise":"exercise"
   };
   document.querySelectorAll(".legend input[type=\"checkbox\"]").forEach(cb=>{
     const label = cb.closest("label");
@@ -1014,7 +1172,8 @@ async function syncSnapshotToCloud(snapshot){
     record_date:date,
     weight:d?.weight==null?null:Number(d.weight),
     period:d?.period||null,
-    poops:Array.isArray(d?.poops)?d.poops:[]
+    poops:Array.isArray(d?.poops)?d.poops:[],
+    exercises:Array.isArray(d?.exercises)?d.exercises:[]
   }));
 
   if(rows.length){
@@ -1047,7 +1206,7 @@ async function loadCloudData(user){
   await ensureProfile(user);
 
   const {data:rows,error}=await supabaseClient.from("body_records")
-    .select("record_date,weight,period,poops")
+    .select("record_date,weight,period,poops,exercises")
     .eq("user_id",user.id)
     .order("record_date");
   if(error) throw error;
@@ -1068,9 +1227,11 @@ async function loadCloudData(user){
     const days={};
     for(const r of rows){
       const d={poops:Array.isArray(r.poops)?r.poops:[]};
+      if(Array.isArray(r.exercises) && r.exercises.length) d.exercises = r.exercises;
       if(r.weight!=null) d.weight=Number(r.weight);
       if(r.period) d.period=r.period;
       if(!d.poops.length) delete d.poops;
+      if(d.exercises && !d.exercises.length) delete d.exercises;
       days[r.record_date]=d;
     }
     data={
@@ -1086,6 +1247,8 @@ async function loadCloudData(user){
   cloudLoaded=true;
   renderCalendar();
   drawChart();
+  drawPoopChart();
+  drawExerciseChart();
   prediction();
 }
 
@@ -1234,13 +1397,14 @@ function setTargetWeight(){
 
 function switchTab(tabId){
   document.querySelectorAll('.tab-btn').forEach((btn, idx)=>{
-    btn.classList.toggle('active', ['calTab','poopTab','chartTab','predTab'][idx] === tabId);
+    btn.classList.toggle('active', ['calTab','poopTab','exerciseTab','chartTab','predTab'][idx] === tabId);
   });
   document.querySelectorAll('.tab-content').forEach(el=>{
     el.classList.toggle('active', el.id === tabId);
   });
   if(tabId === 'chartTab') drawChart();
   if(tabId === 'poopTab') drawPoopChart();
+  if(tabId === 'exerciseTab') drawExerciseChart();
 }
 
 function getAvgCycleLength(){
@@ -1335,6 +1499,15 @@ function init(){
   /* 打开模态框时（openEditModal 内）会再把这个值同步为"当前系统小时"，这里给个兜底默认 */
   hSel.value = new Date().getHours();
 
+  /* 运动时间选择器：5 分钟一个档位，从 0 跳到 90 分钟 */
+  const eSel = document.getElementById("exerciseMin");
+  if(eSel && !eSel.options.length){
+    for(let m=0; m<=90; m+=5){
+      const label = m === 0 ? "0 分钟" : (m + " 分钟");
+      eSel.innerHTML += `<option value="${m}">${label}</option>`;
+    }
+  }
+
   const wSel = document.getElementById("weightSelect");
   /* 顶部加一个 placeholder option，让"无当天体重记录"的状态真正显示为空，
      而不是默认指向 52.0 看起来像"上次记录的值" */
@@ -1352,6 +1525,7 @@ function init(){
   renderCalendar();
   drawChart();
   drawPoopChart();
+  drawExerciseChart();
   prediction();
   renderTodayTip();
 }
@@ -1431,6 +1605,12 @@ function renderCalendar(){
       poopHtml = `<div class="poop-tag"></div>`;
     }
 
+    /* 运动打卡标签：放在排便小圆点正下方，紧凑 8px，受筛选开关控制 */
+    let exerciseTagHtml = "";
+    if(calFilters.exercise && dayData.exercises && dayData.exercises.length){
+      exerciseTagHtml = `<div class="exercise-tag"></div>`;
+    }
+
     const isToday = k === todayStr;
     const isFuture = dt > todayObj;
     const isSelected = k === selectedKey;
@@ -1441,6 +1621,7 @@ function renderCalendar(){
         ${phaseType ? `<div class="day-bg-band ${bandClasses}"></div>` : ''}
         <div class="num-wrap">${dateDisplay}</div>
         ${poopHtml}
+        ${exerciseTagHtml}
         <div class="weight-slot">${weightHtml}</div>
       </div>
     `;
@@ -1492,6 +1673,14 @@ function buildDetailRowHtml(k, phases, weightDiffs){
     poopVal = poops.map(p => `${p.size} (${p.hour}:00)${p.note?` [${p.note}]`:''}`).join("，");
   }
 
+  const exercises = dayData.exercises || [];
+  let exerciseVal = "无";
+  if(exercises.length){
+    const totalMin = exercises.reduce((s,x)=> s + (x.minutes||0), 0);
+    const allTypes = [...new Set(exercises.flatMap(x => x.types || []))].join(" · ");
+    exerciseVal = `${totalMin} 分钟${allTypes ? ` · ${allTypes}` : ""}`;
+  }
+
   return `
     <div class="week-detail-row">
       <div class="inline-detail-card">
@@ -1515,6 +1704,10 @@ function buildDetailRowHtml(k, phases, weightDiffs){
           <div class="inline-item" style="grid-column: span 2;">
             <label>排便记录</label>
             <val class="inline-poop-val">${poopVal}</val>
+          </div>
+          <div class="inline-item" style="grid-column: span 2;">
+            <label>运动记录</label>
+            <val class="inline-exercise-val">${exerciseVal}</val>
           </div>
         </div>
       </div>
@@ -1562,12 +1755,19 @@ function setupInlineEditData(){
   ws.value = fmt1(currentPickerWeight);
   document.getElementById("period").value = dayData.period || "";
 
-  /* “新增排便记录”区块每次打开都应该是全新的一次录入，
+  /* "新增排便记录"区块每次打开都应该是全新的一次录入，
      不应该残留上一次编辑（哪怕是别的日期）时选过的大小/备注 */
   document.getElementById("poopSize").selectedIndex = 0;
   document.getElementById("poopNote").value = "";
 
+  /* 新增运动记录同样的逻辑：默认 30 分钟（中间值更常用），清空勾选项和备注 */
+  const eMinSel = document.getElementById("exerciseMin");
+  if (eMinSel) eMinSel.value = "30";
+  document.getElementById("exerciseNote").value = "";
+  document.querySelectorAll('#exerciseTypes input[type="checkbox"]').forEach(cb => cb.checked = false);
+
   renderPoops();
+  renderExercises();
 }
 
 function saveDaily(){
@@ -1587,6 +1787,7 @@ function saveDaily(){
   renderCalendar();
   drawChart();
   drawPoopChart();
+  drawExerciseChart();
   prediction();
   renderTodayTip();
   closeEditModal();
@@ -1599,6 +1800,7 @@ function clearDaily(){
     renderCalendar();
     drawChart();
     drawPoopChart();
+    drawExerciseChart();
     prediction();
     renderTodayTip();
     closeEditModal();
@@ -1623,7 +1825,10 @@ function addPoop(){
 }
 
 function removePoop(i){
-  data.days[selectedKey].poops.splice(i,1);
+  const d = data.days[selectedKey] || {};
+  if(!d.poops) return;
+  d.poops.splice(i,1);
+  if(!d.poops.length) delete d.poops;
   save();
   renderCalendar();
   renderPoops();
@@ -1644,6 +1849,59 @@ function renderPoops(){
       <button class="del-btn" onclick="removePoop(${i})">删除</button>
     </div>
   `).join("");
+}
+
+/* ===================== 运动记录：增删查 ===================== */
+
+function addExercise(){
+  const x = dayObj(selectedKey);
+  x.exercises ||= [];
+  const minutes = Number(document.getElementById("exerciseMin").value) || 0;
+  const types = Array.from(document.querySelectorAll('#exerciseTypes input[type="checkbox"]:checked'))
+    .map(cb => cb.value);
+  const note = document.getElementById("exerciseNote").value.trim();
+  x.exercises.push({ minutes, types, note });
+  /* 在编辑框里保持按时间/分钟数排序，便于展示 */
+  x.exercises.sort((a,b)=>(a.minutes||0)-(b.minutes||0));
+  document.getElementById("exerciseNote").value = "";
+  /* 提交后清空已勾选项，给下一次新增腾出干净状态 */
+  document.querySelectorAll('#exerciseTypes input[type="checkbox"]').forEach(cb => cb.checked = false);
+  save();
+  renderCalendar();
+  renderExercises();
+  drawExerciseChart();
+  renderTodayTip();
+}
+
+function removeExercise(i){
+  const dayData = data.days[selectedKey] || {};
+  if(!dayData.exercises){ return; }
+  dayData.exercises.splice(i,1);
+  if(!dayData.exercises.length) delete dayData.exercises;
+  save();
+  renderCalendar();
+  renderExercises();
+  drawExerciseChart();
+  renderTodayTip();
+}
+
+function renderExercises(){
+  const arr = (data.days[selectedKey]||{}).exercises || [];
+  const container = document.getElementById("exerciseContainer");
+  if(!container) return;
+  if(!arr.length){
+    container.innerHTML = `<div style="color:var(--text-muted);font-size:12px;padding:8px 0;font-weight:600">暂无运动记录</div>`;
+    return;
+  }
+  container.innerHTML = arr.map((x,i)=>{
+    const typesStr = (x.types && x.types.length) ? x.types.join(" · ") : "未选择项目";
+    return `
+      <div class="exercise-item">
+        <span class="exercise-record-text">${x.minutes||0} 分钟 · <span class="exercise-record-types">${typesStr}</span>${x.note?` (${x.note})`:''}</span>
+        <button class="del-btn" onclick="removeExercise(${i})">删除</button>
+      </div>
+    `;
+  }).join("");
 }
 
 function buildChartSeries(){
@@ -1841,7 +2099,15 @@ function drawChart(){
   const maxOffset = Math.max(0, totalW - plotW);
   let offset = maxOffset;
 
+  /* 三个图表（体重 / 排便 / 运动）共用 selectedKey 作为跨 Tab 的选中日期；
+     进入任何一个 Tab 时都尝试在当前 series 里查找 selectedKey 对应的索引；
+     找不到再退回最后一天。这样在任意图表上点一下，再切到其它图表，
+     仍然停在同一天，不会"被拉回到今天"。 */
   let selectedIdx = series.length - 1;
+  if (selectedKey) {
+    const foundIdx = series.findIndex(s => s.date === selectedKey);
+    if (foundIdx >= 0) selectedIdx = foundIdx;
+  }
 
   function updateTopCard(p){
     const dParts = p.date.split("-");
@@ -2014,7 +2280,16 @@ function drawChart(){
         const rect = canvas.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
         const clickedIdx = Math.round((clickX - padL + offset) / userStep);
-        if(clickedIdx >= 0 && clickedIdx < series.length) selectedIdx = clickedIdx;
+        if(clickedIdx >= 0 && clickedIdx < series.length){
+          selectedIdx = clickedIdx;
+          /* 把图表上的"选中点位"写回到全局 selectedKey，
+             这样切到日历 / 排便 / 运动 Tab 时能停在同一天 */
+          const newKey = series[clickedIdx].date;
+          if (newKey !== selectedKey) {
+            selectedKey = newKey;
+            renderCalendar();
+          }
+        }
         render();
       }
     }
@@ -2190,6 +2465,11 @@ function drawPoopChart(){
 
   let offset = Math.max(0, (series.length - 1) * poopUserStep - plotW);
   let selectedIdx = series.length - 1;
+  /* 进入排便 Tab 时尝试把 selectedKey 同步到当前 series 对应的那一天 */
+  if (selectedKey) {
+    const foundIdx = series.findIndex(s => s.date === selectedKey);
+    if (foundIdx >= 0) selectedIdx = foundIdx;
+  }
 
   function render(){
     ctx.clearRect(0,0,W,H);
@@ -2208,11 +2488,12 @@ function drawPoopChart(){
       ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W-padR, y); ctx.stroke();
     }
 
-    /* 折线与圆点绘制裁剪：左侧严格贴住 padL，避免拖动时遮挡纵坐标文字；
-       右侧/上下多留一点余量，避免最新一天的圆点紧贴边界被切掉半个圆 */
+    /* 折线与圆点绘制裁剪：左右两侧各留 10px 余量，
+       避免最新一天 / 最早一天的圆点贴边被切掉一半。
+       左侧严格贴住 padL - 10，往右延伸到 W - padR + 10，让头尾圆点都能完整显示 */
     ctx.save();
     ctx.beginPath();
-    ctx.rect(padL, padT - 10, (W - padR + 10) - padL, plotH + 20);
+    ctx.rect(padL - 10, padT - 10, (W - padR + 10) - (padL - 10), plotH + 20);
     ctx.clip();
 
     let lastValidLevel = 0;
@@ -2353,7 +2634,15 @@ function drawPoopChart(){
           const rect = canvas.getBoundingClientRect();
           const clickX = e.clientX - rect.left;
           const clickedIdx = Math.round((clickX - padL + offset) / poopUserStep);
-          if(clickedIdx >= 0 && clickedIdx < series.length) selectedIdx = clickedIdx;
+          if(clickedIdx >= 0 && clickedIdx < series.length){
+            selectedIdx = clickedIdx;
+            /* 同步选中日期到全局，供日历/其它图表跟进 */
+            const newKey = series[clickedIdx].date;
+            if (newKey !== selectedKey) {
+              selectedKey = newKey;
+              renderCalendar();
+            }
+          }
         }
         render();
       }
@@ -2365,6 +2654,353 @@ function drawPoopChart(){
     if(e.deltaY < 0) poopUserStep = Math.min(150, poopUserStep * 1.1);
     else poopUserStep = Math.max(15, poopUserStep * 0.9);
     poopUserZoomed = true;
+    pokeScrollbar();
+    render();
+  };
+
+  render();
+}
+
+/* ===================== 运动板块（橄榄黄绿→果绿渐变） ===================== */
+
+/* 运动数据 & 图表参数：
+   - 数据上限与选择器一致：最多 90 分钟
+   - 视觉上限留出顶部空白，让 cap 天的数据点完整显示
+   - 不显示左侧纵坐标文字，因此 padL 可以很小 */
+const EXERCISE_DATA_CAP = 90;     /* 数据上限 */
+const EXERCISE_AXIS_MAX = 95;     /* 视觉上限 */
+const EXERCISE_AXIS_MIN = 0;      /* 视觉下限 */
+
+function buildExerciseChartSeries(){
+  const allKeys = Object.keys(data.days).sort();
+  if(!allKeys.length) return [];
+
+  const startD = new Date(allKeys[0]+"T00:00:00");
+  const todayD = new Date(key(new Date())+"T00:00:00");
+  const endD = todayD;
+
+  let rawList = [];
+  let curr = new Date(startD);
+  while(curr <= endD){
+    const k = key(curr);
+    const dayData = data.days[k] || {};
+    rawList.push({
+      date: k,
+      weight: dayData.weight ?? null,
+      exercises: Array.isArray(dayData.exercises) ? dayData.exercises : []
+    });
+    curr.setDate(curr.getDate() + 1);
+  }
+
+  /* 去掉最前面还没有运动记录的日子，避免缩放时把空白也算进去（与体重/排便一致） */
+  const firstExIdx = rawList.findIndex(d => d.exercises && d.exercises.length > 0);
+  if(firstExIdx === -1) return [];
+  rawList = rawList.slice(firstExIdx);
+
+  return rawList;
+}
+
+function computeExerciseStats(series){
+  if(!series.length) return {avgDaysPerWeek:null, avgMinPerDay:null, maxStreak:0};
+
+  const totalDays = series.length;
+  const exerciseDays = series.filter(d => d.exercises && d.exercises.length > 0).length;
+  let totalMin = 0;
+  series.forEach(d => {
+    if (d.exercises && d.exercises.length){
+      d.exercises.forEach(e => { totalMin += (e.minutes || 0); });
+    }
+  });
+
+  const avgDaysPerWeek = totalDays ? Number((exerciseDays / totalDays * 7).toFixed(1)) : null;
+  const avgMinPerDay = exerciseDays ? Math.round(totalMin / exerciseDays) : null;
+
+  let maxStreak = 0, curStreak = 0;
+  series.forEach(d => {
+    if(d.exercises && d.exercises.length > 0){
+      curStreak++;
+      if(curStreak > maxStreak) maxStreak = curStreak;
+    } else {
+      curStreak = 0;
+    }
+  });
+
+  return {avgDaysPerWeek, avgMinPerDay, maxStreak};
+}
+
+function updateExerciseTopCard(p){
+  const dParts = p.date.split("-");
+  const dateFormatted = dParts.length === 3 ? `${parseInt(dParts[1],10)}月${parseInt(dParts[2],10)}日` : p.date;
+  document.getElementById("exerciseTopCardDate").textContent = dateFormatted;
+
+  const minEl = document.getElementById("exerciseTopCardMin");
+  if(p.exercises && p.exercises.length){
+    const total = p.exercises.reduce((s, e) => s + (e.minutes || 0), 0);
+    minEl.textContent = total + " 分钟";
+  } else {
+    minEl.textContent = "未运动";
+  }
+
+  const typesEl = document.getElementById("exerciseTopCardTypes");
+  if (p.exercises && p.exercises.length) {
+    const allTypes = [...new Set(p.exercises.flatMap(e => (Array.isArray(e.types) ? e.types : [])))];
+    typesEl.textContent = allTypes.length ? `当日运动：${allTypes.join(" · ")}` : "当日运动：未选择项目";
+  } else {
+    typesEl.textContent = "当日运动：无";
+  }
+
+  const weightEl = document.getElementById("exerciseTopCardWeight");
+  weightEl.textContent = p.weight != null ? `当日体重：${fmt1(p.weight)}kg` : "当日体重：—";
+}
+
+function dayExerciseMin(d){
+  if(!d.exercises || !d.exercises.length) return null;
+  const total = d.exercises.reduce((s,x)=> s + (x.minutes||0), 0);
+  return total > 0 ? total : null;
+}
+
+let exerciseUserStep = 40;
+let exerciseUserZoomed = false;
+
+function drawExerciseChart(){
+  const box = document.getElementById("exerciseChartBox");
+  const canvas = document.getElementById("exerciseChart");
+  const ctx = canvas.getContext("2d");
+  if(!box || !canvas){ return; }
+
+  const dpr = window.devicePixelRatio || 1;
+  const W = box.clientWidth;
+  const H = box.clientHeight;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  ctx.scale(dpr, dpr);
+
+  const series = buildExerciseChartSeries();
+  const scrollTrackEl = document.getElementById("exerciseChartScrollTrack");
+
+  const stats = computeExerciseStats(series);
+  document.getElementById("exerciseAvgDays").textContent = stats.avgDaysPerWeek != null ? stats.avgDaysPerWeek + " 天/周" : "—";
+  document.getElementById("exerciseAvgMin").textContent = stats.avgMinPerDay != null ? stats.avgMinPerDay + " 分钟/天" : "—";
+  document.getElementById("exerciseMaxStreak").textContent = stats.maxStreak ? stats.maxStreak + " 天" : "—";
+
+  if(!series.length){
+    if(scrollTrackEl) scrollTrackEl.style.visibility = "hidden";
+    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
+    ctx.fillText("暂无数据", W/2, H/2);
+    updateExerciseTopCard({date:key(new Date()), weight:null, exercises:[]});
+    return;
+  }
+
+  /* 左边的纵坐标文字不显示，给的 padL 足够小即可 */
+  const padL = 20, padR = 20, padT = 20, padB = 30;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  const max = EXERCISE_AXIS_MAX, min = EXERCISE_AXIS_MIN, range = EXERCISE_AXIS_MAX - EXERCISE_AXIS_MIN;
+  const unitScale = plotH / (EXERCISE_AXIS_MAX - EXERCISE_AXIS_MIN);
+
+  const exerciseColor = (getComputedStyle(document.documentElement).getPropertyValue('--pop-exercise-2') || '#9BD9A1').trim();
+  const exerciseColorLight = (getComputedStyle(document.documentElement).getPropertyValue('--pop-exercise-1') || '#62C6A5').trim();
+
+  const scrollTrack = document.getElementById("exerciseChartScrollTrack");
+  const scrollThumb = document.getElementById("exerciseChartScrollThumb");
+  let scrollbarFadeTimer = null;
+  function pokeScrollbar(){
+    if(!scrollTrack) return;
+    scrollTrack.classList.add("active");
+    clearTimeout(scrollbarFadeTimer);
+    scrollbarFadeTimer = setTimeout(()=> scrollTrack.classList.remove("active"), 700);
+  }
+  function updateScrollbar(totalW, offset, maxOffset){
+    if(!scrollTrack || !scrollThumb) return;
+    if(totalW <= plotW){
+      scrollTrack.style.visibility = "hidden";
+      return;
+    }
+    scrollTrack.style.visibility = "visible";
+    const thumbPct = Math.max(8, Math.min(100, (plotW / totalW) * 100));
+    const scrollRatio = maxOffset > 0 ? offset / maxOffset : 0;
+    scrollThumb.style.width = thumbPct + "%";
+    scrollThumb.style.left = (scrollRatio * (100 - thumbPct)) + "%";
+  }
+
+  const EXERCISE_DEFAULT_VISIBLE_DAYS = 20;
+  if(!exerciseUserZoomed){
+    exerciseUserStep = Math.max(15, Math.min(150, plotW / (Math.min(EXERCISE_DEFAULT_VISIBLE_DAYS, series.length) - 1 || 1)));
+  }
+
+  let offset = Math.max(0, (series.length - 1) * exerciseUserStep - plotW);
+  let selectedIdx = series.length - 1;
+  /* 进入运动 Tab 时尝试把 selectedKey 同步到当前 series 对应的那一天 */
+  if (selectedKey) {
+    const foundIdx = series.findIndex(s => s.date === selectedKey);
+    if (foundIdx >= 0) selectedIdx = foundIdx;
+  }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    const totalW = (series.length - 1) * exerciseUserStep;
+    const maxOffset = Math.max(0, totalW - plotW);
+    offset = Math.max(0, Math.min(offset, maxOffset));
+    updateScrollbar(totalW, offset, maxOffset);
+
+    /* 横向网格线：每 10 分钟一道，给"0、10、20、...、90"参考线；
+       左侧的文字标签刻意不画，让整个图表更干净 */
+    ctx.strokeStyle = "rgba(140, 120, 150, 0.16)";
+    ctx.lineWidth = 1;
+    for(let lvl=0; lvl<=9; lvl++){
+      const y = padT + (max - lvl*10)/range * plotH;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(padL - 10, padT - 10, (W - padR + 10) - (padL - 10), plotH + 20);
+    ctx.clip();
+
+    let lastValidMin = 0;
+    const pts = series.map((e,i) => {
+      const min = dayExerciseMin(e);
+      /* 未运动的日子值=0，让折线视觉上落在最底部；但 min 仍为 null，绘制时按空心圆显示 */
+      const v = min != null ? min : 0;
+      return {
+        x: padL + i*exerciseUserStep - offset,
+        y: padT + (max - v)/range * plotH,
+        raw: e,
+        minutes: min
+      };
+    });
+
+    /* 折线穿过所有点（包括未运动的日子），形成下拉到 0 的视觉效果 */
+    if(pts.length > 1){
+      drawMonotoneSpline(ctx, pts, exerciseColor);
+    }
+
+    pts.forEach((p) => {
+      if(p.x >= padL - 10 && p.x <= W - padR + 10){
+        ctx.beginPath();
+        if(p.minutes != null){
+          ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
+          ctx.fillStyle = exerciseColor;
+          ctx.fill();
+        } else {
+          ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+          ctx.strokeStyle="#BCA3C3";
+          ctx.lineWidth=2;
+          ctx.fillStyle="#FFFFFF";
+          ctx.fill();
+          ctx.stroke();
+        }
+      }
+    });
+
+    if(selectedIdx >= 0 && pts[selectedIdx]){
+      const p = pts[selectedIdx];
+      if(p.x >= padL && p.x <= W - padR){
+        ctx.strokeStyle="rgba(98, 198, 165, 0.4)";
+        ctx.lineWidth=2;
+        ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(p.x, padT); ctx.lineTo(p.x, padT+plotH); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 7, 0, Math.PI*2);
+        ctx.fillStyle=exerciseColorLight;
+        ctx.fill();
+        ctx.lineWidth=3;
+        ctx.strokeStyle=exerciseColor;
+        ctx.stroke();
+      }
+      updateExerciseTopCard(pts[selectedIdx].raw);
+    }
+
+    ctx.restore();
+
+    /* 日期标签画在图表下方，不受裁剪影响 */
+    const labelInterval = Math.max(1, Math.round(60 / exerciseUserStep));
+    pts.forEach((p, idx) => {
+      if(p.x >= padL - 10 && p.x <= W - padR + 10 && idx % labelInterval === 0){
+        ctx.fillStyle="#8E7A93";
+        ctx.font="bold 11px 'DM Sans','Noto Sans SC',sans-serif";
+        ctx.textAlign="center";
+        ctx.fillText(p.raw.date.slice(5), p.x, padT + plotH + 18);
+      }
+    });
+  }
+
+  /* 单指拖动平移 + 双指捏合缩放 + 滚轮缩放（与排便/体重图一致） */
+  let activePointers = [];
+  let prevPinchDist = null;
+  let dragging = false, startX = 0, dragMoved = false;
+
+  function getDistance(p1, p2) {
+    return Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+  }
+
+  canvas.onpointerdown = e => {
+    canvas.setPointerCapture(e.pointerId);
+    activePointers.push(e);
+    pokeScrollbar();
+    if(activePointers.length === 1){
+      dragging = true; startX = e.clientX; dragMoved = false;
+    }
+  };
+
+  canvas.onpointermove = e => {
+    const idx = activePointers.findIndex(p => p.pointerId === e.pointerId);
+    if(idx >= 0) activePointers[idx] = e;
+
+    if(activePointers.length === 2){
+      dragging = false; dragMoved = true;
+      const dist = getDistance(activePointers[0], activePointers[1]);
+      if(prevPinchDist){
+        const factor = dist / prevPinchDist;
+        exerciseUserStep = Math.max(15, Math.min(150, exerciseUserStep * factor));
+        exerciseUserZoomed = true;
+        pokeScrollbar();
+        render();
+      }
+      prevPinchDist = dist;
+    } else if(activePointers.length === 1 && dragging){
+      const dx = e.clientX - startX;
+      if(Math.abs(dx) > 3) dragMoved = true;
+      offset -= dx;
+      startX = e.clientX;
+      pokeScrollbar();
+      render();
+    }
+  };
+
+  canvas.onpointerup = canvas.onpointercancel = e => {
+    activePointers = activePointers.filter(p => p.pointerId !== e.pointerId);
+    if(activePointers.length < 2) prevPinchDist = null;
+    if(activePointers.length === 0){
+      if(dragging){
+        dragging = false;
+        if(!dragMoved){
+          const rect = canvas.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const clickedIdx = Math.round((clickX - padL + offset) / exerciseUserStep);
+          if(clickedIdx >= 0 && clickedIdx < series.length){
+            selectedIdx = clickedIdx;
+            /* 同步选中日期到全局，供日历/其它图表跟进 */
+            const newKey = series[clickedIdx].date;
+            if (newKey !== selectedKey) {
+              selectedKey = newKey;
+              renderCalendar();
+            }
+          }
+        }
+        render();
+      }
+    }
+  };
+
+  canvas.onwheel = e => {
+    e.preventDefault();
+    if(e.deltaY < 0) exerciseUserStep = Math.min(150, exerciseUserStep * 1.1);
+    else exerciseUserStep = Math.max(15, exerciseUserStep * 0.9);
+    exerciseUserZoomed = true;
     pokeScrollbar();
     render();
   };
@@ -2508,7 +3144,7 @@ function importData(e){
 // 正式版不再向新用户注入测试/演示数据。用户首次打开时从空白本地数据开始。
 
 window.onload = init;
-window.onresize = function(){ drawChart(); drawPoopChart(); };
+window.onresize = function(){ drawChart(); drawPoopChart(); drawExerciseChart(); };
 </script>
 </body>
 </html>
