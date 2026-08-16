@@ -1097,7 +1097,7 @@ canvas{width:100%;height:100%;display:block}
   box-shadow:0 4px 12px rgba(110,72,130,.12);
 }
 
-/* 体重 / 姨妈期：变成两个更清爽的亮色小卡片 */
+/* 体重 / 姨妈期：去掉粉/紫渐变，纯色和下面折叠区保持一致 */
 #editModalOverlay .inline-edit-panel > .grid-2{
   gap:10px;
 }
@@ -1105,15 +1105,9 @@ canvas{width:100%;height:100%;display:block}
   position:relative;
   padding:13px 12px 12px;
   border-radius:15px;
-  background:rgba(255,255,255,.68);
+  background:rgba(255,255,255,.64);
   border:1px solid rgba(255,255,255,.92);
   box-shadow:0 5px 16px rgba(105,72,125,.07);
-}
-#editModalOverlay .inline-edit-panel > .grid-2 .field-group:first-child{
-  background:linear-gradient(145deg,rgba(255,255,255,.82),rgba(255,235,243,.72));
-}
-#editModalOverlay .inline-edit-panel > .grid-2 .field-group:nth-child(2){
-  background:linear-gradient(145deg,rgba(255,255,255,.82),rgba(244,235,255,.76));
 }
 #editModalOverlay .inline-edit-panel > .grid-2 .field-group > label{
   color:#806487;
@@ -1184,23 +1178,42 @@ canvas{width:100%;height:100%;display:block}
   border-top-color:rgba(194,166,205,.16);
 }
 
-/* 排便新增区：用柔和杏金，不再是高饱和橙 */
-#editModalOverlay .poop-add-divider{
-  border-top-color:rgba(217,154,91,.22);
+/* 排便新增区：用柔和橙色，匹配折叠区左侧渐变条 */
+#editModalOverlay #poopAccordion .poop-add-divider{
+  border-top-color:rgba(255,136,17,.32);
 }
-#editModalOverlay .poop-section-title{
-  color:#C97828;
+#editModalOverlay #poopAccordion .poop-section-title{
+  color:#E07520;
 }
-#editModalOverlay .poop-list .btn-secondary,
-#editModalOverlay .btn-secondary{
+#editModalOverlay #poopAccordion .poop-list .btn-secondary,
+#editModalOverlay #poopAccordion .btn-secondary{
   background:linear-gradient(135deg,#fff8ef,#fff0dc);
-  border-color:rgba(255,136,17,.24);
-  color:#C97828;
+  border-color:rgba(255,136,17,.40);
+  color:#E07520;
 }
-#editModalOverlay .poop-list .btn-secondary:hover,
-#editModalOverlay .btn-secondary:hover{
+#editModalOverlay #poopAccordion .poop-list .btn-secondary:hover,
+#editModalOverlay #poopAccordion .btn-secondary:hover{
   background:#fff;
-  box-shadow:0 4px 12px rgba(217,154,91,.12);
+  box-shadow:0 4px 12px rgba(255,136,17,.18);
+}
+
+/* 运动新增区：用柔和果绿色，匹配折叠区左侧渐变条 */
+#editModalOverlay #exerciseAccordion .poop-add-divider{
+  border-top-color:rgba(98,198,165,.32);
+}
+#editModalOverlay #exerciseAccordion .poop-section-title{
+  color:#3F8668;
+}
+#editModalOverlay #exerciseAccordion .poop-list .btn-secondary,
+#editModalOverlay #exerciseAccordion .btn-secondary{
+  background:linear-gradient(135deg,#f5fbf7,#e7f7eb);
+  border-color:rgba(98,198,165,.40);
+  color:#3F8668;
+}
+#editModalOverlay #exerciseAccordion .poop-list .btn-secondary:hover,
+#editModalOverlay #exerciseAccordion .btn-secondary:hover{
+  background:#fff;
+  box-shadow:0 4px 12px rgba(98,198,165,.20);
 }
 
 /* 运动类型 pill：亮一点，选中状态更有“果绿色”存在感 */
@@ -3214,9 +3227,25 @@ function buildExerciseChartSeries(){
   /* 去掉最前面还没有运动记录的日子，避免缩放时把空白也算进去（与体重/排便一致） */
   const firstExIdx = rawList.findIndex(d => d.exercises && d.exercises.length > 0);
   if(firstExIdx === -1) return [];
-  rawList = rawList.slice(firstExIdx);
+  let series = rawList.slice(firstExIdx);
 
-  return rawList;
+  /* 跨 Tab 联动：用户在体重/排便/日历里选中的那一天如果落在 series 外面
+     （最常见：那天还没有运动记录，被上面的 slice 砍掉了），
+     把那天作为合成记录补到 series 开头，让运动 Tab 的"选中锚点"落在用户实际选中的那天，
+     而不是被甩回 series 的最后一天。*/
+  if (selectedKey &&
+      !series.find(s => s.date === selectedKey) &&
+      selectedKey < series[0].date) {
+    const k = selectedKey;
+    const dayData = data.days[k] || {};
+    series = [{
+      date: k,
+      weight: dayData.weight ?? null,
+      exercises: Array.isArray(dayData.exercises) ? dayData.exercises : []
+    }, ...series];
+  }
+
+  return series;
 }
 
 function computeExerciseStats(series){
