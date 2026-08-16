@@ -41,7 +41,7 @@
   --pop-yellow: #FFD166;    /* 明黄/卡片强调/今日 */
   --pop-green: #06D6A0;     /* 罗勒绿/体重下降 */
   --pop-orange: #FF8811;    /* 落日橙/体重上升 */
-  --pop-poop: #FFB250;      /* 排便主题：介于杏黄与落日橙之间，偏黄一点 */
+  --pop-poop: #FF9E7D;      /* 排便主题：蜜桃色 */
   --pop-blue: #118AB2;      /* 薄荷蓝/按钮 hover */
 
   /* 文字颜色：高对比度、不闷沉的浓郁墨紫与明亮字调 */
@@ -215,8 +215,8 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   box-shadow: 0 6px 18px rgba(157, 78, 221, 0.28);
 }
 .tab-btn.active.tab-poop{
-  background: linear-gradient(135deg, #FFD166, #FF8811);
-  box-shadow: 0 6px 18px rgba(255, 136, 17, 0.28);
+  background: linear-gradient(135deg, #FFB89C, #FF7A54);
+  box-shadow: 0 6px 18px rgba(255, 122, 84, 0.32);
 }
 .tab-btn.active.tab-weight{
   background: linear-gradient(135deg, #FFB3C6, #FF6B9B);
@@ -2914,7 +2914,7 @@ function updatePoopTopCard(p){
 
   const sizeEl = document.getElementById("poopTopCardSize");
   if(p.poops && p.poops.length){
-    sizeEl.textContent = p.poops.map(x => `${x.size}(${x.hour}:00)`).join("、");
+    sizeEl.innerHTML = p.poops.map(x => `${x.size}<span class="diff-val" style="color:var(--diff-zero);">(${x.hour}:00)</span>`).join("、");
   } else {
     sizeEl.textContent = "未排便";
   }
@@ -2967,7 +2967,7 @@ function drawPoopChart(){
   const max = POOP_AXIS_MAX, min = POOP_AXIS_MIN, range = POOP_AXIS_MAX - POOP_AXIS_MIN;
   const unitScale = plotH / (POOP_AXIS_MAX - POOP_AXIS_MIN);
 
-  const poopColor = (getComputedStyle(document.documentElement).getPropertyValue('--pop-poop') || '#FFB250').trim();
+  const poopColor = (getComputedStyle(document.documentElement).getPropertyValue('--pop-poop') || '#FF9E7D').trim();
 
   const scrollTrack = document.getElementById("poopChartScrollTrack");
   const scrollThumb = document.getElementById("poopChartScrollThumb");
