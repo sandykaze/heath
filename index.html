@@ -266,8 +266,11 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .legend input[type="checkbox"]:checked:after{
   content:"✓";
   position:absolute;inset:0;
-  display:grid;place-items:center;
-  color:#FFFFFF;font-size:10px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  color:#FFFFFF;font-size:11px;font-weight:800;
+  line-height:1;
+  /* glyph baseline 微微上移，避免视觉偏下；用 transform 比 line-height 更稳 */
+  transform: translateY(-0.5px);
 }
 
 /* Calendar Grid 日历独立卡片小格子网格 */
@@ -480,15 +483,17 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 }
 .modal-overlay.active{opacity:1; pointer-events:auto;}
 .modal-panel{
-  background:rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(28px) saturate(140%);
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
-  border: 1px solid var(--glass-border);
+  /* 降低背景不透明度，让背后的日历卡片真实透过来；再加强 blur/saturate */
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.55);
   border-bottom: none;
   width:100%; max-width:580px;
   border-radius:28px 28px 0 0;
   padding:26px 22px calc(24px + env(safe-area-inset-bottom));
-  box-shadow:0 -12px 40px rgba(120, 90, 130, 0.18);
+  /* 双重阴影：顶部悬浮感 + 底部柔光，让 panel 看起来真的"浮在内容之上" */
+  box-shadow:0 -16px 50px rgba(120, 90, 130, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   transform:translateY(100%);
   transition:transform .28s cubic-bezier(0.16, 1, 0.3, 1);
   max-height:85vh;
@@ -921,11 +926,39 @@ if(!data.targetWeight) data.targetWeight = 50.0;
 
 let selectedKey = null;
 let viewDate = new Date();
+/* 4 个日历筛选 checkbox 的状态从 localStorage 恢复，避免每次刷新都被重置为全选 */
+const FILTER_KEY = "bodyDiaryV3_filters";
 let calFilters = { period:true, ovulation:true, poop:true, weight:true };
 
 function toggleFilter(type, checked){
   calFilters[type] = checked;
+  try { localStorage.setItem(FILTER_KEY, JSON.stringify(calFilters)); } catch(e){}
   renderCalendar();
+}
+
+/* 从 localStorage 恢复筛选状态，并把 checkbox 视觉上同步过来 */
+function loadFilters(){
+  try {
+    const saved = JSON.parse(localStorage.getItem(FILTER_KEY) || "null");
+    if (saved && typeof saved === "object"){
+      for (const k of ["period","ovulation","poop","weight"]){
+        if (k in saved) calFilters[k] = !!saved[k];
+      }
+    }
+  } catch(e){}
+  const labelMap = {
+    "leg-period":"period",
+    "leg-ovulation":"ovulation",
+    "leg-poop":"poop",
+    "leg-weight":"weight"
+  };
+  document.querySelectorAll(".legend input[type=\"checkbox\"]").forEach(cb=>{
+    const label = cb.closest("label");
+    if (!label) return;
+    for (const cls of label.classList){
+      if (labelMap[cls]){ cb.checked = !!calFilters[labelMap[cls]]; break; }
+    }
+  });
 }
 let currentPickerWeight = 52.0;
 
@@ -1275,9 +1308,13 @@ function init(){
   const hSel = document.getElementById("poopHour");
   hSel.innerHTML = "";
   for(let h=0;h<24;h++) hSel.innerHTML+=`<option value="${h}">${h}:00</option>`;
+  /* 打开模态框时（openEditModal 内）会再把这个值同步为"当前系统小时"，这里给个兜底默认 */
+  hSel.value = new Date().getHours();
 
   const wSel = document.getElementById("weightSelect");
-  let wHtml = "";
+  /* 顶部加一个 placeholder option，让"无当天体重记录"的状态真正显示为空，
+     而不是默认指向 52.0 看起来像"上次记录的值" */
+  let wHtml = `<option value="" disabled selected hidden>未选择</option>`;
   for(let w=350; w<=800; w++){
     const val = (w/10).toFixed(1);
     wHtml += `<option value="${val}">${val}</option>`;
@@ -1286,6 +1323,8 @@ function init(){
   
   const today = new Date();
   viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
+  /* 从 localStorage 恢复筛选状态（在最前面，确保 renderCalendar 用到的是用户偏好） */
+  loadFilters();
   renderCalendar();
   drawChart();
   drawPoopChart();
@@ -1467,6 +1506,9 @@ function selectDay(k){
 function openEditModal(){
   if(!selectedKey) return;
   document.getElementById("modalDateText").textContent = selectedKey;
+  /* 每次打开模态把"小时"选择器同步为系统当前时间，让 iOS picker 打开时齿轮转动后
+     指针默认就停在当前小时，符合"指针指向系统时间"的期望 */
+  document.getElementById("poopHour").value = new Date().getHours();
   setupInlineEditData();
   document.getElementById("editModalOverlay").classList.add("active");
 }
@@ -1477,15 +1519,30 @@ function closeEditModal(){
 
 function setupInlineEditData(){
   const dayData = data.days[selectedKey] || {};
-  currentPickerWeight = dayData.weight ?? 52.0;
-  document.getElementById("weightSelect").value = fmt1(currentPickerWeight);
+  /* 如果当天已有体重记录，picker 指向之前的值；
+     如果没有，让 select 回到顶部 placeholder"未选择"，避免看起来像默认填了 52.0 */
+  const ws = document.getElementById("weightSelect");
+  if (dayData.weight != null){
+    currentPickerWeight = dayData.weight;
+    ws.value = fmt1(currentPickerWeight);
+  } else {
+    currentPickerWeight = null;
+    ws.selectedIndex = 0;
+  }
   document.getElementById("period").value = dayData.period || "";
   renderPoops();
 }
 
 function saveDaily(){
   const x = dayObj(selectedKey);
-  x.weight = Number(document.getElementById("weightSelect").value);
+  /* 用户在体重选择器里选了 placeholder"未选择"时，value 为空字符串，
+     这种情况下不要写 weight 字段，避免误以为填写了 0.0 */
+  const wVal = document.getElementById("weightSelect").value;
+  if (wVal) {
+    x.weight = Number(wVal);
+  } else {
+    delete x.weight;
+  }
   x.period = document.getElementById("period").value;
   if(!x.period) delete x.period;
 
