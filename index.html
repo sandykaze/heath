@@ -840,6 +840,151 @@ canvas{width:100%;height:100%;display:block}
 .auth-secondary{background:#FFF0F5;color:var(--pop-pink);}
 .auth-message{font-size:12px;line-height:1.5;color:var(--text-muted);margin-top:12px;min-height:16px;font-weight:600;}
 .auth-message.error{color:var(--pop-pink);}
+
+/* ===== 编辑当天数据：底部操作栏 + 卡片式折叠面板 ===== */
+.edit-accordion{
+  margin-top:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.edit-accordion-section{
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.52);
+  border-radius:16px;
+  background:rgba(255,255,255,.22);
+  box-shadow:0 3px 12px rgba(120,90,130,.035);
+  transition:background .2s ease, box-shadow .2s ease;
+}
+.edit-accordion-section.open{
+  background:rgba(255,255,255,.30);
+  box-shadow:0 5px 16px rgba(120,90,130,.055);
+}
+.edit-accordion-trigger{
+  width:100%;
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  padding:0 14px;
+  border:0;
+  background:transparent;
+  color:var(--text-main);
+  font:700 14px/1.2 inherit;
+  cursor:pointer;
+  text-align:left;
+}
+.edit-accordion-trigger > span:first-child{
+  flex:0 0 auto;
+}
+.edit-accordion-trigger .accordion-arrow{
+  flex:0 0 auto;
+  color:var(--text-muted);
+  font-size:14px;
+  margin-left:2px;
+  transition:transform .2s ease;
+}
+.edit-accordion-section.open .accordion-arrow{transform:rotate(180deg);}
+.edit-accordion-content{
+  display:none;
+  padding:0 14px 15px;
+  border-top:1px solid rgba(255,255,255,.48);
+  background:rgba(255,255,255,.12);
+}
+.edit-accordion-section.open .edit-accordion-content{display:block;}
+.edit-section-summary{
+  margin-left:auto;
+  color:var(--text-main);
+  font-size:12px;
+  font-weight:700;
+  white-space:nowrap;
+  opacity:.72;
+}
+.edit-accordion .poop-list{
+  margin-top:0;
+  border-top:0;
+  padding-top:13px;
+}
+.edit-accordion .poop-section-title{
+  margin:0 0 7px;
+  font-size:11px;
+  font-weight:700;
+  color:var(--text-muted);
+  letter-spacing:.03em;
+}
+.edit-accordion .poop-add-divider{
+  border-top:0;
+  margin:14px 0 11px;
+}
+.edit-accordion .poop-item,
+.edit-accordion .exercise-item{
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,.52);
+}
+.edit-accordion .poop-item:last-child,
+.edit-accordion .exercise-item:last-child{
+  border-bottom:0;
+}
+.edit-accordion .btn-secondary{
+  margin-top:2px;
+}
+.edit-fixed-actions{
+  position:sticky;
+  bottom:-1px;
+  z-index:20;
+  display:flex;
+  gap:8px;
+  margin:14px -20px -18px;
+  padding:10px 20px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(to top, rgba(255,248,250,.96) 70%, rgba(255,248,250,.78));
+  backdrop-filter:blur(18px) saturate(160%);
+  -webkit-backdrop-filter:blur(18px) saturate(160%);
+  border-top:1px solid rgba(255,255,255,.72);
+  box-shadow:0 -6px 18px rgba(120,90,130,.08);
+}
+.edit-fixed-actions .btn-close-edit{
+  flex:0 0 76px;
+  padding:11px 10px;
+  border-radius:13px;
+  border:1px solid var(--glass-border);
+  background:rgba(255,255,255,.58);
+  color:var(--text-muted);
+  font-weight:700;
+  cursor:pointer;
+}
+.edit-fixed-actions .btn-clear-edit{
+  flex:0 0 76px;
+  padding:11px 8px;
+  border-radius:13px;
+  border:1px solid rgba(255,107,155,.16);
+  background:rgba(255,255,255,.48);
+  color:var(--pop-pink);
+  font-weight:700;
+  cursor:pointer;
+}
+.edit-fixed-actions .btn-save-edit{
+  flex:1;
+  padding:11px 12px;
+  border:0;
+  border-radius:13px;
+  background:linear-gradient(135deg,#FF6B9B,#FF8811);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 4px 12px rgba(255,107,155,.24);
+}
+.edit-accordion .poop-list{
+  margin-top:0;
+  border-top:0;
+  padding-top:0;
+}
+@media (max-width:420px){
+  .edit-fixed-actions .btn-close-edit,
+  .edit-fixed-actions .btn-clear-edit{flex-basis:68px;font-size:12px;}
+  .edit-fixed-actions .btn-save-edit{font-size:13px;}
+}
+
 </style>
 </head>
 <body>
@@ -896,10 +1041,11 @@ canvas{width:100%;height:100%;display:block}
     <div class="modal-panel" onclick="event.stopPropagation()">
       <div class="modal-header">
         <span id="modalDateText">2026-08-15</span>
-        <button class="modal-close" onclick="closeEditModal()">✕</button>
+        <button class="modal-close" onclick="closeEditModal()" aria-label="关闭">✕</button>
       </div>
 
       <div class="inline-edit-panel active" style="border-top:0;padding-top:0;margin-top:0;">
+        <!-- 默认只展开最常用的体重 + 姨妈状态 -->
         <div class="grid-2">
           <div class="field-group">
             <label>体重 (kg)</label>
@@ -915,59 +1061,82 @@ canvas{width:100%;height:100%;display:block}
           </div>
         </div>
 
-        <div class="actions">
-          <button class="btn-primary" onclick="saveDaily()">保存修改</button>
-          <button class="btn-danger" onclick="clearDaily()">清空当天</button>
+        <div class="edit-accordion">
+          <div class="edit-accordion-section" id="poopAccordion">
+            <button class="edit-accordion-trigger" type="button" onclick="toggleEditAccordion('poopAccordion')">
+              <span>排便记录</span>
+              <span class="edit-section-summary" id="poopAccordionSummary"></span>
+              <span class="accordion-arrow">⌄</span>
+            </button>
+            <div class="edit-accordion-content">
+              <div class="poop-list">
+                <label class="poop-section-title">已记录</label>
+                <div id="poopContainer"></div>
+
+                <div class="poop-add-divider"></div>
+                <label class="poop-section-title">新增排便</label>
+                <div class="grid-2">
+                  <div class="field-group">
+                    <select id="poopHour"></select>
+                  </div>
+                  <div class="field-group">
+                    <select id="poopSize">
+                      <option value="小">小</option>
+                      <option value="小偏中">小偏中</option>
+                      <option value="中">中</option>
+                      <option value="中偏大">中偏大</option>
+                      <option value="大">大</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="field-group">
+                  <input id="poopNote" placeholder="备注（如：硬、拉稀、开塞露）">
+                </div>
+                <button class="btn-secondary" style="width:100%;padding:10px;font-size:13px;margin-top:2px;" onclick="addPoop()">添加一次排便</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="edit-accordion-section" id="exerciseAccordion">
+            <button class="edit-accordion-trigger" type="button" onclick="toggleEditAccordion('exerciseAccordion')">
+              <span>运动记录</span>
+              <span class="edit-section-summary" id="exerciseAccordionSummary"></span>
+              <span class="accordion-arrow">⌄</span>
+            </button>
+            <div class="edit-accordion-content">
+              <div class="poop-list">
+                <label class="poop-section-title">已记录</label>
+                <div id="exerciseContainer"></div>
+
+                <div class="poop-add-divider"></div>
+                <label class="poop-section-title">新增运动</label>
+                <div class="exercise-form-row">
+                  <div class="field-group">
+                    <select id="exerciseMin" aria-label="运动时间"></select>
+                  </div>
+                  <div class="exercise-types" id="exerciseTypes" role="group" aria-label="运动项目">
+                    <label class="exercise-type-chk"><input type="checkbox" value="椭圆机">椭圆机</label>
+                    <label class="exercise-type-chk"><input type="checkbox" value="户外徒步">户外徒步</label>
+                    <label class="exercise-type-chk"><input type="checkbox" value="户外骑行">户外骑行</label>
+                    <label class="exercise-type-chk"><input type="checkbox" value="力量训练">力量训练</label>
+                    <label class="exercise-type-chk"><input type="checkbox" value="功能性训练">功能性训练</label>
+                    <label class="exercise-type-chk"><input type="checkbox" value="其他">其他</label>
+                  </div>
+                </div>
+                <div class="field-group">
+                  <input id="exerciseNote" placeholder="备注（如：椭圆机 30 分钟、感觉很累）">
+                </div>
+                <button class="btn-secondary" style="width:100%;padding:10px;font-size:13px;margin-top:2px;" onclick="addExercise()">添加一次运动</button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div class="poop-list">
-          <label class="poop-section-title">已记录的排便</label>
-          <div id="poopContainer"></div>
-
-          <div class="poop-add-divider"></div>
-          <label class="poop-section-title">新增排便记录</label>
-          <div class="grid-2">
-            <div class="field-group">
-              <select id="poopHour"></select>
-            </div>
-            <div class="field-group">
-              <select id="poopSize">
-                <option value="小">小</option>
-                <option value="小偏中">小偏中</option>
-                <option value="中">中</option>
-                <option value="中偏大">中偏大</option>
-                <option value="大">大</option>
-              </select>
-            </div>
-          </div>
-          <div class="field-group">
-            <input id="poopNote" placeholder="备注（如：硬、拉稀、开塞露）">
-          </div>
-          <button class="btn-secondary" style="width:100%;padding:10px;font-size:13px;" onclick="addPoop()">添加一次排便</button>
-
-          <div class="poop-add-divider"></div>
-          <label class="poop-section-title">已记录的运动</label>
-          <div id="exerciseContainer"></div>
-
-          <div class="poop-add-divider"></div>
-          <label class="poop-section-title">新增运动记录</label>
-          <div class="exercise-form-row">
-            <div class="field-group">
-              <select id="exerciseMin" aria-label="运动时间"></select>
-            </div>
-            <div class="exercise-types" id="exerciseTypes" role="group" aria-label="运动项目">
-              <label class="exercise-type-chk"><input type="checkbox" value="椭圆机">椭圆机</label>
-              <label class="exercise-type-chk"><input type="checkbox" value="户外徒步">户外徒步</label>
-              <label class="exercise-type-chk"><input type="checkbox" value="户外骑行">户外骑行</label>
-              <label class="exercise-type-chk"><input type="checkbox" value="力量训练">力量训练</label>
-              <label class="exercise-type-chk"><input type="checkbox" value="功能性训练">功能性训练</label>
-              <label class="exercise-type-chk"><input type="checkbox" value="其他">其他</label>
-            </div>
-          </div>
-          <div class="field-group">
-            <input id="exerciseNote" placeholder="备注（如：椭圆机 30 分钟、感觉很累）">
-          </div>
-          <button class="btn-secondary" style="width:100%;padding:10px;font-size:13px;" onclick="addExercise()">添加一次运动</button>
+        <!-- 始终可见的底部操作栏：滚动多深都能保存/关闭 -->
+        <div class="edit-fixed-actions">
+          <button class="btn-clear-edit" type="button" onclick="clearDaily()">清空</button>
+          <button class="btn-close-edit" type="button" onclick="closeEditModal()">关闭</button>
+          <button class="btn-save-edit" type="button" onclick="saveDaily()">保存修改</button>
         </div>
       </div>
     </div>
@@ -1762,6 +1931,31 @@ function closeEditModal(){
   document.getElementById("editModalOverlay").classList.remove("active");
 }
 
+function toggleEditAccordion(id){
+  const section = document.getElementById(id);
+  if(!section) return;
+  section.classList.toggle("open");
+}
+
+function updateEditAccordionSummaries(){
+  const dayData = data.days[selectedKey] || {};
+  const poops = dayData.poops || [];
+  const exercises = dayData.exercises || [];
+
+  const poopSummary = document.getElementById("poopAccordionSummary");
+  const exerciseSummary = document.getElementById("exerciseAccordionSummary");
+
+  if(poopSummary) poopSummary.textContent = poops.length ? `${poops.length} 次` : "暂无记录";
+  if(exerciseSummary){
+    if(exercises.length){
+      const totalMin = exercises.reduce((s,x)=>s+(x.minutes||0),0);
+      exerciseSummary.textContent = `${totalMin} 分钟 · ${exercises.length} 次`;
+    }else{
+      exerciseSummary.textContent = "暂无记录";
+    }
+  }
+}
+
 function setupInlineEditData(){
   const dayData = data.days[selectedKey] || {};
   /* 如果当天已有体重记录，picker 指向之前的值；
@@ -1796,6 +1990,11 @@ function setupInlineEditData(){
 
   renderPoops();
   renderExercises();
+
+  /* 每次打开编辑框都回到简洁状态：体重/姨妈默认可见，排便/运动默认收起 */
+  document.getElementById("poopAccordion")?.classList.remove("open");
+  document.getElementById("exerciseAccordion")?.classList.remove("open");
+  updateEditAccordionSummaries();
 }
 
 function saveDaily(){
@@ -1848,6 +2047,7 @@ function addPoop(){
   save();
   renderCalendar();
   renderPoops();
+  updateEditAccordionSummaries();
   drawPoopChart();
   renderTodayTip();
 }
@@ -1860,6 +2060,7 @@ function removePoop(i){
   save();
   renderCalendar();
   renderPoops();
+  updateEditAccordionSummaries();
   drawPoopChart();
   renderTodayTip();
 }
@@ -1897,6 +2098,7 @@ function addExercise(){
   save();
   renderCalendar();
   renderExercises();
+  updateEditAccordionSummaries();
   drawExerciseChart();
   renderTodayTip();
 }
@@ -1909,6 +2111,7 @@ function removeExercise(i){
   save();
   renderCalendar();
   renderExercises();
+  updateEditAccordionSummaries();
   drawExerciseChart();
   renderTodayTip();
 }
@@ -3131,27 +3334,7 @@ function buildTodayTip(){
     parts.push(lastHasPoop ? `已连续排便${streak}天` : `已经${streak}天没有排便`);
   }
 
-  /* ===== 4. 运动情况：今日有记录则报分钟数，
-         否则看看最近的连续天数给一点正向反馈 ===== */
-  const exerciseSeries = buildExerciseChartSeries();
-  if(exerciseSeries.length){
-    const todayEntry = exerciseSeries.find(s => s.date === todayKey);
-    if(todayEntry && todayEntry.exercises && todayEntry.exercises.length){
-      const totalMin = todayEntry.exercises.reduce((s,e)=> s + (e.minutes||0), 0);
-      const types = [...new Set(todayEntry.exercises.flatMap(e => (Array.isArray(e.types) ? e.types : [])))]
-        .filter(Boolean);
-      parts.push(`今日已运动 ${totalMin} 分钟${types.length ? `（${types.slice(0,2).join("·")}）` : ""}`);
-    } else {
-      let streak = 0;
-      for(let i=exerciseSeries.length-1; i>=0; i--){
-        if(exerciseSeries[i].exercises && exerciseSeries[i].exercises.length > 0) streak++;
-        else break;
-      }
-      if(streak >= 2) parts.push(`已连续运动 ${streak} 天，给自己鼓个掌👏`);
-    }
-  }
-
-  /* ===== 5. 鼓励语打底 ===== */
+  /* ===== 4. 鼓励语打底 ===== */
   const encourages = [
     "今天也要元气满满哦",
     "照顾好自己，慢慢来",
