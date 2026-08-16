@@ -305,7 +305,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .legend .leg-period .chk input[type="checkbox"]:checked ~ .chk-box{background:var(--pop-pink);border-color:var(--pop-pink);}
 .legend .leg-ovulation .chk input[type="checkbox"]:checked ~ .chk-box{background:var(--pop-purple);border-color:var(--pop-purple);}
 .legend .leg-poop .chk input[type="checkbox"]:checked ~ .chk-box{background:linear-gradient(135deg, #FF6B9B, #FF8811);border-color:#FF8811;}
-.legend .leg-weight .chk input[type="checkbox"]:checked ~ .chk-box{background:#54524F;border-color:#54524F;}
+.legend .leg-weight .chk input[type="checkbox"]:checked ~ .chk-box{background:var(--text-muted);border-color:var(--text-muted);}
 .legend .leg-exercise .chk input[type="checkbox"]:checked ~ .chk-box{background:linear-gradient(135deg, #62C6A5, #9BD9A1);border-color:#62C6A5;}
 
 /* Calendar Grid 日历独立卡片小格子网格 */
@@ -553,7 +553,8 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .modal-overlay.active .modal-panel{transform:translateY(0);}
 .modal-header{
   display:flex; justify-content:space-between; align-items:center;
-  margin-bottom:12px;
+  margin: -18px -20px 12px;
+  padding: 16px 20px 12px;
 }
 .modal-header span{font-size:18px;font-weight:700;color:var(--text-main)}
 .modal-close{
@@ -645,7 +646,12 @@ canvas{width:100%;height:100%;display:block}
 .stat-editable{cursor:pointer;}
 
 .notice{padding:2px 2px 4px;font-size:13px;line-height:1.6;color:var(--text-main);font-weight:600;}
-.notice b{color:var(--pop-pink);}
+.notice b{
+  background: linear-gradient(135deg, #FF6B9B, #FF8811);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
 .prediction-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -673,28 +679,31 @@ canvas{width:100%;height:100%;display:block}
   background: var(--glass-bg);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border:1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  border:1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 6px 18px rgba(255, 107, 155, 0.14);
   transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
 }
 .pred-item:hover .d-label,
 .pred-item:active .d-label{
   background: var(--glass-bg-strong);
   transform: scale(1.05);
-  box-shadow: 0 10px 26px rgba(120, 90, 130, 0.16);
+  box-shadow: 0 10px 26px rgba(255, 107, 60, 0.22);
 }
 .d-arrow{
   margin-left:5px;
   font-weight:700;
   font-size:13px;
-  color:var(--pop-pink);
-  opacity:0.55;
+  background: linear-gradient(135deg, #FF6B9B, #FF8811);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  opacity:0.7;
   transition: transform .18s ease;
 }
 .pred-item:hover .d-arrow,
 .pred-item:active .d-arrow{
   transform: translateX(2px);
-  opacity:0.85;
+  opacity:1;
 }
 .pred-hint{
   display:block;
@@ -721,7 +730,7 @@ canvas{width:100%;height:100%;display:block}
 .field-group label{display:block;color:var(--text-muted);font-size:12px;font-weight:600;margin-bottom:5px}
 .field-group input,.field-group select{
   width:100%;border:1px solid var(--glass-border);border-radius:12px;padding:10px 12px;
-  background:rgba(255, 255, 255, 0.32);color:var(--text-main);font-size:14px;outline:none;
+  background:rgba(255, 255, 255, 0.32);color:var(--text-muted);font-size:14px;outline:none;
   font-family: inherit; font-weight:600;
 }
 .field-group input:focus,.field-group select:focus{border-color:var(--pop-pink);}
@@ -771,12 +780,12 @@ canvas{width:100%;height:100%;display:block}
   align-items:center;
   gap:5px;
   font-size:12.5px;
-  color:var(--text-main);
+  color:var(--text-muted);
   font-weight:600;
-  background:rgba(255,255,255,0.55);
+  background:rgba(140,120,150,0.10);
   padding:5px 10px;
   border-radius:999px;
-  border:1px solid var(--glass-border);
+  border:1px solid rgba(140,120,150,0.14);
   cursor:pointer;
   user-select:none;
   transition:all .15s ease;
@@ -784,16 +793,21 @@ canvas{width:100%;height:100%;display:block}
 }
 .exercise-type-chk input{
   margin:0;
-  accent-color:var(--text-main);
+  accent-color:var(--text-muted);
   width:14px;
   height:14px;
   cursor:pointer;
+  position:relative;
+  left:1px;
+}
+.exercise-type-chk input:checked{
+  accent-color:var(--text-main);
 }
 .exercise-type-chk:has(input:checked){
-  background:rgba(255,255,255,0.85);
-  border-color:rgba(60,60,60,0.45);
+  background:rgba(140,120,150,0.24);
+  border-color:rgba(140,120,150,0.32);
   color:var(--text-main);
-  box-shadow: inset 0 0 0 1px rgba(60,60,60,0.08);
+  font-weight:700;
 }
 .exercise-item{
   display:flex;
@@ -1417,6 +1431,17 @@ function getAvgCycleLength(){
   return Math.round(diffs.reduce((a,b)=>a+b,0) / diffs.length);
 }
 
+/* 展示用的精确平均周期（保留1位小数），日期推算仍用上面四舍五入后的整数天 */
+function getAvgCycleLengthPrecise(){
+  const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
+  if(starts.length < 2) return 28;
+  let diffs = [];
+  for(let i=1; i<starts.length; i++){
+    diffs.push((new Date(starts[i]) - new Date(starts[i-1])) / 86400000);
+  }
+  return Number((diffs.reduce((a,b)=>a+b,0) / diffs.length).toFixed(1));
+}
+
 function computeCyclePhases(){
   const phases = {};
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
@@ -1678,7 +1703,10 @@ function buildDetailRowHtml(k, phases, weightDiffs){
   if(exercises.length){
     const totalMin = exercises.reduce((s,x)=> s + (x.minutes||0), 0);
     const allTypes = [...new Set(exercises.flatMap(x => x.types || []))].join(" · ");
-    exerciseVal = `${totalMin} 分钟${allTypes ? ` · ${allTypes}` : ""}`;
+    /* 和 updateExerciseTopCard 保持一致：如有备注则统一去重收到末尾括号里 */
+    const allNotes = [...new Set(exercises.map(x => (x.note || "").trim()).filter(Boolean))];
+    const head = `${totalMin} 分钟${allTypes ? ` · ${allTypes}` : ""}`;
+    exerciseVal = allNotes.length ? `${head}（${allNotes.join("；")}）` : head;
   }
 
   return `
@@ -2744,7 +2772,11 @@ function updateExerciseTopCard(p){
   const typesEl = document.getElementById("exerciseTopCardTypes");
   if (p.exercises && p.exercises.length) {
     const allTypes = [...new Set(p.exercises.flatMap(e => (Array.isArray(e.types) ? e.types : [])))];
-    typesEl.textContent = allTypes.length ? `当日运动：${allTypes.join(" · ")}` : "当日运动：未选择项目";
+    /* 把所有非空 note 去重收集起来；line-clamp:2 + ellipsis 会自动截断，
+       不至于把整个顶部卡片撑得过长 */
+    const allNotes = [...new Set(p.exercises.map(e => (e.note || "").trim()).filter(Boolean))];
+    const head = allTypes.length ? `当日运动：${allTypes.join(" · ")}` : "当日运动：未选择项目";
+    typesEl.textContent = allNotes.length ? `${head}（${allNotes.join("；")}）` : head;
   } else {
     typesEl.textContent = "当日运动：无";
   }
@@ -3008,22 +3040,69 @@ function drawExerciseChart(){
   render();
 }
 
-/* ===================== 今日提示跑马灯 ===================== */
+/* ===================== 今日提示（两行展示） ===================== */
 
+
+/* 周期四阶段的中文名 + 一句简短正向建议，按对应周期分桶展示 */
+const PHASE_LABEL = {
+  period:     "姨妈期",
+  follicular: "卵泡期",
+  ovulation:  "排卵期",
+  luteal:     "黄体期"
+};
+const PHASE_ADVICE = {
+  period: [
+    "注意保暖和休息，对自己温柔一点",
+    "痛就多歇会儿，别硬撑",
+    "喝杯热水，暖暖的更舒服"
+  ],
+  follicular: [
+    "状态正在回升，好好享受这段舒服日子",
+    "精力满满，适合做点自己喜欢的事",
+    "这是难得的轻松期，好好感受吧"
+  ],
+  ovulation: [
+    "可能会有点浮肿腹胀，别太紧张",
+    "小腹胀痛是正常反应，多喝点温水",
+    "身体有点小信号，留意但别焦虑"
+  ],
+  luteal: [
+    "情绪容易波动，多给自己一点耐心",
+    "临近姨妈期容易烦躁，别对自己太苛刻",
+    "心情低落时，是身体在提醒你慢下来"
+  ]
+};
 
 function buildTodayTip(){
   const todayKey = key(new Date());
-  const phases = computeCyclePhases();
-  let phaseText = "平常期";
-  const todayPeriod = (data.days[todayKey]||{}).period;
-  if(todayPeriod === "start" || todayPeriod === "on"){
-    phaseText = "姨妈期";
-  } else if(phases[todayKey]){
-    if(phases[todayKey].phase === "period") phaseText = "姨妈期";
-    else if(phases[todayKey].phase === "ovulation") phaseText = "排卵期";
+  const todayData = data.days[todayKey] || {};
+  const starts = Object.keys(data.days).filter(k => data.days[k].period === "start").sort();
+  const parts = [];
+
+  /* ===== 1. 周期阶段（仅 ≥2 次经期记录才显示）=====
+     根据"距离上次经期第一天的天数"按周期长度分桶：
+       - day 0-4                         → period 姨妈期
+       - day 5  ~ avgCycle-19            → follicular 卵泡期
+       - day avgCycle-18 ~ avgCycle-12    → ovulation 排卵期（拓宽为7天，覆盖排卵前后浮肿胀痛的体感范围）
+       - day avgCycle-11 ~                → luteal 黄体期
+     周期长度未到 → 跟最后一天落点一致，黄体期 */
+  if(starts.length >= 2){
+    const avgCycle = getAvgCycleLength();
+    const lastStartDate = new Date(starts.at(-1) + "T00:00:00");
+    const todayDate = new Date(todayKey + "T00:00:00");
+    const daysSince = Math.round((todayDate - lastStartDate) / 86400000);
+    if(daysSince >= 0){
+      let phase = null;
+      if(daysSince < 5) phase = "period";
+      else if(daysSince < Math.max(5, avgCycle - 18)) phase = "follicular";
+      else if(daysSince <= Math.max(5, avgCycle - 12)) phase = "ovulation";
+      else phase = "luteal";
+      parts.push(`今天是${PHASE_LABEL[phase]}，${PHASE_ADVICE[phase][Math.floor(Math.random()*PHASE_ADVICE[phase].length)]}`);
+    }
   }
 
-  let weightText = "";
+  /* ===== 2. 体重情况：改成严格"整整两天前"才比较，
+     避免断记好几天后被误判成"这两天体重变化"====== */
   const sortedW = Object.keys(data.days).filter(k => data.days[k].weight != null).sort();
   if(sortedW.length){
     const latestK = sortedW.at(-1);
@@ -3031,17 +3110,16 @@ function buildTodayTip(){
     const twoAgoDate = new Date(latestK+"T00:00:00");
     twoAgoDate.setDate(twoAgoDate.getDate() - 2);
     const twoAgoKey = key(twoAgoDate);
-    const past = sortedW.filter(k => k <= twoAgoKey);
-    if(past.length){
-      const pastW = data.days[past.at(-1)].weight;
+    if(data.days[twoAgoKey] && data.days[twoAgoKey].weight != null){
+      const pastW = data.days[twoAgoKey].weight;
       const diff = Number((latestW - pastW).toFixed(1));
-      if(diff > 0) weightText = `这两天体重上升了${diff}kg`;
-      else if(diff < 0) weightText = `这两天体重下降了${Math.abs(diff)}kg`;
-      else weightText = `这两天体重很稳定`;
+      if(diff > 0) parts.push(`这两天体重上升了${diff}kg`);
+      else if(diff < 0) parts.push(`这两天体重下降了${Math.abs(diff)}kg`);
+      else parts.push(`这两天体重很稳定`);
     }
   }
 
-  let poopText = "";
+  /* ===== 3. 排便 / 便秘情况 ===== */
   const poopSeries = buildPoopChartSeries();
   if(poopSeries.length){
     const lastHasPoop = poopSeries.at(-1).poops && poopSeries.at(-1).poops.length > 0;
@@ -3050,17 +3128,52 @@ function buildTodayTip(){
       const has = poopSeries[i].poops && poopSeries[i].poops.length > 0;
       if(has === lastHasPoop) streak++; else break;
     }
-    poopText = lastHasPoop ? `已连续排便${streak}天` : `已经${streak}天没有排便`;
+    parts.push(lastHasPoop ? `已连续排便${streak}天` : `已经${streak}天没有排便`);
   }
 
-  const encourages = ["今天也要元气满满哦～","照顾好自己，慢慢来～","身体的每一点变化都值得被记录～","坚持记录，你已经很棒啦～","多喝水，肠胃会感谢你的～"];
-  const encourage = encourages[Math.floor(Math.random()*encourages.length)];
+  /* ===== 4. 运动情况：今日有记录则报分钟数，
+         否则看看最近的连续天数给一点正向反馈 ===== */
+  const exerciseSeries = buildExerciseChartSeries();
+  if(exerciseSeries.length){
+    const todayEntry = exerciseSeries.find(s => s.date === todayKey);
+    if(todayEntry && todayEntry.exercises && todayEntry.exercises.length){
+      const totalMin = todayEntry.exercises.reduce((s,e)=> s + (e.minutes||0), 0);
+      const types = [...new Set(todayEntry.exercises.flatMap(e => (Array.isArray(e.types) ? e.types : [])))]
+        .filter(Boolean);
+      parts.push(`今日已运动 ${totalMin} 分钟${types.length ? `（${types.slice(0,2).join("·")}）` : ""}`);
+    } else {
+      let streak = 0;
+      for(let i=exerciseSeries.length-1; i>=0; i--){
+        if(exerciseSeries[i].exercises && exerciseSeries[i].exercises.length > 0) streak++;
+        else break;
+      }
+      if(streak >= 2) parts.push(`已连续运动 ${streak} 天，给自己鼓个掌👏`);
+    }
+  }
 
-  const parts = [`今天是${phaseText}`];
-  if(weightText) parts.push(weightText);
-  if(poopText) parts.push(poopText);
-  parts.push(encourage);
-  return parts.join("，");
+  /* ===== 5. 鼓励语打底 ===== */
+  const encourages = [
+    "今天也要元气满满哦",
+    "照顾好自己，慢慢来",
+    "身体的每一点变化都值得被记录",
+    "坚持记录，你已经很棒啦",
+    "多喝水，肠胃会感谢你的",
+    "别太苛求自己，稳稳前进就很好",
+    "早点休息，身体会记得你的好",
+    "今天也辛苦啦，记得犒赏一下自己",
+    "小小的坚持，会带来大大的改变",
+    "深呼吸，一切都在慢慢变好",
+    "你已经做得很好了",
+    "累了就歇一会儿，别硬撑",
+    "你的努力，身体都记得",
+    "今天也是照顾好自己的一天",
+    "偶尔偷懒也没关系，明天继续就好",
+    "给自己一个大大的拥抱",
+    "慢慢来，一切都来得及"
+  ];
+  parts.push(encourages[Math.floor(Math.random()*encourages.length)]);
+
+  return parts.join("。") + "～";
 }
 
 function renderTodayTip(){
@@ -3081,7 +3194,8 @@ function prediction(){
   }
 
   const avg = getAvgCycleLength();
-  summaryEl.innerHTML = `根据历史记录，您的平均周期为 <b>${avg} 天</b>。未来 12 个月预计日期：`;
+  const avgPrecise = getAvgCycleLengthPrecise();
+  summaryEl.innerHTML = `根据历史记录，您的平均周期为 <b>${avgPrecise} 天</b>。未来 12 个月"姨妈第一天"预计日期：`;
 
   let lastDate = new Date(starts.at(-1)+"T00:00:00");
   let listHtml = "";
