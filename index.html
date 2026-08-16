@@ -998,18 +998,25 @@ canvas{width:100%;height:100%;display:block}
   padding:10px 20px env(safe-area-inset-bottom);
 }
 
-/* 体重 / 姨妈状态 / 排便记录 / 运动记录：统一成简洁的小号标签 */
+/* 编辑弹窗文字统一：上方标签与排便/运动折叠标题完全一致 */
 .inline-edit-panel > .grid-2 .field-group > label,
 .edit-accordion-trigger{
   color:var(--text-muted);
-  font:600 12px/1.35 inherit;
+  font-family:inherit;
+  font-size:12px;
+  font-weight:600;
+  line-height:1.35;
 }
 .edit-accordion-trigger{
   min-height:52px;
   padding:0 14px;
 }
 .edit-accordion-trigger .edit-section-summary{
-  font:600 12px/1.35 inherit;
+  color:var(--text-muted);
+  font-family:inherit;
+  font-size:12px;
+  font-weight:600;
+  line-height:1.35;
 }
 
 /* 展开后给“已记录”留一点上方呼吸空间 */
@@ -1017,11 +1024,14 @@ canvas{width:100%;height:100%;display:block}
   padding-top:12px;
 }
 
-/* “暂无排便/运动记录”与“已记录”使用同一套字体，但视觉更轻，避免混在一起 */
+/* 无记录提示：比“已记录”更小、更轻 */
 .edit-empty-record{
   padding:4px 0 9px;
   color:var(--text-muted);
-  font:700 11px/1.4 inherit;
+  font-family:inherit;
+  font-size:10px;
+  font-weight:600;
+  line-height:1.4;
   opacity:.72;
 }
 </style>
