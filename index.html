@@ -64,11 +64,11 @@
   /* 高级偏粉色调，用于生理期预测等需要区别于亮粉的强调色 */
   --rose-mauve: #B8557A;
 
-  /* 运动主题色：尤加利薄荷 → 嫩薄荷 渐变 */
-  --pop-exercise-1: #62C6A5;   /* 尤加利（偏冷、有蓝调的薄荷） */
-  --pop-exercise-2: #9BD9A1;   /* 嫩薄荷（明快、清新的果绿） */
+  /* 运动主题色：左淡右深的薄荷绿渐变 */
+  --pop-exercise-1: #9BD9A1;   /* 左侧：淡一点的嫩薄荷 */
+  --pop-exercise-2: #62C6A5;   /* 右侧：较深的尤加利薄荷，作为运动主色 */
   --exercise: var(--pop-exercise-2);
-  --exercise-bg: rgba(155, 217, 161, 0.18);
+  --exercise-bg: rgba(98, 198, 165, 0.18);
 
   /* 多巴胺糖果感阴影与大圆角 */
   --shadow-soft: 0 16px 40px rgba(120, 90, 130, 0.10);
@@ -226,7 +226,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   box-shadow: 0 6px 18px rgba(255, 136, 17, 0.28);
 }
 .tab-btn.active.tab-exercise{
-  background: linear-gradient(135deg, #62C6A5, #9BD9A1);
+  background: linear-gradient(135deg, #9BD9A1, #62C6A5);
   box-shadow: 0 6px 18px rgba(98, 198, 165, 0.30);
 }
 
@@ -306,7 +306,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .legend .leg-ovulation .chk input[type="checkbox"]:checked ~ .chk-box{background:var(--pop-purple);border-color:var(--pop-purple);}
 .legend .leg-poop .chk input[type="checkbox"]:checked ~ .chk-box{background:linear-gradient(135deg, #FF6B9B, #FF8811);border-color:#FF8811;}
 .legend .leg-weight .chk input[type="checkbox"]:checked ~ .chk-box{background:var(--text-muted);border-color:var(--text-muted);}
-.legend .leg-exercise .chk input[type="checkbox"]:checked ~ .chk-box{background:linear-gradient(135deg, #62C6A5, #9BD9A1);border-color:#62C6A5;}
+.legend .leg-exercise .chk input[type="checkbox"]:checked ~ .chk-box{background:linear-gradient(135deg, #9BD9A1, #62C6A5);border-color:#62C6A5;}
 
 /* Calendar Grid 日历独立卡片小格子网格 */
 .cal-grid{
@@ -448,7 +448,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   width:10px;
   height:10px;
   border-radius:50%;
-  background: linear-gradient(135deg, #62C6A5, #9BD9A1);
+  background: linear-gradient(135deg, #9BD9A1, #62C6A5);
   box-shadow: 0 1px 3px rgba(98, 198, 165, 0.35);
   pointer-events:none;
 }
@@ -541,7 +541,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   border-bottom: none;
   width:100%; max-width:580px;
   border-radius:24px 24px 0 0;
-  padding:18px 20px calc(20px + env(safe-area-inset-bottom));
+  padding:24px 20px calc(20px + env(safe-area-inset-bottom));
   /* 只保留一层顶部柔光阴影，去掉原来叠加的 inset 高光，
      避免在底部安全区附近看起来像多了一层阴影 */
   box-shadow:0 -10px 34px rgba(120, 90, 130, 0.18);
@@ -591,7 +591,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 /* 运动板块：复用排便的整体结构，仅替换主题色为橄榄黄绿→果绿渐变 */
 .exercise-val{font-size:19px;font-weight:700;color:var(--pop-exercise-2);font-family:var(--font-num);font-variant-numeric: tabular-nums;}
 .exercise-stat-num{color:var(--pop-exercise-2) !important;}
-.exercise-scrollbar-thumb{background:linear-gradient(90deg, #62C6A5, #9BD9A1) !important;}
+.exercise-scrollbar-thumb{background:linear-gradient(90deg, #9BD9A1, #62C6A5) !important;}
 
 .inline-exercise-val{ font-size:13px !important; font-weight:600 !important; color:var(--text-main) !important; line-height:1.45;}
 .inline-exercise-types{ color:var(--pop-exercise-2); font-weight:700; }
@@ -988,14 +988,23 @@ canvas{width:100%;height:100%;display:block}
 
 /* ===== 编辑弹窗细节优化 ===== */
 .modal-panel{
-  /* 底部操作栏直接贴住弹窗底边，避免安全区/内边距之间出现空隙 */
-  padding-bottom:0;
+  /* 让弹窗本体也延伸到安全区，彻底遮住下面的紫色毛玻璃背景 */
+  padding-bottom:env(safe-area-inset-bottom);
 }
 
 .edit-fixed-actions{
   bottom:0;
-  margin:14px -20px 0;
-  padding:10px 20px env(safe-area-inset-bottom);
+  margin:14px -20px calc(-18px - env(safe-area-inset-bottom));
+  padding:16px 20px calc(18px + env(safe-area-inset-bottom));
+  min-height:72px;
+  /* 整块使用不透明背景，安全区也完全填满 */
+  background:#FFF8FA;
+  box-sizing:border-box;
+}
+
+/* 编辑框底部留出一点呼吸空间，让“运动记录”与底部按钮不贴得太紧 */
+.inline-edit-panel{
+  padding-bottom:28px;
 }
 
 /* 编辑弹窗文字统一：上方标签与排便/运动折叠标题完全一致 */
@@ -1339,6 +1348,19 @@ if(!data.targetWeight) data.targetWeight = 50.0;
 
 let selectedKey = null;
 let viewDate = new Date();
+
+function formatChartDateWithWeekday(dateStr){
+  const d = new Date(dateStr + "T00:00:00");
+  const weekdays = ["日","一","二","三","四","五","六"];
+  if(!isNaN(d.getTime())){
+    const parts = dateStr.split("-");
+    if(parts.length === 3){
+      return `${parseInt(parts[1],10)}月${parseInt(parts[2],10)}日(${weekdays[d.getDay()]})`;
+    }
+  }
+  return dateStr;
+}
+
 /* 4 个日历筛选 checkbox 的状态从 localStorage 恢复，避免每次刷新都被重置为全选 */
 const FILTER_KEY = "bodyDiaryV3_filters";
 let calFilters = { period:true, ovulation:true, poop:true, weight:true, exercise:true };
@@ -2040,7 +2062,7 @@ function setupInlineEditData(){
   renderPoops();
   renderExercises();
 
-  /* 每次打开编辑框都回到简洁状态：体重/姨妈默认可见，排便/运动默认收起 */
+  /* 每次打开编辑框：体重/姨妈默认可见，排便默认收起，运动记录默认完整展开 */
   document.getElementById("poopAccordion")?.classList.remove("open");
   document.getElementById("exerciseAccordion")?.classList.remove("open");
   updateEditAccordionSummaries();
@@ -2391,7 +2413,7 @@ function drawChart(){
 
   function updateTopCard(p){
     const dParts = p.date.split("-");
-    const dateFormatted = dParts.length === 3 ? `${parseInt(dParts[1],10)}月${parseInt(dParts[2],10)}日` : p.date;
+    const dateFormatted = formatChartDateWithWeekday(p.date);
     document.getElementById("topCardDate").textContent = dateFormatted;
     
     const weightEl = document.getElementById("topCardWeight");
@@ -2656,7 +2678,7 @@ function computePoopStats(series){
 
 function updatePoopTopCard(p){
   const dParts = p.date.split("-");
-  const dateFormatted = dParts.length === 3 ? `${parseInt(dParts[1],10)}月${parseInt(dParts[2],10)}日` : p.date;
+  const dateFormatted = formatChartDateWithWeekday(p.date);
   document.getElementById("poopTopCardDate").textContent = dateFormatted;
 
   const sizeEl = document.getElementById("poopTopCardSize");
@@ -3010,7 +3032,7 @@ function computeExerciseStats(series){
 
 function updateExerciseTopCard(p){
   const dParts = p.date.split("-");
-  const dateFormatted = dParts.length === 3 ? `${parseInt(dParts[1],10)}月${parseInt(dParts[2],10)}日` : p.date;
+  const dateFormatted = formatChartDateWithWeekday(p.date);
   document.getElementById("exerciseTopCardDate").textContent = dateFormatted;
 
   const minEl = document.getElementById("exerciseTopCardMin");
@@ -3189,7 +3211,7 @@ function drawExerciseChart(){
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, 7, 0, Math.PI*2);
-        ctx.fillStyle=exerciseColorLight;
+        ctx.fillStyle="#FFD166";
         ctx.fill();
         ctx.lineWidth=3;
         ctx.strokeStyle=exerciseColor;
@@ -3405,7 +3427,17 @@ function buildTodayTip(){
   ];
   parts.push(encourages[Math.floor(Math.random()*encourages.length)]);
 
-  return parts.join("。") + "～";
+  // 周期提示后用句号；体重提示后用逗号；排便提示后保留句号
+  let tip = "";
+  parts.forEach((part, i) => {
+    let punctuation = "，";
+    if(i === 0 && starts.length >= 2) punctuation = "。";
+    else if(i === 1) punctuation = "，";
+    else if(i === 2 && poopSeries.length) punctuation = "。";
+    else if(i === parts.length - 1) punctuation = "";
+    tip += part + punctuation;
+  });
+  return tip + "～";
 }
 
 function renderTodayTip(){
