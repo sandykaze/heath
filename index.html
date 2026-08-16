@@ -993,12 +993,17 @@ canvas{width:100%;height:100%;display:block}
 }
 
 .edit-fixed-actions{
-  bottom:0;
-  margin:14px -20px calc(-18px - env(safe-area-inset-bottom));
-  padding:16px 20px calc(18px + env(safe-area-inset-bottom));
+  /* 让按钮直接属于整个深紫色编辑面板，不再单独形成一条白色/毛玻璃底栏 */
+  position:relative;
+  bottom:auto;
+  margin:20px -20px -20px;
+  padding:14px 20px calc(14px + env(safe-area-inset-bottom));
   min-height:72px;
-  /* 整块使用不透明背景，安全区也完全填满 */
-  background:#FFF8FA;
+  background:transparent;
+  backdrop-filter:none;
+  -webkit-backdrop-filter:none;
+  border-top:0;
+  box-shadow:none;
   box-sizing:border-box;
 }
 
@@ -1043,7 +1048,219 @@ canvas{width:100%;height:100%;display:block}
   line-height:1.4;
   opacity:.72;
 }
+
+/* ===== 气泡按钮提亮：让所有胶囊/气泡按钮更白、更清爽 ===== */
+.pred-item .d-label{background:rgba(255,255,255,.72);border-color:rgba(255,255,255,.72);}
+.pred-item:hover .d-label,.pred-item:active .d-label{background:rgba(255,255,255,.88);}
+.exercise-type-chk{background:rgba(255,255,255,.72);border-color:rgba(255,255,255,.72);}
+.exercise-type-chk:has(input:checked){background:rgba(255,255,255,.88);border-color:rgba(140,120,150,.30);}
 </style>
+
+<style id="edit-bright-theme">
+/* ===== 编辑当天数据：提亮版 =====
+   只作用于编辑弹窗，不改变记录页其它板块。
+   方向：保留原来的粉 / 紫 / 杏橙 / 果绿色基调，
+   用浅色层次和局部高亮替代整块沉闷的紫色。
+*/
+#editModalOverlay .modal-panel{
+  background:
+    radial-gradient(circle at 92% 6%, rgba(255, 185, 211, .34), transparent 30%),
+    radial-gradient(circle at 4% 34%, rgba(196, 165, 255, .22), transparent 30%),
+    linear-gradient(165deg, #f8eff8 0%, #f5eef8 46%, #fbf3f2 100%);
+  border-color:rgba(255,255,255,.88);
+  box-shadow:0 -12px 40px rgba(104,72,124,.22);
+}
+
+/* 顶部标题区：增加一点“亮点” */
+#editModalOverlay .modal-header{
+  position:relative;
+  padding-bottom:16px;
+}
+#editModalOverlay .modal-header::after{
+  content:"";
+  position:absolute;
+  left:20px;
+  right:20px;
+  bottom:0;
+  height:3px;
+  border-radius:99px;
+  background:linear-gradient(90deg,#ff9fc4 0%,#c99cff 52%,#ffd27a 100%);
+  opacity:.78;
+}
+#editModalOverlay .modal-header span{
+  color:#49334f;
+  letter-spacing:.01em;
+}
+#editModalOverlay .modal-close{
+  background:rgba(255,255,255,.82);
+  border-color:rgba(255,255,255,.95);
+  box-shadow:0 4px 12px rgba(110,72,130,.12);
+}
+
+/* 体重 / 姨妈期：变成两个更清爽的亮色小卡片 */
+#editModalOverlay .inline-edit-panel > .grid-2{
+  gap:10px;
+}
+#editModalOverlay .inline-edit-panel > .grid-2 .field-group{
+  position:relative;
+  padding:13px 12px 12px;
+  border-radius:15px;
+  background:rgba(255,255,255,.68);
+  border:1px solid rgba(255,255,255,.92);
+  box-shadow:0 5px 16px rgba(105,72,125,.07);
+}
+#editModalOverlay .inline-edit-panel > .grid-2 .field-group:first-child{
+  background:linear-gradient(145deg,rgba(255,255,255,.82),rgba(255,235,243,.72));
+}
+#editModalOverlay .inline-edit-panel > .grid-2 .field-group:nth-child(2){
+  background:linear-gradient(145deg,rgba(255,255,255,.82),rgba(244,235,255,.76));
+}
+#editModalOverlay .inline-edit-panel > .grid-2 .field-group > label{
+  color:#806487;
+  font-weight:700;
+}
+#editModalOverlay .inline-edit-panel select,
+#editModalOverlay .inline-edit-panel input,
+#editModalOverlay .inline-edit-panel textarea{
+  background:rgba(255,255,255,.86);
+  border-color:rgba(173,137,188,.18);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+}
+#editModalOverlay .inline-edit-panel select:focus,
+#editModalOverlay .inline-edit-panel input:focus,
+#editModalOverlay .inline-edit-panel textarea:focus{
+  border-color:rgba(255,107,155,.48);
+  box-shadow:0 0 0 3px rgba(255,107,155,.09);
+  background:#fff;
+}
+
+/* 排便 / 运动折叠区：不再是一模一样的灰白块，各自带一点主题色 */
+#editModalOverlay .edit-accordion{
+  gap:11px;
+}
+#editModalOverlay .edit-accordion-section{
+  position:relative;
+  background:rgba(255,255,255,.64);
+  border-color:rgba(255,255,255,.9);
+  box-shadow:0 5px 16px rgba(105,72,125,.07);
+}
+#editModalOverlay .edit-accordion-section::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:12px;
+  bottom:12px;
+  width:4px;
+  border-radius:0 8px 8px 0;
+  background:#d8c1e8;
+}
+#editModalOverlay #poopAccordion::before{
+  background:linear-gradient(180deg,#FFD166,#FF8811);
+}
+#editModalOverlay #exerciseAccordion::before{
+  background:linear-gradient(180deg,#9bd9a1,#62c6a5);
+}
+#editModalOverlay .edit-accordion-section.open{
+  background:rgba(255,255,255,.78);
+  box-shadow:0 7px 20px rgba(105,72,125,.10);
+}
+#editModalOverlay .edit-accordion-trigger{
+  min-height:54px;
+  padding-left:18px;
+  color:#5b4562;
+}
+#editModalOverlay #poopAccordion .edit-accordion-trigger > span:first-child,
+#editModalOverlay #exerciseAccordion .edit-accordion-trigger > span:first-child{
+  color:var(--text-muted);
+}
+#editModalOverlay .edit-accordion-trigger .edit-section-summary{
+  color:#8c7891;
+  background:rgba(246,239,248,.72);
+  padding:4px 8px;
+  border-radius:999px;
+}
+#editModalOverlay .edit-accordion-content{
+  background:rgba(255,255,255,.34);
+  border-top-color:rgba(194,166,205,.16);
+}
+
+/* 排便新增区：用柔和杏金，不再是高饱和橙 */
+#editModalOverlay .poop-add-divider{
+  border-top-color:rgba(217,154,91,.22);
+}
+#editModalOverlay .poop-section-title{
+  color:#C97828;
+}
+#editModalOverlay .poop-list .btn-secondary,
+#editModalOverlay .btn-secondary{
+  background:linear-gradient(135deg,#fff8ef,#fff0dc);
+  border-color:rgba(255,136,17,.24);
+  color:#C97828;
+}
+#editModalOverlay .poop-list .btn-secondary:hover,
+#editModalOverlay .btn-secondary:hover{
+  background:#fff;
+  box-shadow:0 4px 12px rgba(217,154,91,.12);
+}
+
+/* 运动类型 pill：亮一点，选中状态更有“果绿色”存在感 */
+#editModalOverlay .exercise-types{
+  background:rgba(255,255,255,.72);
+  border-color:rgba(255,255,255,.92);
+}
+#editModalOverlay .exercise-type-chk{
+  background:rgba(245,250,247,.9);
+  border-color:rgba(98,198,165,.18);
+  color:#6b7d74;
+}
+#editModalOverlay .exercise-type-chk:has(input:checked){
+  background:linear-gradient(135deg,#e7f7eb,#d9f1e7);
+  border-color:rgba(98,198,165,.42);
+  color:#3f8668;
+  box-shadow:0 3px 9px rgba(98,198,165,.12);
+}
+#editModalOverlay .exercise-item{
+  border-bottom-color:rgba(98,198,165,.13);
+}
+#editModalOverlay .inline-exercise-types{
+  color:#4f9a78;
+}
+
+/* 底部按钮：保留原来的结构，但让整个底部更轻、更有层次 */
+#editModalOverlay .edit-fixed-actions{
+  padding-top:18px;
+  background:linear-gradient(180deg,rgba(248,239,248,0),rgba(248,239,248,.62) 24%,rgba(248,239,248,.9) 100%);
+}
+#editModalOverlay .edit-fixed-actions .btn-clear-edit{
+  background:rgba(255,255,255,.72);
+  border-color:rgba(255,107,155,.22);
+  color:#d66c93;
+}
+#editModalOverlay .edit-fixed-actions .btn-close-edit{
+  background:rgba(255,255,255,.82);
+  border-color:rgba(148,119,157,.16);
+  color:#75647a;
+}
+#editModalOverlay .edit-fixed-actions .btn-save-edit{
+  background:linear-gradient(135deg,#ff8fb5 0%,#c487e8 55%,#ffb35f 100%);
+  box-shadow:0 6px 16px rgba(178,108,179,.22);
+}
+#editModalOverlay .edit-fixed-actions button{
+  transition:transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+#editModalOverlay .edit-fixed-actions button:hover{
+  transform:translateY(-1px);
+  filter:saturate(1.05);
+}
+
+/* 小屏：避免亮色卡片太拥挤 */
+@media (max-width:420px){
+  #editModalOverlay .inline-edit-panel > .grid-2 .field-group{
+    padding:11px 10px;
+  }
+}
+</style>
+
 </head>
 <body>
 
