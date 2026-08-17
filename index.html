@@ -3291,12 +3291,18 @@ function updateExerciseTopCard(p){
 
   const typesEl = document.getElementById("exerciseTopCardTypes");
   if (p.exercises && p.exercises.length) {
-    const allTypes = [...new Set(p.exercises.flatMap(e => (Array.isArray(e.types) ? e.types : [])))];
-    /* 把所有非空 note 去重收集起来；line-clamp:2 + ellipsis 会自动截断，
-       不至于把整个顶部卡片撑得过长 */
-    const allNotes = [...new Set(p.exercises.map(e => (e.note || "").trim()).filter(Boolean))];
-    const head = allTypes.length ? `当日运动：${allTypes.join(" · ")}` : "当日运动：未选择项目";
-    typesEl.textContent = allNotes.length ? `${head}（${allNotes.join("；")}）` : head;
+    // 按每次运动分别展示：项目(时间)[备注]
+    // 例如：当日运动：功能性训练(15分钟)[有点累]
+    const exerciseParts = p.exercises.map(e => {
+      const types = Array.isArray(e.types) && e.types.length
+        ? e.types.join(" · ")
+        : "未选择项目";
+      const minutes = Number(e.minutes) || 0;
+      const duration = `(${minutes}分钟)`;
+      const note = (e.note || "").trim();
+      return `${types}${duration}${note ? `[${note}]` : ""}`;
+    });
+    typesEl.textContent = `当日运动：${exerciseParts.join("；")}`;
   } else {
     typesEl.textContent = "当日运动：无";
   }
