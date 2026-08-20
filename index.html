@@ -3636,11 +3636,15 @@ function buildTodayTip(){
     const daysSince = Math.round((todayDate - lastStartDate) / 86400000);
     if(daysSince >= 0){
       let phase = null;
-      if(daysSince < 5) phase = "period";
-      else if(daysSince < Math.max(5, avgCycle - 18)) phase = "follicular";
-      else if(daysSince <= Math.max(5, avgCycle - 12)) phase = "ovulation";
-      else phase = "luteal";
-      parts.push(`今天是${PHASE_LABEL[phase]}，${PHASE_ADVICE[phase][Math.floor(Math.random()*PHASE_ADVICE[phase].length)]}`);
+      let phaseStart = 0;
+      const ovulationStart = Math.max(5, avgCycle - 18);
+      const ovulationEnd = Math.max(5, avgCycle - 12);
+      if(daysSince < 5){ phase = "period"; phaseStart = 0; }
+      else if(daysSince < ovulationStart){ phase = "follicular"; phaseStart = 5; }
+      else if(daysSince <= ovulationEnd){ phase = "ovulation"; phaseStart = ovulationStart; }
+      else { phase = "luteal"; phaseStart = ovulationEnd + 1; }
+      const dayInPhase = daysSince - phaseStart + 1;
+      parts.push(`今天是${PHASE_LABEL[phase]}第${dayInPhase}天，${PHASE_ADVICE[phase][Math.floor(Math.random()*PHASE_ADVICE[phase].length)]}`);
     }
   }
 
