@@ -3915,19 +3915,19 @@ function prediction(){
 }
 
 /* ===================== AI 洞察提醒（周期 Tab）=====================
-   接入智谱 GLM 开放平台 API（bigmodel.cn），把用户已记录的周期/体重/排便/运动数据
-   整理成摘要，让 AI 生成一条简短、有建设性的健康小提醒。
+   接入 Google Gemini API（Google AI Studio / generativelanguage.googleapis.com），
+   把用户已记录的周期/体重/排便/运动数据整理成摘要，让 AI 生成一条简短、有建设性的健康小提醒。
    由于本项目是纯前端部署在 GitHub Pages 上（没有后台），
-   这里采用「用户自己填入智谱 API Key，浏览器直接调用」的方式：
+   这里采用「用户自己填入 Gemini API Key，浏览器直接调用」的方式：
    Key 只会保存在用户自己浏览器的 localStorage 里，不会上传到任何服务器。
-   注意：智谱官方接口是否放开浏览器跨域（CORS）目前未完全确认——如果生成时
-   一直报"网络异常"，大概率是被 CORS 拦截了，需要自建一个小转发代理才能用。 */
+   Gemini API Key 可在 Google AI Studio（aistudio.google.com/apikey）免费申请，
+   官方接口是允许浏览器直接跨域调用的，不需要额外的转发代理。 */
 const AI_KEY_STORAGE = "bodyDiary_aiKey";
 const AI_MODEL_STORAGE = "bodyDiary_aiModel";
 const AI_TITLE_STORAGE = "bodyDiary_aiTitle";
 const AI_CACHE_STORAGE = "bodyDiary_aiCache"; // {text, ts, sig}
-const AI_ENDPOINT = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
-const AI_DEFAULT_MODEL = "glm-5.3"; // 如智谱官方模型 ID 有变化，可在设置里改成实际 ID（如 glm-5.3-flash 等）
+const AI_ENDPOINT_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
+const AI_DEFAULT_MODEL = "gemini-3.6-flash"; // 如 Gemini 官方模型 ID 有变化，可在设置里改成实际 ID
 
 function getAIApiKey(){ return (localStorage.getItem(AI_KEY_STORAGE) || "").trim(); }
 function getAIModel(){ return (localStorage.getItem(AI_MODEL_STORAGE) || AI_DEFAULT_MODEL).trim(); }
@@ -3945,7 +3945,7 @@ function renameAIInsight(){
 function openAISettings(){
   const curKey = getAIApiKey();
   const val = prompt(
-    "请输入你的智谱 GLM API Key（在 bigmodel.cn 控制台 → API Key 页面获取）。\n" +
+    "请输入你的 Gemini API Key（在 aistudio.google.com/apikey 页面获取）。\n" +
     "只会保存在你这台设备的浏览器里，不会上传到任何服务器：",
     curKey
   );
@@ -3954,7 +3954,7 @@ function openAISettings(){
   if(val.trim()){
     const curModel = getAIModel();
     const modelVal = prompt(
-      "使用的模型 ID 是？（默认 glm-5.3，如果官方实际 ID 不同可以在这里改）：",
+      "使用的模型 ID 是？（默认 gemini-3.6-flash，如果官方实际 ID 不同可以在这里改）：",
       curModel
     );
     if(modelVal && modelVal.trim()) localStorage.setItem(AI_MODEL_STORAGE, modelVal.trim());
@@ -4025,8 +4025,9 @@ function buildAIDataSummary(){
   return lines.join("\n");
 }
 
-async function callZhipuAI(summaryText){
+async function callGeminiAI(summaryText){
   const apiKey = getAIApiKey();
+  const model = getAIModel();
   const systemPrompt = "你是一个贴心的女性身体记录App里的健康小助手。根据用户提供的月经周期/体重/排便/运动数据摘要，" +
     "生成一段简短、温暖、有实际建设性的提醒（80~150字，中文）。要求：" +
     "1）先给出1个最值得关注的观察（比如周期变化、便秘天数、运动不足等），语气温柔不说教；" +
@@ -4035,28 +4036,32 @@ async function callZhipuAI(summaryText){
     "4）不要用 Markdown 标题或列表符号，直接输出自然段落文字；" +
     "5）如果某类数据缺失就不要强行评论那一项。";
 
+  const endpoint = `${AI_ENDPOINT_BASE}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
   let response;
   try{
-    response = await fetch(AI_ENDPOINT, {
+    response = await fetch(endpoint, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: getAIModel(),
-        max_tokens: 400,
-        temperature: 0.8,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `这是我目前记录的身体数据摘要：\n${summaryText}\n\n请给我一条今天的健康小提醒。` }
-        ]
+        systemInstruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        contents: [
+          { role: "user", parts: [{ text: `这是我目前记录的身体数据摘要：\n${summaryText}\n\n请给我一条今天的健康小提醒。` }] }
+        ],
+        generationConfig: {
+          temperature: 0.8,
+          maxOutputTokens: 400
+        }
       })
     });
   }catch(networkErr){
-    /* 大概率是被智谱接口的跨域（CORS）策略拦截了，前端没法直接读到具体原因，
-       只能给出这个最常见的排查方向 */
-    throw new Error("请求没有发出去，可能是网络问题，或者智谱接口不允许浏览器直接跨域调用（需要自建转发代理）");
+    /* Gemini 官方接口一般允许浏览器直接跨域调用，这里大概率是网络本身的问题
+       （断网、被拦截等），前端拿不到更具体的原因，只能给出这个排查方向 */
+    throw new Error("请求没有发出去，可能是网络问题，请检查网络连接后重试");
   }
 
   if(!response.ok){
@@ -4069,8 +4074,11 @@ async function callZhipuAI(summaryText){
   }
 
   const dataResp = await response.json();
-  const text = (dataResp.choices?.[0]?.message?.content || "").trim();
-  if(!text) throw new Error("AI 没有返回内容，请稍后再试");
+  const text = (dataResp.candidates?.[0]?.content?.parts || [])
+    .map(p => p.text || "")
+    .join("")
+    .trim();
+  if(!text) throw new Error("AI 没有返回内容，请稍后再试（可能是被安全策略拦截，可换个说法或稍后重试）");
   return text;
 }
 
@@ -4106,7 +4114,7 @@ async function generateAIInsight(forceNew){
   const apiKey = getAIApiKey();
 
   if(!apiKey){
-    const setNow = confirm("还没有设置智谱 GLM API Key，要现在设置吗？");
+    const setNow = confirm("还没有设置 Gemini API Key，要现在设置吗？");
     if(setNow) openAISettings();
     return;
   }
@@ -4122,7 +4130,7 @@ async function generateAIInsight(forceNew){
   if(body) body.innerHTML = `<span class="ai-insight-empty">AI 正在根据你的数据思考中…</span>`;
 
   try{
-    const text = await callZhipuAI(summary);
+    const text = await callGeminiAI(summary);
     const now = Date.now();
     localStorage.setItem(AI_CACHE_STORAGE, JSON.stringify({ text, ts: now, sig: summary.length }));
     renderAIInsight(text, `刚刚生成 · ${getAIModel()}`);
