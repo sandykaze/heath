@@ -234,6 +234,100 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   background: linear-gradient(135deg, #9BD9A1, #62C6A5);
   box-shadow: 0 6px 18px rgba(98, 198, 165, 0.30);
 }
+.tab-btn.active.tab-trend{
+  background: linear-gradient(135deg, #FFB3C6, #FF6B9B);
+  box-shadow: 0 6px 18px rgba(255, 107, 155, 0.28);
+}
+
+/* 趋势 Tab：今日汇总卡片 */
+.trend-summary-row1{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding-bottom:10px;
+  margin-bottom:8px;
+  border-bottom:1px dashed var(--glass-border);
+}
+.trend-summary-date{
+  font-size:15px;
+  font-weight:800;
+  color:var(--text-main);
+}
+.trend-metric-cards{
+  display:flex;
+  gap:8px;
+  align-items:stretch;
+}
+.trend-metric-card{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  padding:8px 8px 9px;
+  border-radius:var(--radius-md);
+  border:1.5px solid var(--glass-border);
+  background:rgba(255,255,255,0.35);
+  cursor:pointer;
+  transition:background .2s, border-color .2s;
+}
+.trend-metric-card.active{
+  border-color:var(--pop-pink);
+  background:var(--rose-bg);
+}
+.trend-metric-card-head{
+  display:flex;
+  align-items:center;
+  gap:5px;
+}
+.trend-metric-card input[type="radio"]{
+  appearance:none;
+  -webkit-appearance:none;
+  width:14px;
+  height:14px;
+  flex:0 0 14px;
+  border-radius:50%;
+  border:2px solid var(--glass-border);
+  background:#fff;
+  position:relative;
+  cursor:pointer;
+  margin:0;
+}
+.trend-metric-card input[type="radio"]:checked{
+  border-color:var(--pop-pink);
+}
+.trend-metric-card input[type="radio"]:checked::after{
+  content:"";
+  position:absolute;
+  top:50%; left:50%;
+  width:7px; height:7px;
+  border-radius:50%;
+  background:var(--pop-pink);
+  transform:translate(-50%,-50%);
+}
+.trend-metric-label{
+  font-size:11px;
+  font-weight:700;
+  color:var(--text-muted);
+}
+.trend-metric-card.active .trend-metric-label{color:var(--text-main);}
+.trend-metric-val{
+  font-size:11px;
+  font-weight:600;
+  color:var(--text-main);
+  line-height:1.4;
+  word-break:break-all;
+  min-height:calc(1.4em * 3);
+}
+.trend-metric-val.muted{color:var(--text-muted); font-weight:500;}
+.trend-metric-val .diff-val{font-size:10.5px; font-weight:700; margin-left:3px;}
+.trend-chart-section{
+  display:none;
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px dashed var(--glass-border);
+}
+.trend-chart-section.active{display:block;}
 
 /* Card Style 卡片全构架 */
 .card{
@@ -574,33 +668,11 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   font-size:16px; color:var(--pop-pink); font-weight:bold; cursor:pointer; display:grid; place-items:center;
 }
 
-/* 图表顶部数据预览卡 */
-.chart-top-card{
-  padding:4px 2px 14px;
-  margin-bottom:6px;
-  min-height:60px;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  gap:6px;
-  border-bottom:1px dashed rgba(140, 120, 150, 0.18);
-}
-.top-card-row1{display:flex;justify-content:space-between;align-items:center}
-.top-card-date-wrap{display:flex;align-items:center;gap:8px}
-.top-card-row2{display:flex;align-items:center;font-size:12px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;}
-
-.chart-top-card .date-val{font-size:19px;font-weight:700;color:var(--text-main);font-family:var(--font-num);font-variant-numeric: tabular-nums;}
-.chart-top-card .weight-val{font-size:19px;font-weight:700;color:var(--pop-pink);font-family:var(--font-num);font-variant-numeric: tabular-nums;}
-.chart-top-card .weight-val.muted{font-weight:500;color:var(--text-muted);}
-.chart-top-card .diff-val{font-size:13px;margin-left:4px;font-weight:700;font-family:var(--font-num);font-variant-numeric: tabular-nums;}
-
 /* 排便板块：与体重板块结构一致，高亮色改为排便主题的柔玫橘 */
-.poop-val{font-size:19px;font-weight:700;color:var(--pop-poop);font-family:var(--font-num);font-variant-numeric: tabular-nums;}
 .poop-stat-num{color:var(--pop-poop) !important;}
 .poop-scrollbar-thumb{background:linear-gradient(90deg, var(--pop-poop), var(--pop-yellow)) !important;}
 
 /* 运动板块：复用排便的整体结构，仅替换主题色为橄榄黄绿→果绿渐变 */
-.exercise-val{font-size:19px;font-weight:700;color:var(--pop-exercise-2);font-family:var(--font-num);font-variant-numeric: tabular-nums;}
 .exercise-stat-num{color:var(--pop-exercise-2) !important;}
 .exercise-scrollbar-thumb{background:linear-gradient(90deg, #9BD9A1, #62C6A5) !important;}
 
@@ -1314,9 +1386,7 @@ canvas{width:100%;height:100%;display:block}
 
   <div class="nav-tabs">
     <button class="tab-btn active tab-record" onclick="switchTab('calTab')">记录</button>
-    <button class="tab-btn tab-poop" onclick="switchTab('poopTab')">排便</button>
-    <button class="tab-btn tab-exercise" onclick="switchTab('exerciseTab')">运动</button>
-    <button class="tab-btn tab-weight" onclick="switchTab('chartTab')">体重</button>
+    <button class="tab-btn tab-trend" onclick="switchTab('trendTab')">趋势</button>
     <button class="tab-btn tab-cycle" onclick="switchTab('predTab')">周期</button>
   </div>
 
@@ -1442,100 +1512,82 @@ canvas{width:100%;height:100%;display:block}
     </div>
   </div>
 
-  <div id="poopTab" class="tab-content">
+  <div id="trendTab" class="tab-content">
     <div class="card">
-      <div class="chart-top-card poop-top-card">
-        <div class="top-card-row1">
-          <div class="top-card-date-wrap">
-            <span class="date-val" id="poopTopCardDate">滑动或点击点位查看</span>
+      <div class="trend-summary-row1">
+        <span class="trend-summary-date" id="trendDate">—</span>
+        <span id="trendPhase"></span>
+      </div>
+
+      <div class="trend-metric-cards">
+        <label class="trend-metric-card">
+          <div class="trend-metric-card-head">
+            <input type="radio" name="trendMetric" value="weight" onchange="switchTrendMetric('weight')">
+            <span class="trend-metric-label">体重</span>
           </div>
-          <div>
-            <span class="poop-val" id="poopTopCardSize">—</span>
+          <div class="trend-metric-val" id="trendWeightVal">—</div>
+        </label>
+
+        <label class="trend-metric-card">
+          <div class="trend-metric-card-head">
+            <input type="radio" name="trendMetric" value="poop" onchange="switchTrendMetric('poop')">
+            <span class="trend-metric-label">排便</span>
           </div>
-        </div>
-        <div class="top-card-row2">
-          <span id="poopTopCardWeight">当日体重：—</span>
-        </div>
-      </div>
+          <div class="trend-metric-val" id="trendPoopVal">—</div>
+        </label>
 
-      <div class="chart-container" id="poopChartBox">
-        <canvas id="poopChart"></canvas>
-      </div>
-      <div class="chart-scrollbar-track" id="poopChartScrollTrack">
-        <div class="chart-scrollbar-thumb poop-scrollbar-thumb" id="poopChartScrollThumb"></div>
-      </div>
-
-      <div class="statgrid">
-        <div class="stat"><b class="poop-stat-num" id="poopAvgDays">—</b><span>平均排便</span></div>
-        <div class="stat"><b class="poop-stat-num" id="poopMaxStreak">—</b><span>最长连续排便</span></div>
-        <div class="stat"><b class="poop-stat-num" id="poopMaxGap">—</b><span>最长连续便秘</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="exerciseTab" class="tab-content">
-    <div class="card">
-      <div class="chart-top-card exercise-top-card">
-        <div class="top-card-row1">
-          <div class="top-card-date-wrap">
-            <span class="date-val" id="exerciseTopCardDate">滑动或点击点位查看</span>
+        <label class="trend-metric-card">
+          <div class="trend-metric-card-head">
+            <input type="radio" name="trendMetric" value="exercise" onchange="switchTrendMetric('exercise')">
+            <span class="trend-metric-label">运动</span>
           </div>
-          <div>
-            <span class="exercise-val" id="exerciseTopCardMin">—</span>
-          </div>
-        </div>
-        <div class="top-card-row2">
-          <span id="exerciseTopCardTypes">当日运动：—</span>
-        </div>
-        <div class="top-card-row2" style="margin-top:2px;">
-          <span id="exerciseTopCardWeight">当日体重：—</span>
-        </div>
+          <div class="trend-metric-val" id="trendExerciseVal">—</div>
+        </label>
       </div>
 
-      <div class="chart-container" id="exerciseChartBox">
-        <canvas id="exerciseChart"></canvas>
-      </div>
-      <div class="chart-scrollbar-track" id="exerciseChartScrollTrack">
-        <div class="chart-scrollbar-thumb exercise-scrollbar-thumb" id="exerciseChartScrollThumb"></div>
-      </div>
-
-      <div class="statgrid">
-        <div class="stat"><b class="exercise-stat-num" id="exerciseAvgDays">—</b><span>周均运动</span></div>
-        <div class="stat"><b class="exercise-stat-num" id="exerciseAvgMin">—</b><span>日均运动</span></div>
-        <div class="stat"><b class="exercise-stat-num" id="exerciseMaxStreak">—</b><span>最长连续运动</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="chartTab" class="tab-content">
-    <div class="card">
-      <div class="chart-top-card">
-        <div class="top-card-row1">
-          <div class="top-card-date-wrap">
-            <span class="date-val" id="topCardDate">滑动或点击点位查看</span>
-            <span id="topCardPhase"></span>
-          </div>
-          <div>
-            <span class="weight-val" id="topCardWeight">— kg</span>
-            <span class="diff-val" id="topCardDiff"></span>
-          </div>
+      <div class="trend-chart-section" id="trendWeightSection">
+        <div class="chart-container" id="chartBox">
+          <canvas id="chart"></canvas>
         </div>
-        <div class="top-card-row2">
-          <span id="topCardPoop">当日排便：—</span>
+        <div class="chart-scrollbar-track" id="chartScrollTrack">
+          <div class="chart-scrollbar-thumb" id="chartScrollThumb"></div>
+        </div>
+
+        <div class="statgrid">
+          <div class="stat stat-editable" onclick="setTargetWeight()"><b id="targetW">—</b><span>目标体重</span></div>
+          <div class="stat"><b id="targetDiffW">—</b><span>距离目标</span></div>
+          <div class="stat"><b id="change30W">—</b><span>30天变化</span></div>
         </div>
       </div>
 
-      <div class="chart-container" id="chartBox">
-        <canvas id="chart"></canvas>
-      </div>
-      <div class="chart-scrollbar-track" id="chartScrollTrack">
-        <div class="chart-scrollbar-thumb" id="chartScrollThumb"></div>
+      <div class="trend-chart-section" id="trendPoopSection">
+        <div class="chart-container" id="poopChartBox">
+          <canvas id="poopChart"></canvas>
+        </div>
+        <div class="chart-scrollbar-track" id="poopChartScrollTrack">
+          <div class="chart-scrollbar-thumb poop-scrollbar-thumb" id="poopChartScrollThumb"></div>
+        </div>
+
+        <div class="statgrid">
+          <div class="stat"><b class="poop-stat-num" id="poopAvgDays">—</b><span>平均排便</span></div>
+          <div class="stat"><b class="poop-stat-num" id="poopMaxStreak">—</b><span>最长连续排便</span></div>
+          <div class="stat"><b class="poop-stat-num" id="poopMaxGap">—</b><span>最长连续便秘</span></div>
+        </div>
       </div>
 
-      <div class="statgrid">
-        <div class="stat stat-editable" onclick="setTargetWeight()"><b id="targetW">—</b><span>目标体重</span></div>
-        <div class="stat"><b id="targetDiffW">—</b><span>距离目标</span></div>
-        <div class="stat"><b id="change30W">—</b><span>30天变化</span></div>
+      <div class="trend-chart-section" id="trendExerciseSection">
+        <div class="chart-container" id="exerciseChartBox">
+          <canvas id="exerciseChart"></canvas>
+        </div>
+        <div class="chart-scrollbar-track" id="exerciseChartScrollTrack">
+          <div class="chart-scrollbar-thumb exercise-scrollbar-thumb" id="exerciseChartScrollThumb"></div>
+        </div>
+
+        <div class="statgrid">
+          <div class="stat"><b class="exercise-stat-num" id="exerciseAvgDays">—</b><span>周均运动</span></div>
+          <div class="stat"><b class="exercise-stat-num" id="exerciseAvgMin">—</b><span>日均运动</span></div>
+          <div class="stat"><b class="exercise-stat-num" id="exerciseMaxStreak">—</b><span>最长连续运动</span></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1744,6 +1796,7 @@ async function loadCloudData(user){
   drawChart();
   drawPoopChart();
   drawExerciseChart();
+  renderTrendSummary();
   prediction();
 }
 
@@ -1892,14 +1945,109 @@ function setTargetWeight(){
 
 function switchTab(tabId){
   document.querySelectorAll('.tab-btn').forEach((btn, idx)=>{
-    btn.classList.toggle('active', ['calTab','poopTab','exerciseTab','chartTab','predTab'][idx] === tabId);
+    btn.classList.toggle('active', ['calTab','trendTab','predTab'][idx] === tabId);
   });
   document.querySelectorAll('.tab-content').forEach(el=>{
     el.classList.toggle('active', el.id === tabId);
   });
-  if(tabId === 'chartTab') drawChart();
-  if(tabId === 'poopTab') drawPoopChart();
-  if(tabId === 'exerciseTab') drawExerciseChart();
+  if(tabId === 'trendTab'){
+    renderTrendSummary();
+    switchTrendMetric(trendMetric, true);
+  }
+}
+
+/* ===================== 趋势 Tab：今日汇总 + 单选切换图表 ===================== */
+
+const TREND_METRIC_KEY = "bodyDiaryV3_trendMetric";
+let trendMetric = localStorage.getItem(TREND_METRIC_KEY) || "weight";
+
+function renderTrendSummary(){
+  /* 顶部日期与下方明细，跟随趋势图当前选中的那一天；
+     未选中时（初始状态）默认显示今天 */
+  const activeKey = selectedKey || key(new Date());
+  const dayData = data.days[activeKey] || {};
+  const phases = computeCyclePhases();
+  const weightDiffs = computeWeightDifferences();
+
+  /* 第一行：日期 + 星期几 + 什么期 */
+  document.getElementById("trendDate").textContent = formatChartDateWithWeekday(activeKey);
+
+  let phaseKey = null;
+  if(dayData.period === "start" || dayData.period === "on"){
+    phaseKey = "period";
+  } else if(phases[activeKey]){
+    phaseKey = phases[activeKey].phase;
+  }
+  const phaseEl = document.getElementById("trendPhase");
+  phaseEl.innerHTML = phaseKey ? `<span class="tag-phase ${phaseKey}">${PHASE_LABEL[phaseKey]}</span>` : "";
+
+  /* 第二行：当日体重（含变化） */
+  const weightValEl = document.getElementById("trendWeightVal");
+  if(dayData.weight != null){
+    const diff = weightDiffs[activeKey];
+    let diffHtml = "";
+    if(diff != null){
+      if(diff === 0){
+        diffHtml = `<span class="diff-val" style="color:var(--diff-zero);">(±0kg)</span>`;
+      } else {
+        const sign = diff > 0 ? "+" : "";
+        diffHtml = `<span class="diff-val" style="color:${diff > 0 ? "var(--diff-up)" : "var(--diff-down)"};">(${sign}${fmt1(diff)}kg)</span>`;
+      }
+    }
+    weightValEl.classList.remove("muted");
+    weightValEl.innerHTML = `${fmt1(dayData.weight)} kg${diffHtml}`;
+  } else {
+    weightValEl.classList.add("muted");
+    weightValEl.textContent = "当天未记录";
+  }
+
+  /* 第三行：当日排便明细（与记录页格式一致） */
+  const poops = dayData.poops || [];
+  const poopValEl = document.getElementById("trendPoopVal");
+  if(poops.length){
+    poopValEl.classList.remove("muted");
+    poopValEl.textContent = poops.map(p => `${p.size} (${p.hour}:00)${p.note?` [${p.note}]`:''}`).join("，");
+  } else {
+    poopValEl.classList.add("muted");
+    poopValEl.textContent = "当天未记录";
+  }
+
+  /* 第四行：当日运动明细（与记录页格式一致） */
+  const exercises = dayData.exercises || [];
+  const exerciseValEl = document.getElementById("trendExerciseVal");
+  if(exercises.length){
+    const totalMin = exercises.reduce((s,x)=> s + (x.minutes||0), 0);
+    const allTypes = [...new Set(exercises.flatMap(x => x.types || []))].join(" · ");
+    const allNotes = [...new Set(exercises.map(x => (x.note || "").trim()).filter(Boolean))];
+    const head = `${totalMin} 分钟${allTypes ? ` · ${allTypes}` : ""}`;
+    exerciseValEl.classList.remove("muted");
+    exerciseValEl.textContent = allNotes.length ? `${head}（${allNotes.join("；")}）` : head;
+  } else {
+    exerciseValEl.classList.add("muted");
+    exerciseValEl.textContent = "当天未记录";
+  }
+}
+
+function switchTrendMetric(metric, skipSave){
+  trendMetric = metric;
+  if(!skipSave) localStorage.setItem(TREND_METRIC_KEY, metric);
+
+  document.querySelectorAll('input[name="trendMetric"]').forEach(el=>{
+    el.checked = el.value === metric;
+    el.closest('.trend-metric-card')?.classList.toggle('active', el.value === metric);
+  });
+
+  const sections = { weight: "trendWeightSection", poop: "trendPoopSection", exercise: "trendExerciseSection" };
+  Object.keys(sections).forEach(m=>{
+    document.getElementById(sections[m]).classList.toggle("active", m === metric);
+  });
+
+  /* 切换到刚显示出来的卡片后再画图，避免 canvas 容器宽度还是 0 */
+  requestAnimationFrame(()=>{
+    if(metric === "weight") drawChart();
+    if(metric === "poop") drawPoopChart();
+    if(metric === "exercise") drawExerciseChart();
+  });
 }
 
 function getAvgCycleLength(){
@@ -2191,7 +2339,7 @@ function buildDetailRowHtml(k, phases, weightDiffs){
   if(exercises.length){
     const totalMin = exercises.reduce((s,x)=> s + (x.minutes||0), 0);
     const allTypes = [...new Set(exercises.flatMap(x => x.types || []))].join(" · ");
-    /* 和 updateExerciseTopCard 保持一致：如有备注则统一去重收到末尾括号里 */
+    /* 备注统一去重收到末尾括号里 */
     const allNotes = [...new Set(exercises.map(x => (x.note || "").trim()).filter(Boolean))];
     const head = `${totalMin} 分钟${allTypes ? ` · ${allTypes}` : ""}`;
     exerciseVal = allNotes.length ? `${head}（${allNotes.join("；")}）` : head;
@@ -2334,6 +2482,7 @@ function saveDaily(){
   drawChart();
   drawPoopChart();
   drawExerciseChart();
+  renderTrendSummary();
   prediction();
   renderTodayTip();
   closeEditModal();
@@ -2347,6 +2496,7 @@ function clearDaily(){
     drawChart();
     drawPoopChart();
     drawExerciseChart();
+    renderTrendSummary();
     prediction();
     renderTodayTip();
     closeEditModal();
@@ -2659,49 +2809,6 @@ function drawChart(){
     if (foundIdx >= 0) selectedIdx = foundIdx;
   }
 
-  function updateTopCard(p){
-    const dParts = p.date.split("-");
-    const dateFormatted = formatChartDateWithWeekday(p.date);
-    document.getElementById("topCardDate").textContent = dateFormatted;
-    
-    const weightEl = document.getElementById("topCardWeight");
-    if(p.weight != null){
-      weightEl.classList.remove("muted");
-      weightEl.textContent = fmt1(p.weight) + " kg";
-      if(p.diff != null){
-        if(p.diff === 0){
-          document.getElementById("topCardDiff").textContent = "(±0)";
-          document.getElementById("topCardDiff").style.color = "var(--diff-zero)";
-        } else {
-          const sign = p.diff > 0 ? "+" : "";
-          document.getElementById("topCardDiff").textContent = `(${sign}${fmt1(p.diff)} kg)`;
-          document.getElementById("topCardDiff").style.color = p.diff > 0 ? "var(--diff-up)" : "var(--diff-down)";
-        }
-      } else {
-        document.getElementById("topCardDiff").textContent = "";
-      }
-    } else {
-      weightEl.classList.add("muted");
-      weightEl.textContent = "未记录";
-      document.getElementById("topCardDiff").textContent = "";
-    }
-
-    const phaseEl = document.getElementById("topCardPhase");
-    if(p.phase){
-      phaseEl.innerHTML = `<span class="tag-phase ${p.phaseKey}">${p.phase}</span>`;
-    } else {
-      phaseEl.innerHTML = "";
-    }
-
-    const poopEl = document.getElementById("topCardPoop");
-    if(p.poops && p.poops.length){
-      const pStr = p.poops.map(x => `${x.size} (${x.hour}:00)`).join("，");
-      poopEl.textContent = `当日排便：${pStr}`;
-    } else {
-      poopEl.textContent = "当日排便：无";
-    }
-  }
-
   function render(){
     ctx.clearRect(0,0,W,H);
     const totalW = (series.length - 1) * userStep;
@@ -2774,8 +2881,6 @@ function drawChart(){
         ctx.lineWidth=3;
         ctx.strokeStyle="#FF6B9B";
         ctx.stroke();
-
-        updateTopCard(p.raw);
       }
     }
   }
@@ -2837,6 +2942,7 @@ function drawChart(){
           if (newKey !== selectedKey) {
             selectedKey = newKey;
             renderCalendar();
+            renderTrendSummary();
           }
         }
         render();
@@ -2923,22 +3029,6 @@ function computePoopStats(series){
   return {avgPerWeek, maxStreak, maxGap};
 }
 
-function updatePoopTopCard(p){
-  const dParts = p.date.split("-");
-  const dateFormatted = formatChartDateWithWeekday(p.date);
-  document.getElementById("poopTopCardDate").textContent = dateFormatted;
-
-  const sizeEl = document.getElementById("poopTopCardSize");
-  if(p.poops && p.poops.length){
-    sizeEl.innerHTML = p.poops.map(x => `${x.size}<span class="diff-val" style="color:var(--diff-zero);">(${x.hour}:00)</span>`).join("、");
-  } else {
-    sizeEl.textContent = "未排便";
-  }
-
-  const weightEl = document.getElementById("poopTopCardWeight");
-  weightEl.textContent = p.weight != null ? `当日体重：${fmt1(p.weight)}kg` : "当日体重：—";
-}
-
 function dayPoopLevel(d){
   if(!d.poops || !d.poops.length) return null;
   const total = d.poops.reduce((s,x)=> s + (POOP_LEVEL_MAP[x.size] || 1), 0);
@@ -2972,7 +3062,6 @@ function drawPoopChart(){
     if(scrollTrackEl) scrollTrackEl.style.visibility = "hidden";
     ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
     ctx.fillText("暂无数据", W/2, H/2);
-    updatePoopTopCard({date:key(new Date()), weight:null, poops:[]});
     return;
   }
 
@@ -3099,7 +3188,6 @@ function drawPoopChart(){
         ctx.strokeStyle=poopColor;
         ctx.stroke();
       }
-      updatePoopTopCard(pts[selectedIdx].raw);
     }
 
     ctx.restore();
@@ -3190,6 +3278,7 @@ function drawPoopChart(){
             if (newKey !== selectedKey) {
               selectedKey = newKey;
               renderCalendar();
+              renderTrendSummary();
             }
           }
         }
@@ -3293,41 +3382,6 @@ function computeExerciseStats(series){
   return {avgDaysPerWeek, avgMinPerDay, maxStreak};
 }
 
-function updateExerciseTopCard(p){
-  const dParts = p.date.split("-");
-  const dateFormatted = formatChartDateWithWeekday(p.date);
-  document.getElementById("exerciseTopCardDate").textContent = dateFormatted;
-
-  const minEl = document.getElementById("exerciseTopCardMin");
-  if(p.exercises && p.exercises.length){
-    const total = p.exercises.reduce((s, e) => s + (e.minutes || 0), 0);
-    minEl.textContent = total + " 分钟";
-  } else {
-    minEl.textContent = "未运动";
-  }
-
-  const typesEl = document.getElementById("exerciseTopCardTypes");
-  if (p.exercises && p.exercises.length) {
-    // 按每次运动分别展示：项目(时间)[备注]
-    // 例如：当日运动：功能性训练(15分钟)[有点累]
-    const exerciseParts = p.exercises.map(e => {
-      const types = Array.isArray(e.types) && e.types.length
-        ? e.types.join(" · ")
-        : "未选择项目";
-      const minutes = Number(e.minutes) || 0;
-      const duration = `(${minutes}分钟)`;
-      const note = (e.note || "").trim();
-      return `${types}${duration}${note ? `[${note}]` : ""}`;
-    });
-    typesEl.textContent = `当日运动：${exerciseParts.join("；")}`;
-  } else {
-    typesEl.textContent = "当日运动：无";
-  }
-
-  const weightEl = document.getElementById("exerciseTopCardWeight");
-  weightEl.textContent = p.weight != null ? `当日体重：${fmt1(p.weight)}kg` : "当日体重：—";
-}
-
 function dayExerciseMin(d){
   if(!d.exercises || !d.exercises.length) return null;
   const total = d.exercises.reduce((s,x)=> s + (x.minutes||0), 0);
@@ -3362,7 +3416,6 @@ function drawExerciseChart(){
     if(scrollTrackEl) scrollTrackEl.style.visibility = "hidden";
     ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
     ctx.fillText("暂无数据", W/2, H/2);
-    updateExerciseTopCard({date:key(new Date()), weight:null, exercises:[]});
     return;
   }
 
@@ -3486,7 +3539,6 @@ function drawExerciseChart(){
         ctx.strokeStyle=exerciseColor;
         ctx.stroke();
       }
-      updateExerciseTopCard(pts[selectedIdx].raw);
     }
 
     ctx.restore();
@@ -3563,6 +3615,7 @@ function drawExerciseChart(){
             if (newKey !== selectedKey) {
               selectedKey = newKey;
               renderCalendar();
+              renderTrendSummary();
             }
           }
         }
@@ -3795,7 +3848,13 @@ function importData(e){
 // 正式版不再向新用户注入测试/演示数据。用户首次打开时从空白本地数据开始。
 
 window.onload = init;
-window.onresize = function(){ drawChart(); drawPoopChart(); drawExerciseChart(); };
+window.onresize = function(){
+  if(document.getElementById("trendTab").classList.contains("active")){
+    if(trendMetric === "weight") drawChart();
+    if(trendMetric === "poop") drawPoopChart();
+    if(trendMetric === "exercise") drawExerciseChart();
+  }
+};
 </script>
 </body>
 </html>
