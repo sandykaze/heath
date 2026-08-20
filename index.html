@@ -3805,7 +3805,7 @@ function buildTodayTip(){
       else if(daysSince <= ovulationEnd){ phase = "ovulation"; phaseStart = ovulationStart; }
       else { phase = "luteal"; phaseStart = ovulationEnd + 1; }
       const dayInPhase = daysSince - phaseStart + 1;
-      parts.push(`今天是${PHASE_LABEL[phase]}第${dayInPhase}天，${PHASE_ADVICE[phase][Math.floor(Math.random()*PHASE_ADVICE[phase].length)]}`);
+      parts.push({ text: `今天是${PHASE_LABEL[phase]}第${dayInPhase}天，${PHASE_ADVICE[phase][Math.floor(Math.random()*PHASE_ADVICE[phase].length)]}`, punct: "。" });
     }
   }
 
@@ -3821,9 +3821,9 @@ function buildTodayTip(){
     if(data.days[twoAgoKey] && data.days[twoAgoKey].weight != null){
       const pastW = data.days[twoAgoKey].weight;
       const diff = Number((latestW - pastW).toFixed(1));
-      if(diff > 0) parts.push(`这两天体重上升了${diff}kg`);
-      else if(diff < 0) parts.push(`这两天体重下降了${Math.abs(diff)}kg`);
-      else parts.push(`这两天体重很稳定`);
+      if(diff > 0) parts.push({ text: `这两天体重上升了${diff}kg`, punct: "，" });
+      else if(diff < 0) parts.push({ text: `这两天体重下降了${Math.abs(diff)}kg`, punct: "，" });
+      else parts.push({ text: `这两天体重很稳定`, punct: "，" });
     }
   }
 
@@ -3836,10 +3836,10 @@ function buildTodayTip(){
       const has = poopSeries[i].poops && poopSeries[i].poops.length > 0;
       if(has === lastHasPoop) streak++; else break;
     }
-    parts.push(lastHasPoop ? `已连续排便${streak}天` : `已经${streak}天没有排便`);
+    parts.push({ text: lastHasPoop ? `已连续排便${streak}天` : `已经${streak}天没有排便`, punct: "。" });
   }
 
-  /* ===== 4. 鼓励语打底 ===== */
+  /* ===== 4. 鼓励语打底（必然是数组最后一项）===== */
   const encourages = [
     "今天也要元气满满哦",
     "照顾好自己，慢慢来",
@@ -3859,17 +3859,15 @@ function buildTodayTip(){
     "给自己一个大大的拥抱",
     "慢慢来，一切都来得及"
   ];
-  parts.push(encourages[Math.floor(Math.random()*encourages.length)]);
+  parts.push({ text: encourages[Math.floor(Math.random()*encourages.length)], punct: "" });
 
-  // 周期提示后用句号；体重提示后用逗号；排便提示后保留句号
+  /* 每一项自带该用的标点（不再依赖数组下标猜内容类型，避免某项缺失时
+     后面几项集体错位、导致结尾出现"逗号/句号紧贴～"的问题）；
+     最后一项固定是鼓励语，强制清空标点，只留最终的"～"。 */
   let tip = "";
-  parts.forEach((part, i) => {
-    let punctuation = "，";
-    if(i === 0 && starts.length >= 2) punctuation = "。";
-    else if(i === 1) punctuation = "，";
-    else if(i === 2 && poopSeries.length) punctuation = "。";
-    else if(i === parts.length - 1) punctuation = "";
-    tip += part + punctuation;
+  parts.forEach((item, i) => {
+    const isLast = (i === parts.length - 1);
+    tip += item.text + (isLast ? "" : item.punct);
   });
   return tip + "～";
 }
