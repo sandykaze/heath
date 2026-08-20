@@ -2697,7 +2697,7 @@ function drawMonotoneSpline(ctx, points, color) {
 
 let userStep = 85;
 let userZoomed = false;
-const DEFAULT_VISIBLE_DAYS = 20;
+const DEFAULT_VISIBLE_DAYS = 10;
 
 function drawChart(){
   const box = document.getElementById("chartBox");
@@ -3086,7 +3086,7 @@ function drawPoopChart(){
     scrollThumb.style.left = (scrollRatio * (100 - thumbPct)) + "%";
   }
 
-  const POOP_DEFAULT_VISIBLE_DAYS = 20;
+  const POOP_DEFAULT_VISIBLE_DAYS = 10;
   if(!poopUserZoomed){
     poopUserStep = Math.max(15, Math.min(150, plotW / (Math.min(POOP_DEFAULT_VISIBLE_DAYS, series.length) - 1 || 1)));
   }
@@ -3442,7 +3442,7 @@ function drawExerciseChart(){
     scrollThumb.style.left = (scrollRatio * (100 - thumbPct)) + "%";
   }
 
-  const EXERCISE_DEFAULT_VISIBLE_DAYS = 20;
+  const EXERCISE_DEFAULT_VISIBLE_DAYS = 10;
   if(!exerciseUserZoomed){
     exerciseUserStep = Math.max(15, Math.min(150, plotW / (Math.min(EXERCISE_DEFAULT_VISIBLE_DAYS, series.length) - 1 || 1)));
   }
