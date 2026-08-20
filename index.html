@@ -253,74 +253,68 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   font-weight:800;
   color:var(--text-main);
 }
-.trend-metric-cards{
+.trend-metric-row{
   display:flex;
+  align-items:flex-start;
   gap:8px;
-  align-items:stretch;
-}
-.trend-metric-card{
-  flex:1;
-  min-width:0;
-  display:flex;
-  flex-direction:column;
-  gap:5px;
-  padding:8px 8px 9px;
-  border-radius:var(--radius-md);
-  border:1.5px solid var(--glass-border);
-  background:rgba(255,255,255,0.35);
+  padding:5px 2px;
   cursor:pointer;
-  transition:background .2s, border-color .2s;
+  border-radius:var(--radius-md);
+  transition:background .2s;
 }
-.trend-metric-card.active{
-  border-color:var(--pop-pink);
-  background:var(--rose-bg);
+.trend-metric-row:not(:last-child){
+  border-bottom:1px solid var(--glass-border);
 }
-.trend-metric-card-head{
-  display:flex;
-  align-items:center;
-  gap:5px;
-}
-.trend-metric-card input[type="radio"]{
+.trend-metric-row:active{background:rgba(0,0,0,0.03);}
+.trend-metric-row input[type="radio"]{
   appearance:none;
   -webkit-appearance:none;
-  width:14px;
-  height:14px;
-  flex:0 0 14px;
+  width:15px;
+  height:15px;
+  flex:0 0 15px;
+  margin-top:2px;
   border-radius:50%;
   border:2px solid var(--glass-border);
   background:#fff;
   position:relative;
   cursor:pointer;
-  margin:0;
 }
-.trend-metric-card input[type="radio"]:checked{
+.trend-metric-row input[type="radio"]:checked{
   border-color:var(--pop-pink);
 }
-.trend-metric-card input[type="radio"]:checked::after{
+.trend-metric-row input[type="radio"]:checked::after{
   content:"";
   position:absolute;
   top:50%; left:50%;
-  width:7px; height:7px;
+  width:8px; height:8px;
   border-radius:50%;
   background:var(--pop-pink);
   transform:translate(-50%,-50%);
 }
+/* 各项目对应各自主题色：体重=粉，排便=蜜桃，运动=薄荷绿 */
+.trend-metric-row input[type="radio"][value="weight"]:checked{border-color:var(--pop-pink);}
+.trend-metric-row input[type="radio"][value="weight"]:checked::after{background:var(--pop-pink);}
+.trend-metric-row input[type="radio"][value="poop"]:checked{border-color:var(--pop-poop);}
+.trend-metric-row input[type="radio"][value="poop"]:checked::after{background:var(--pop-poop);}
+.trend-metric-row input[type="radio"][value="exercise"]:checked{border-color:var(--pop-exercise-2);}
+.trend-metric-row input[type="radio"][value="exercise"]:checked::after{background:var(--pop-exercise-2);}
+.trend-metric-body{flex:1; min-width:0;}
 .trend-metric-label{
-  font-size:11px;
+  font-size:10.5px;
   font-weight:700;
   color:var(--text-muted);
+  margin-bottom:1px;
+  display:block;
 }
-.trend-metric-card.active .trend-metric-label{color:var(--text-main);}
 .trend-metric-val{
-  font-size:11px;
-  font-weight:600;
+  font-size:12.5px;
+  font-weight:700;
   color:var(--text-main);
-  line-height:1.4;
+  line-height:1.35;
   word-break:break-all;
-  min-height:calc(1.4em * 3);
 }
 .trend-metric-val.muted{color:var(--text-muted); font-weight:500;}
-.trend-metric-val .diff-val{font-size:10.5px; font-weight:700; margin-left:3px;}
+.trend-metric-val .diff-val{font-size:11px; font-weight:700; margin-left:4px;}
 .trend-chart-section{
   display:none;
   margin-top:14px;
@@ -1519,31 +1513,29 @@ canvas{width:100%;height:100%;display:block}
         <span id="trendPhase"></span>
       </div>
 
-      <div class="trend-metric-cards">
-        <label class="trend-metric-card">
-          <div class="trend-metric-card-head">
-            <input type="radio" name="trendMetric" value="weight" onchange="switchTrendMetric('weight')">
-            <span class="trend-metric-label">体重</span>
-          </div>
-          <div class="trend-metric-val" id="trendWeightVal">—</div>
-        </label>
+      <label class="trend-metric-row">
+        <input type="radio" name="trendMetric" value="weight" onchange="switchTrendMetric('weight')">
+        <div class="trend-metric-body">
+          <span class="trend-metric-label">体重</span>
+          <span class="trend-metric-val" id="trendWeightVal">—</span>
+        </div>
+      </label>
 
-        <label class="trend-metric-card">
-          <div class="trend-metric-card-head">
-            <input type="radio" name="trendMetric" value="poop" onchange="switchTrendMetric('poop')">
-            <span class="trend-metric-label">排便</span>
-          </div>
-          <div class="trend-metric-val" id="trendPoopVal">—</div>
-        </label>
+      <label class="trend-metric-row">
+        <input type="radio" name="trendMetric" value="poop" onchange="switchTrendMetric('poop')">
+        <div class="trend-metric-body">
+          <span class="trend-metric-label">排便</span>
+          <span class="trend-metric-val" id="trendPoopVal">—</span>
+        </div>
+      </label>
 
-        <label class="trend-metric-card">
-          <div class="trend-metric-card-head">
-            <input type="radio" name="trendMetric" value="exercise" onchange="switchTrendMetric('exercise')">
-            <span class="trend-metric-label">运动</span>
-          </div>
-          <div class="trend-metric-val" id="trendExerciseVal">—</div>
-        </label>
-      </div>
+      <label class="trend-metric-row">
+        <input type="radio" name="trendMetric" value="exercise" onchange="switchTrendMetric('exercise')">
+        <div class="trend-metric-body">
+          <span class="trend-metric-label">运动</span>
+          <span class="trend-metric-val" id="trendExerciseVal">—</span>
+        </div>
+      </label>
 
       <div class="trend-chart-section" id="trendWeightSection">
         <div class="chart-container" id="chartBox">
@@ -2016,12 +2008,11 @@ function renderTrendSummary(){
   const exercises = dayData.exercises || [];
   const exerciseValEl = document.getElementById("trendExerciseVal");
   if(exercises.length){
-    const totalMin = exercises.reduce((s,x)=> s + (x.minutes||0), 0);
-    const allTypes = [...new Set(exercises.flatMap(x => x.types || []))].join(" · ");
-    const allNotes = [...new Set(exercises.map(x => (x.note || "").trim()).filter(Boolean))];
-    const head = `${totalMin} 分钟${allTypes ? ` · ${allTypes}` : ""}`;
     exerciseValEl.classList.remove("muted");
-    exerciseValEl.textContent = allNotes.length ? `${head}（${allNotes.join("；")}）` : head;
+    exerciseValEl.textContent = exercises.map(x => {
+      const typesStr = (x.types && x.types.length) ? x.types.join("+") : "运动";
+      return `${typesStr}运动(${x.minutes||0}分钟)${x.note?`[${x.note}]`:''}`;
+    }).join("，");
   } else {
     exerciseValEl.classList.add("muted");
     exerciseValEl.textContent = "当天未记录";
@@ -2034,7 +2025,6 @@ function switchTrendMetric(metric, skipSave){
 
   document.querySelectorAll('input[name="trendMetric"]').forEach(el=>{
     el.checked = el.value === metric;
-    el.closest('.trend-metric-card')?.classList.toggle('active', el.value === metric);
   });
 
   const sections = { weight: "trendWeightSection", poop: "trendPoopSection", exercise: "trendExerciseSection" };
