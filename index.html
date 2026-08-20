@@ -4053,8 +4053,10 @@ async function callGeminiAI(summaryText){
           { role: "user", parts: [{ text: `这是我目前记录的身体数据摘要：\n${summaryText}\n\n请给我一条今天的健康小提醒。` }] }
         ],
         generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 400
+          maxOutputTokens: 2048,
+          thinkingConfig: {
+            thinkingLevel: "low"
+          }
         }
       })
     });
@@ -4074,11 +4076,18 @@ async function callGeminiAI(summaryText){
   }
 
   const dataResp = await response.json();
+  const finishReason = dataResp.candidates?.[0]?.finishReason;
+  /* Gemini 3 系列会先在 parts 里返回一段内部"思考"文本（thought: true），
+     这段思考通常是英文、不是最终答案，必须过滤掉，只保留正式回答的 part */
   const text = (dataResp.candidates?.[0]?.content?.parts || [])
+    .filter(p => !p.thought)
     .map(p => p.text || "")
     .join("")
     .trim();
-  if(!text) throw new Error("AI 没有返回内容，请稍后再试（可能是被安全策略拦截，可换个说法或稍后重试）");
+  if(!text){
+    if(finishReason === "MAX_TOKENS") throw new Error("AI 思考占用过多，正文还没生成完就被截断了，请重试一次");
+    throw new Error("AI 没有返回内容，请稍后再试（可能是被安全策略拦截，可换个说法或稍后重试）");
+  }
   return text;
 }
 
