@@ -3971,6 +3971,7 @@ function buildAIDataSummary(){
   const starts = allKeys.filter(k => data.days[k].period === "start");
   if(starts.length >= 2){
     const avgPrecise = getAvgCycleLengthPrecise();
+    const avgCycle = getAvgCycleLength();
     const lastStart = starts.at(-1);
     const daysSince = Math.round((new Date(todayKey+"T00:00:00") - new Date(lastStart+"T00:00:00")) / 86400000);
     lines.push(`【月经周期】共记录 ${starts.length} 次经期开始，平均周期 ${avgPrecise} 天；最近一次经期开始于 ${lastStart}，距今 ${daysSince} 天。`);
@@ -3979,6 +3980,18 @@ function buildAIDataSummary(){
       recentDiffs.push(Math.round((new Date(starts[i]+"T00:00:00") - new Date(starts[i-1]+"T00:00:00")) / 86400000));
     }
     if(recentDiffs.length) lines.push(`最近几次周期长度（天）：${recentDiffs.join("、")}。`);
+    // 当前周期阶段（与今日提示同一套分桶逻辑），方便 AI 针对性给出情绪/身体感受相关的建议
+    if(daysSince >= 0){
+      let phase = null, phaseStart = 0;
+      const ovulationStart = Math.max(5, avgCycle - 18);
+      const ovulationEnd = Math.max(5, avgCycle - 12);
+      if(daysSince < 5){ phase = "period"; phaseStart = 0; }
+      else if(daysSince < ovulationStart){ phase = "follicular"; phaseStart = 5; }
+      else if(daysSince <= ovulationEnd){ phase = "ovulation"; phaseStart = ovulationStart; }
+      else { phase = "luteal"; phaseStart = ovulationEnd + 1; }
+      const dayInPhase = daysSince - phaseStart + 1;
+      lines.push(`【当前周期阶段】今天正处于${PHASE_LABEL[phase]}第 ${dayInPhase} 天。`);
+    }
   } else if(starts.length === 1){
     lines.push(`【月经周期】目前只记录了 1 次经期开始（${starts[0]}），周期数据还不够计算规律。`);
   } else {
@@ -4026,13 +4039,28 @@ function buildAIDataSummary(){
 async function callGeminiAI(summaryText){
   const apiKey = getAIApiKey();
   const model = getAIModel();
-  const systemPrompt = "你是一个贴心的女性身体记录App里的健康小助手。根据用户提供的月经周期/体重/排便/运动数据摘要，" +
-    "生成一段简短、温暖、有实际建设性的提醒（80~150字，中文）。要求：" +
-    "1）先给出1个最值得关注的观察（比如周期变化、便秘天数、运动不足等），语气温柔不说教；" +
-    "2）给出1~2条具体可执行的小建议；" +
-    "3）不要输出诊断结论，不要说“你可能患有xx”，只做生活习惯层面的建议；" +
-    "4）不要用 Markdown 标题或列表符号，直接输出自然段落文字；" +
-    "5）如果某类数据缺失就不要强行评论那一项。";
+  const systemPrompt = "你是一个贴心的女性身体记录App里的情绪关怀小助手。根据用户提供的月经周期阶段/体重/排便/运动数据摘要，" +
+    "生成一段有共情力、细腻温暖的情绪关怀提醒（中文，字数不设上限，尽量写得丰富、有细节，不要写得像敷衍的一两句话）。" +
+    "这个功能的核心目的，是结合月经周期的不同阶段，关注用户可能出现的情绪和身体感受变化，尤其是：" +
+    "经前期/黄体期常见的水肿、乳房胀痛、小腹坠胀、情绪低落、烦躁易怒、敏感爱哭、食欲变化、睡眠变差；" +
+    "经期本身的疼痛、乏力、怕冷、情绪脆弱；排卵期前后的轻微身体不适和情绪波动；" +
+    "卵泡期相对轻松、精力回升的状态对比。请充分结合摘要里给出的『当前周期阶段』信息，具体展开对应阶段的情绪科普和安抚，" +
+    "而不是泛泛而谈。要求：" +
+    "1）开头先温柔地点出当前所处的周期阶段，以及这个阶段身体和情绪上可能出现的正常反应，让用户明白『这不是你的问题，是身体在正常波动』，" +
+    "帮她把生理变化和情绪状态联系起来，减少自我怀疑和自我苛责；" +
+    "2）如果体重/排便/运动数据里有和当前周期阶段相关的联系（比如黄体期水肿导致体重上升、经期食欲和排便变化、运动量不足可能加重情绪低落等），" +
+    "也可以自然地结合进去，帮用户理解这些变化是一体的，不是孤立的问题；" +
+    "3）给出2~3条具体、温和、可执行的情绪/身体安抚建议（比如如何缓解水肿、如何应对情绪低落和易怒、如何调整作息和饮食、" +
+    "什么时候适合对自己更宽容一些、什么时候可以主动找人倾诉或独处），建议要具体到行为层面，不要空泛；" +
+    "4）语气要像一个非常懂经期知识、很会说话、很有耐心的闺蜜或专业陪伴者，多用『没关系』『很正常』『慢慢来』这类接纳性的语言，" +
+    "让用户感到被理解、被陪伴，而不是被说教或被指导；" +
+    "5）不要输出诊断结论，不要说『你可能患有xx』或暗示是疾病，只从生活习惯和情绪陪伴的角度给建议，" +
+    "如果情绪或身体不适非常严重，可以温和地建议必要时咨询医生，但不要吓唬用户；" +
+    "6）不要用 Markdown 标题、编号或列表符号，用自然流畅的中文段落文字表达，可以分成2~3段，" +
+    "段落之间过渡自然，读起来像一段完整的贴心话，而不是罗列的要点；" +
+    "7）如果周期数据不足（比如只有一次经期记录或完全没有记录），就不要强行编造当前周期阶段，" +
+    "可以换成更通用的、关于情绪自我关怀的提醒，同样要写得细腻、有内容，不要因为没有周期数据就写得敷衍简短；" +
+    "8）如果某类数据完全缺失（比如没有体重或排便记录），就不要强行评论那一项，也不要提及『没有记录』这种字眼，直接跳过即可。";
 
   const endpoint = `${AI_ENDPOINT_BASE}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
@@ -4048,10 +4076,10 @@ async function callGeminiAI(summaryText){
           parts: [{ text: systemPrompt }]
         },
         contents: [
-          { role: "user", parts: [{ text: `这是我目前记录的身体数据摘要：\n${summaryText}\n\n请给我一条今天的健康小提醒。` }] }
+          { role: "user", parts: [{ text: `这是我目前记录的身体数据摘要：\n${summaryText}\n\n请结合我当前的周期阶段，给我一条今天的情绪关怀提醒。` }] }
         ],
         generationConfig: {
-          maxOutputTokens: 2048,
+          maxOutputTokens: 4096,
           thinkingConfig: {
             thinkingLevel: "low"
           }
