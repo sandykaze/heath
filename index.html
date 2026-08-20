@@ -881,6 +881,50 @@ canvas{width:100%;height:100%;display:block}
 }
 .ai-insight-empty{color:var(--text-muted);font-weight:600;font-size:12.5px;}
 .ai-insight-error{color:var(--pop-orange);font-weight:600;font-size:12.5px;}
+.ai-history-list{
+  max-height:60vh;
+  overflow-y:auto;
+  margin-top:6px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.ai-history-item{
+  border:1px solid var(--glass-border);
+  background:rgba(255,255,255,.5);
+  border-radius:16px;
+  padding:12px 14px;
+  cursor:pointer;
+}
+.ai-history-item-meta{
+  font-size:10.5px;
+  color:var(--text-light);
+  font-weight:700;
+  margin-bottom:6px;
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+}
+.ai-history-item-text{
+  font-size:13px;
+  line-height:1.65;
+  color:var(--text-main);
+  font-weight:500;
+  white-space:pre-wrap;
+}
+.ai-history-item-text.clamped{
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.ai-history-empty-hint{
+  font-size:12px;
+  color:var(--text-muted);
+  font-weight:600;
+  line-height:1.6;
+  padding:6px 2px;
+}
 .ai-insight-meta{
   margin-top:10px;
   font-size:10.5px;
@@ -1696,6 +1740,7 @@ canvas{width:100%;height:100%;display:block}
           <span class="ai-insight-title" id="aiInsightTitle">AI建议</span>
         </div>
         <div class="ai-insight-actions">
+          <button class="ai-insight-btn" id="aiInsightHistoryBtn" onclick="openAIHistory()" title="查看历史">🕘</button>
           <button class="ai-insight-btn" id="aiInsightRefreshBtn" onclick="generateAIInsight(true)" title="重新生成">↻</button>
           <button class="ai-insight-btn" onclick="openAISettings()" title="设置 AI Key">⚙</button>
         </div>
@@ -1704,6 +1749,18 @@ canvas{width:100%;height:100%;display:block}
         <span class="ai-insight-empty">根据你已记录的周期、体重、排便、运动数据，点右上角「↻」生成一条专属小提醒～</span>
       </div>
       <div class="ai-insight-meta" id="aiInsightMeta"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="aiHistoryOverlay" onclick="closeAIHistory()">
+    <div class="modal-panel" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span>历史 AI 建议</span>
+        <button class="modal-close" onclick="closeAIHistory()" aria-label="关闭">✕</button>
+      </div>
+      <div id="aiHistoryList" class="ai-history-list">
+        <div class="ai-insight-empty">加载中…</div>
+      </div>
     </div>
   </div>
 
@@ -1904,6 +1961,7 @@ async function loadCloudData(user){
   drawExerciseChart();
   renderTrendSummary();
   prediction();
+  loadLatestCloudAIInsight();
 }
 
 async function handleSignedIn(user){
@@ -4144,6 +4202,128 @@ function loadCachedAIInsight(){
   }
 }
 
+/* ===================== AI 建议云端同步 + 历史记录 =====================
+   登录状态下，每次生成的 AI 建议会额外写一行到 Supabase 的 ai_insights 表里
+   （而不是覆盖），这样：
+   1）换设备登录同一账号时，也能看到最近一次生成的建议；
+   2）「🕘 历史」按钮可以拉出过去生成过的所有条目。
+   需要在 Supabase 项目里建好这张表（一次性操作，SQL 见下方 AI_INSIGHTS_TABLE_SQL 注释）：
+
+   create table if not exists public.ai_insights (
+     id uuid primary key default gen_random_uuid(),
+     user_id uuid not null references auth.users(id) on delete cascade,
+     text text not null,
+     model text,
+     created_at timestamptz not null default now()
+   );
+   alter table public.ai_insights enable row level security;
+   create policy "ai_insights_select_own" on public.ai_insights
+     for select using (auth.uid() = user_id);
+   create policy "ai_insights_insert_own" on public.ai_insights
+     for insert with check (auth.uid() = user_id);
+   create policy "ai_insights_delete_own" on public.ai_insights
+     for delete using (auth.uid() = user_id);
+*/
+
+/* 生成成功后，若已登录，把这条建议写入云端历史（不影响本地缓存逻辑） */
+async function saveAIInsightToCloud(text, model){
+  if(!cloudUserId) return;
+  try{
+    const {error} = await supabaseClient.from("ai_insights").insert({
+      user_id: cloudUserId,
+      text,
+      model: model || null
+    });
+    if(error) console.warn("AI 建议云端保存失败:", error);
+  }catch(err){
+    console.warn("AI 建议云端保存失败:", err);
+  }
+}
+
+/* 登录 / 换设备打开 App 时，拉取云端最近一条建议，让「当前建议」跨终端一致 */
+async function loadLatestCloudAIInsight(){
+  if(!cloudUserId) return;
+  try{
+    const {data:rows, error} = await supabaseClient.from("ai_insights")
+      .select("text,model,created_at")
+      .eq("user_id", cloudUserId)
+      .order("created_at", {ascending:false})
+      .limit(1);
+    if(error){ console.warn("读取云端 AI 建议失败:", error); return; }
+    const latest = rows && rows[0];
+    if(!latest) return;
+
+    let localCache = null;
+    try{ localCache = JSON.parse(localStorage.getItem(AI_CACHE_STORAGE) || "null"); }catch(e){}
+    const cloudTs = new Date(latest.created_at).getTime();
+    /* 只有云端这条比本地缓存新（比如在别的设备上生成过），才覆盖当前显示 */
+    if(!localCache || cloudTs > localCache.ts){
+      localStorage.setItem(AI_CACHE_STORAGE, JSON.stringify({text:latest.text, ts:cloudTs, sig:null}));
+      const d = new Date(cloudTs);
+      renderAIInsight(latest.text, `上次生成于 ${key(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`);
+    }
+  }catch(err){
+    console.warn("读取云端 AI 建议失败:", err);
+  }
+}
+
+function openAIHistory(){
+  const overlay = document.getElementById("aiHistoryOverlay");
+  const listEl = document.getElementById("aiHistoryList");
+  if(!overlay || !listEl) return;
+  overlay.classList.add("active");
+
+  if(!cloudUserId){
+    listEl.innerHTML = `<div class="ai-history-empty-hint">登录账号后，这里会显示你在任意设备上生成过的历史建议。当前未登录，只能看到本机最近一条：</div>`;
+    let cache = null;
+    try{ cache = JSON.parse(localStorage.getItem(AI_CACHE_STORAGE) || "null"); }catch(e){}
+    if(cache && cache.text){
+      const d = new Date(cache.ts);
+      listEl.innerHTML += `
+        <div class="ai-history-item">
+          <div class="ai-history-item-meta"><span>${key(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}</span></div>
+          <div class="ai-history-item-text">${escapeHtml(cache.text)}</div>
+        </div>`;
+    }
+    return;
+  }
+
+  listEl.innerHTML = `<div class="ai-insight-empty">加载中…</div>`;
+  supabaseClient.from("ai_insights")
+    .select("id,text,model,created_at")
+    .eq("user_id", cloudUserId)
+    .order("created_at", {ascending:false})
+    .limit(50)
+    .then(({data:rows, error})=>{
+      if(error){
+        listEl.innerHTML = `<span class="ai-insight-error">加载历史失败：${escapeHtml(error.message||"")}</span>`;
+        return;
+      }
+      if(!rows || !rows.length){
+        listEl.innerHTML = `<div class="ai-history-empty-hint">还没有生成过 AI 建议，去周期页点「↻」生成第一条吧～</div>`;
+        return;
+      }
+      listEl.innerHTML = rows.map(r=>{
+        const d = new Date(r.created_at);
+        return `
+          <div class="ai-history-item" onclick="this.querySelector('.ai-history-item-text').classList.toggle('clamped')">
+            <div class="ai-history-item-meta"><span>${key(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}</span><span>${escapeHtml(r.model||"")}</span></div>
+            <div class="ai-history-item-text clamped">${escapeHtml(r.text)}</div>
+          </div>`;
+      }).join("");
+    });
+}
+
+function closeAIHistory(){
+  document.getElementById("aiHistoryOverlay")?.classList.remove("active");
+}
+
+function escapeHtml(str){
+  return String(str||"")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
 async function generateAIInsight(forceNew){
   const btn = document.getElementById("aiInsightRefreshBtn");
   const apiKey = getAIApiKey();
@@ -4169,6 +4349,7 @@ async function generateAIInsight(forceNew){
     const now = Date.now();
     localStorage.setItem(AI_CACHE_STORAGE, JSON.stringify({ text, ts: now, sig: summary.length }));
     renderAIInsight(text, `刚刚生成 · ${getAIModel()}`);
+    saveAIInsightToCloud(text, getAIModel());
   }catch(err){
     renderAIInsightError(err.message || "网络异常，请稍后重试");
   }finally{
