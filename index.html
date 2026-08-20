@@ -305,6 +305,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   color:var(--text-muted);
   margin-bottom:1px;
   display:block;
+  transition:color .2s ease;
 }
 .trend-metric-val{
   font-size:12.5px;
@@ -312,9 +313,45 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   color:var(--text-main);
   line-height:1.35;
   word-break:break-all;
+  transition:color .2s ease;
 }
 .trend-metric-val.muted{color:var(--text-muted); font-weight:500;}
 .trend-metric-val .diff-val{font-size:11px; font-weight:700; margin-left:4px;}
+
+/* 选中某一项（体重/排便/运动）后，整行呈现主题色高亮框，且文字同步变为主题色 */
+.trend-metric-row{
+  transition:background .2s ease;
+}
+.trend-metric-row:has(input:checked){
+  border-radius:var(--radius-sm);
+  padding-left:8px;
+  padding-right:8px;
+}
+.trend-metric-row:has(input[value="weight"]:checked){
+  background:var(--rose-bg);
+}
+.trend-metric-row:has(input[value="weight"]:checked) .trend-metric-label,
+.trend-metric-row:has(input[value="weight"]:checked) .trend-metric-val{
+  color:var(--pop-pink);
+}
+.trend-metric-row:has(input[value="poop"]:checked){
+  background:rgba(255, 158, 125, 0.18);
+}
+.trend-metric-row:has(input[value="poop"]:checked) .trend-metric-label,
+.trend-metric-row:has(input[value="poop"]:checked) .trend-metric-val{
+  color:var(--pop-poop);
+}
+.trend-metric-row:has(input[value="exercise"]:checked){
+  background:var(--exercise-bg);
+}
+.trend-metric-row:has(input[value="exercise"]:checked) .trend-metric-label,
+.trend-metric-row:has(input[value="exercise"]:checked) .trend-metric-val{
+  color:var(--pop-exercise-2);
+}
+.trend-metric-row:has(input:checked) .trend-metric-val.muted{
+  color:inherit;
+  opacity:.85;
+}
 .trend-chart-section{
   display:none;
   margin-top:8px;
