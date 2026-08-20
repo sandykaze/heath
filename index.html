@@ -829,6 +829,66 @@ canvas{width:100%;height:100%;display:block}
   color:var(--text-muted);
 }
 
+/* ===== AI 洞察卡片（周期 Tab 内，AI 生成的建设性提醒）===== */
+.ai-insight-card{margin-top:16px;}
+.ai-insight-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.ai-insight-title-wrap{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  cursor:pointer;
+}
+.ai-insight-icon{font-size:17px;flex-shrink:0;}
+.ai-insight-title{
+  font-family:var(--font-brand);
+  font-weight:600;
+  font-size:15px;
+  color:var(--text-main);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.ai-insight-actions{display:flex;gap:6px;flex-shrink:0;}
+.ai-insight-btn{
+  width:30px;height:30px;
+  border:1px solid var(--glass-border);
+  background:var(--glass-bg);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-radius:50%;
+  color:var(--pop-purple);
+  font-size:14px;
+  cursor:pointer;
+  display:grid;place-items:center;
+  transition:all .2s ease;
+}
+.ai-insight-btn:hover{transform:scale(1.08);box-shadow:0 4px 10px rgba(157,78,221,.18);}
+.ai-insight-btn.loading{animation:aiSpin 1s linear infinite;}
+@keyframes aiSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+.ai-insight-body{
+  margin-top:14px;
+  font-size:13.5px;
+  line-height:1.75;
+  color:var(--text-main);
+  font-weight:500;
+  white-space:pre-wrap;
+}
+.ai-insight-empty{color:var(--text-muted);font-weight:600;font-size:12.5px;}
+.ai-insight-error{color:var(--pop-orange);font-weight:600;font-size:12.5px;}
+.ai-insight-meta{
+  margin-top:10px;
+  font-size:10.5px;
+  color:var(--text-light);
+  font-weight:600;
+  text-align:right;
+}
+
 /* 备份控制与表单 */
 .backup-box{margin-top:24px}
 .backup{display:flex;gap:12px}
@@ -1628,6 +1688,23 @@ canvas{width:100%;height:100%;display:block}
         <div class="prediction-grid" id="predictionList"></div>
       </div>
     </div>
+
+    <div class="card ai-insight-card" id="aiInsightCard">
+      <div class="ai-insight-header">
+        <div class="ai-insight-title-wrap" onclick="renameAIInsight()" title="点击改名字">
+          <span class="ai-insight-icon">💡</span>
+          <span class="ai-insight-title" id="aiInsightTitle">AI建议</span>
+        </div>
+        <div class="ai-insight-actions">
+          <button class="ai-insight-btn" id="aiInsightRefreshBtn" onclick="generateAIInsight(true)" title="重新生成">↻</button>
+          <button class="ai-insight-btn" onclick="openAISettings()" title="设置 AI Key">⚙</button>
+        </div>
+      </div>
+      <div class="ai-insight-body" id="aiInsightBody">
+        <span class="ai-insight-empty">根据你已记录的周期、体重、排便、运动数据，点右上角「↻」生成一条专属小提醒～</span>
+      </div>
+      <div class="ai-insight-meta" id="aiInsightMeta"></div>
+    </div>
   </div>
 
   <div class="auth-overlay" id="authOverlay" onclick="closeAuth()">
@@ -1983,6 +2060,9 @@ function switchTab(tabId){
     renderTrendSummary();
     switchTrendMetric(trendMetric, true);
   }
+  if(tabId === 'predTab'){
+    loadCachedAIInsight();
+  }
 }
 
 /* ===================== 趋势 Tab：今日汇总 + 单选切换图表 ===================== */
@@ -2218,6 +2298,7 @@ function init(){
   drawExerciseChart();
   prediction();
   renderTodayTip();
+  loadCachedAIInsight();
 }
 
 function changeMonth(n){
@@ -3831,6 +3912,225 @@ function prediction(){
     `;
   }
   listEl.innerHTML = listHtml;
+}
+
+/* ===================== AI 洞察提醒（周期 Tab）=====================
+   接入智谱 GLM 开放平台 API（bigmodel.cn），把用户已记录的周期/体重/排便/运动数据
+   整理成摘要，让 AI 生成一条简短、有建设性的健康小提醒。
+   由于本项目是纯前端部署在 GitHub Pages 上（没有后台），
+   这里采用「用户自己填入智谱 API Key，浏览器直接调用」的方式：
+   Key 只会保存在用户自己浏览器的 localStorage 里，不会上传到任何服务器。
+   注意：智谱官方接口是否放开浏览器跨域（CORS）目前未完全确认——如果生成时
+   一直报"网络异常"，大概率是被 CORS 拦截了，需要自建一个小转发代理才能用。 */
+const AI_KEY_STORAGE = "bodyDiary_aiKey";
+const AI_MODEL_STORAGE = "bodyDiary_aiModel";
+const AI_TITLE_STORAGE = "bodyDiary_aiTitle";
+const AI_CACHE_STORAGE = "bodyDiary_aiCache"; // {text, ts, sig}
+const AI_ENDPOINT = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+const AI_DEFAULT_MODEL = "glm-5.3"; // 如智谱官方模型 ID 有变化，可在设置里改成实际 ID（如 glm-5.3-flash 等）
+
+function getAIApiKey(){ return (localStorage.getItem(AI_KEY_STORAGE) || "").trim(); }
+function getAIModel(){ return (localStorage.getItem(AI_MODEL_STORAGE) || AI_DEFAULT_MODEL).trim(); }
+function getAITitle(){ return localStorage.getItem(AI_TITLE_STORAGE) || "AI建议"; }
+
+function renameAIInsight(){
+  const cur = getAITitle();
+  const val = prompt("给这个提醒板块起个名字吧～", cur);
+  if(val && val.trim()){
+    localStorage.setItem(AI_TITLE_STORAGE, val.trim());
+    document.getElementById("aiInsightTitle").textContent = val.trim();
+  }
+}
+
+function openAISettings(){
+  const curKey = getAIApiKey();
+  const val = prompt(
+    "请输入你的智谱 GLM API Key（在 bigmodel.cn 控制台 → API Key 页面获取）。\n" +
+    "只会保存在你这台设备的浏览器里，不会上传到任何服务器：",
+    curKey
+  );
+  if(val === null) return;
+  localStorage.setItem(AI_KEY_STORAGE, val.trim());
+  if(val.trim()){
+    const curModel = getAIModel();
+    const modelVal = prompt(
+      "使用的模型 ID 是？（默认 glm-5.3，如果官方实际 ID 不同可以在这里改）：",
+      curModel
+    );
+    if(modelVal && modelVal.trim()) localStorage.setItem(AI_MODEL_STORAGE, modelVal.trim());
+  }
+}
+
+/* 把当前所有记录整理成给 AI 看的摘要文本 */
+function buildAIDataSummary(){
+  const todayKey = key(new Date());
+  const allKeys = Object.keys(data.days).sort();
+  if(!allKeys.length) return null;
+
+  const lines = [];
+
+  // 周期
+  const starts = allKeys.filter(k => data.days[k].period === "start");
+  if(starts.length >= 2){
+    const avgPrecise = getAvgCycleLengthPrecise();
+    const lastStart = starts.at(-1);
+    const daysSince = Math.round((new Date(todayKey+"T00:00:00") - new Date(lastStart+"T00:00:00")) / 86400000);
+    lines.push(`【月经周期】共记录 ${starts.length} 次经期开始，平均周期 ${avgPrecise} 天；最近一次经期开始于 ${lastStart}，距今 ${daysSince} 天。`);
+    const recentDiffs = [];
+    for(let i = Math.max(1, starts.length - 6); i < starts.length; i++){
+      recentDiffs.push(Math.round((new Date(starts[i]+"T00:00:00") - new Date(starts[i-1]+"T00:00:00")) / 86400000));
+    }
+    if(recentDiffs.length) lines.push(`最近几次周期长度（天）：${recentDiffs.join("、")}。`);
+  } else if(starts.length === 1){
+    lines.push(`【月经周期】目前只记录了 1 次经期开始（${starts[0]}），周期数据还不够计算规律。`);
+  } else {
+    lines.push(`【月经周期】暂无经期记录。`);
+  }
+
+  // 体重
+  const weightKeys = allKeys.filter(k => data.days[k].weight != null);
+  if(weightKeys.length){
+    const latestK = weightKeys.at(-1);
+    const latestW = data.days[latestK].weight;
+    let line = `【体重】最新记录 ${latestW}kg（${latestK}），目标体重 ${data.targetWeight || 50}kg。`;
+    const d30 = new Date(latestK+"T00:00:00"); d30.setDate(d30.getDate() - 30);
+    const pastK = weightKeys.filter(k => new Date(k+"T00:00:00") <= d30).at(-1);
+    if(pastK){
+      const diff = Number((latestW - data.days[pastK].weight).toFixed(1));
+      line += ` 近30天变化：${diff > 0 ? "+" : ""}${diff}kg。`;
+    }
+    lines.push(line);
+  } else {
+    lines.push(`【体重】暂无记录。`);
+  }
+
+  // 排便
+  const poopSeries = buildPoopChartSeries();
+  if(poopSeries.length){
+    const s = computePoopStats(poopSeries);
+    lines.push(`【排便】近期平均每周约 ${s.avgPerWeek ?? "—"} 次，最长连续排便 ${s.maxStreak} 天，最长连续未排便（便秘）${s.maxGap} 天。`);
+  } else {
+    lines.push(`【排便】暂无记录。`);
+  }
+
+  // 运动
+  const exSeries = buildExerciseChartSeries();
+  if(exSeries.length){
+    const s = computeExerciseStats(exSeries);
+    lines.push(`【运动】平均每周运动 ${s.avgDaysPerWeek ?? "—"} 天，运动日平均 ${s.avgMinPerDay ?? "—"} 分钟，最长连续运动 ${s.maxStreak} 天。`);
+  } else {
+    lines.push(`【运动】暂无记录。`);
+  }
+
+  return lines.join("\n");
+}
+
+async function callZhipuAI(summaryText){
+  const apiKey = getAIApiKey();
+  const systemPrompt = "你是一个贴心的女性身体记录App里的健康小助手。根据用户提供的月经周期/体重/排便/运动数据摘要，" +
+    "生成一段简短、温暖、有实际建设性的提醒（80~150字，中文）。要求：" +
+    "1）先给出1个最值得关注的观察（比如周期变化、便秘天数、运动不足等），语气温柔不说教；" +
+    "2）给出1~2条具体可执行的小建议；" +
+    "3）不要输出诊断结论，不要说“你可能患有xx”，只做生活习惯层面的建议；" +
+    "4）不要用 Markdown 标题或列表符号，直接输出自然段落文字；" +
+    "5）如果某类数据缺失就不要强行评论那一项。";
+
+  let response;
+  try{
+    response = await fetch(AI_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: getAIModel(),
+        max_tokens: 400,
+        temperature: 0.8,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: `这是我目前记录的身体数据摘要：\n${summaryText}\n\n请给我一条今天的健康小提醒。` }
+        ]
+      })
+    });
+  }catch(networkErr){
+    /* 大概率是被智谱接口的跨域（CORS）策略拦截了，前端没法直接读到具体原因，
+       只能给出这个最常见的排查方向 */
+    throw new Error("请求没有发出去，可能是网络问题，或者智谱接口不允许浏览器直接跨域调用（需要自建转发代理）");
+  }
+
+  if(!response.ok){
+    let msg = `请求失败（${response.status}）`;
+    try{
+      const errData = await response.json();
+      if(errData?.error?.message) msg = errData.error.message;
+    }catch(e){}
+    throw new Error(msg);
+  }
+
+  const dataResp = await response.json();
+  const text = (dataResp.choices?.[0]?.message?.content || "").trim();
+  if(!text) throw new Error("AI 没有返回内容，请稍后再试");
+  return text;
+}
+
+function renderAIInsight(text, meta){
+  const body = document.getElementById("aiInsightBody");
+  const metaEl = document.getElementById("aiInsightMeta");
+  if(body) body.innerHTML = "";
+  if(body) body.textContent = text;
+  if(metaEl) metaEl.textContent = meta || "";
+}
+
+function renderAIInsightError(msg){
+  const body = document.getElementById("aiInsightBody");
+  if(!body) return;
+  body.innerHTML = `<span class="ai-insight-error">生成失败：${msg}</span>`;
+}
+
+/* 展示缓存中的上一次结果（切换到周期 Tab 时调用，不消耗额外 API 调用） */
+function loadCachedAIInsight(){
+  const titleEl = document.getElementById("aiInsightTitle");
+  if(titleEl) titleEl.textContent = getAITitle();
+
+  let cache = null;
+  try{ cache = JSON.parse(localStorage.getItem(AI_CACHE_STORAGE) || "null"); }catch(e){}
+  if(cache && cache.text){
+    const d = new Date(cache.ts);
+    renderAIInsight(cache.text, `上次生成于 ${key(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}`);
+  }
+}
+
+async function generateAIInsight(forceNew){
+  const btn = document.getElementById("aiInsightRefreshBtn");
+  const apiKey = getAIApiKey();
+
+  if(!apiKey){
+    const setNow = confirm("还没有设置智谱 GLM API Key，要现在设置吗？");
+    if(setNow) openAISettings();
+    return;
+  }
+
+  const summary = buildAIDataSummary();
+  if(!summary){
+    renderAIInsightError("还没有任何记录，先去记几天数据再来吧～");
+    return;
+  }
+
+  if(btn){ btn.classList.add("loading"); btn.disabled = true; }
+  const body = document.getElementById("aiInsightBody");
+  if(body) body.innerHTML = `<span class="ai-insight-empty">AI 正在根据你的数据思考中…</span>`;
+
+  try{
+    const text = await callZhipuAI(summary);
+    const now = Date.now();
+    localStorage.setItem(AI_CACHE_STORAGE, JSON.stringify({ text, ts: now, sig: summary.length }));
+    renderAIInsight(text, `刚刚生成 · ${getAIModel()}`);
+  }catch(err){
+    renderAIInsightError(err.message || "网络异常，请稍后重试");
+  }finally{
+    if(btn){ btn.classList.remove("loading"); btn.disabled = false; }
+  }
 }
 
 function jumpToDate(k){
