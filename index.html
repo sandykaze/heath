@@ -933,6 +933,37 @@ canvas{width:100%;height:100%;display:block}
   text-align:right;
 }
 
+.ai-husband-section{margin-top:16px;}
+.ai-husband-divider{
+  height:1px;
+  background:linear-gradient(to right, transparent, var(--glass-border), transparent);
+  margin-bottom:14px;
+}
+.ai-husband-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.ai-husband-title{
+  font-family:var(--font-brand);
+  font-weight:600;
+  font-size:14px;
+  color:var(--text-main);
+}
+.ai-husband-body{
+  margin-top:12px;
+  font-size:13.5px;
+  line-height:1.75;
+  color:var(--text-main);
+  font-weight:500;
+  white-space:pre-wrap;
+  background:rgba(255,255,255,.4);
+  border:1px solid var(--glass-border);
+  border-radius:16px;
+  padding:12px 14px;
+}
+
 /* 备份控制与表单 */
 .backup-box{margin-top:24px}
 .backup{display:flex;gap:12px}
@@ -1746,8 +1777,18 @@ canvas{width:100%;height:100%;display:block}
         </div>
       </div>
       <div class="ai-insight-body" id="aiInsightBody">
-        <span class="ai-insight-empty">根据你已记录的周期、体重、排便、运动数据，点右上角「↻」生成一条专属小提醒～</span>
+        <span class="ai-insight-empty">根据你已记录的周期、体重、排便、运动数据，点右上角「↻」生成一条专属小提醒，还会附上一段给老公看的体谅小贴士～</span>
       </div>
+
+      <div class="ai-husband-section" id="aiHusbandSection" style="display:none;">
+        <div class="ai-husband-divider"></div>
+        <div class="ai-husband-header">
+          <span class="ai-husband-title">💌 给老公的悄悄话</span>
+          <button class="ai-insight-btn" id="aiHusbandCopyBtn" onclick="copyHusbandText()" title="复制发给老公">⧉</button>
+        </div>
+        <div class="ai-husband-body" id="aiHusbandBody"></div>
+      </div>
+
       <div class="ai-insight-meta" id="aiInsightMeta"></div>
     </div>
   </div>
@@ -4098,6 +4139,9 @@ async function callGeminiAI(summaryText){
   const apiKey = getAIApiKey();
   const model = getAIModel();
   const systemPrompt = "你是一个贴心的女性身体记录App里的情绪关怀小助手。根据用户提供的月经周期阶段/体重/排便/运动数据摘要，" +
+    "生成两部分内容：第一部分是写给用户本人看的情绪关怀提醒；第二部分是写给用户老公看的说明，" +
+    "帮助老公更清楚地了解太太现在处于生理周期的什么阶段、身体和情绪上可能有哪些正常变化，以及他可以怎么做来更体谅、更好地陪伴她。" +
+    "\n\n===== 第一部分：写给用户本人 =====\n" +
     "生成一段有共情力、细腻温暖的情绪关怀提醒（中文，字数不设上限，尽量写得丰富、有细节，不要写得像敷衍的一两句话）。" +
     "这个功能的核心目的，是结合月经周期的不同阶段，关注用户可能出现的情绪和身体感受变化，尤其是：" +
     "经前期/黄体期常见的水肿、乳房胀痛、小腹坠胀、情绪低落、烦躁易怒、敏感爱哭、食欲变化、睡眠变差；" +
@@ -4114,11 +4158,24 @@ async function callGeminiAI(summaryText){
     "让用户感到被理解、被陪伴，而不是被说教或被指导；" +
     "5）不要输出诊断结论，不要说『你可能患有xx』或暗示是疾病，只从生活习惯和情绪陪伴的角度给建议，" +
     "如果情绪或身体不适非常严重，可以温和地建议必要时咨询医生，但不要吓唬用户；" +
-    "6）不要用 Markdown 标题、编号或列表符号，用自然流畅的中文段落文字表达，可以分成2~3段，" +
-    "段落之间过渡自然，读起来像一段完整的贴心话，而不是罗列的要点；" +
-    "7）如果周期数据不足（比如只有一次经期记录或完全没有记录），就不要强行编造当前周期阶段，" +
+    "6）如果周期数据不足（比如只有一次经期记录或完全没有记录），就不要强行编造当前周期阶段，" +
     "可以换成更通用的、关于情绪自我关怀的提醒，同样要写得细腻、有内容，不要因为没有周期数据就写得敷衍简短；" +
-    "8）如果某类数据完全缺失（比如没有体重或排便记录），就不要强行评论那一项，也不要提及『没有记录』这种字眼，直接跳过即可。";
+    "7）如果某类数据完全缺失（比如没有体重或排便记录），就不要强行评论那一项，也不要提及『没有记录』这种字眼，直接跳过即可。" +
+    "\n\n===== 第二部分：写给用户老公 =====\n" +
+    "这部分内容是要让用户直接转发/展示给自己老公看的，所以要用第二人称『你』来称呼老公，语气是一个懂经期知识、中立又温暖的朋友在跟老公科普，" +
+    "而不是替太太在跟老公抱怨或告状，也不要说教、指责男性，或把话说得太肉麻、太生理化。要求：" +
+    "1）先用一两句话直白地告诉老公，太太现在正处于生理周期的什么阶段（比如经期第几天/排卵期/黄体期），" +
+    "以及这个阶段女性身体和情绪上可能出现的正常变化（比如疲惫、易怒敏感、腹痛腰酸、水肿、食欲或睡眠变化等），" +
+    "让老公明白『她最近的状态是身体在正常波动，不是无理取闹，也不是针对你』；" +
+    "2）给2~3条具体、可执行的体谅和陪伴建议（比如这段时间可以少讲道理多包容、可以主动做哪些小事让她舒服一点、" +
+    "哪些话这几天最好先别说、可以怎么主动分担家务或情绪支持、什么时候安静陪着比讲道理更有用），建议要落到具体行为，不要空泛；" +
+    "3）语气要维护太太的感受，不要让老公觉得太太『情绪化』『难伺候』，而是帮老公理解生理机制，从而更包容、更有耐心；" +
+    "4）如果周期数据不足，这部分可以换成更通用的、关于如何体谅伴侣情绪和身体状态的建议，不要编造周期阶段。" +
+    "\n\n整体格式要求：两部分都不要用 Markdown 标题、编号或列表符号，用自然流畅的中文段落文字表达，" +
+    "每部分可以分成1~3段，段落之间过渡自然，读起来像一段完整的话，而不是罗列的要点。" +
+    "两部分之间，必须且只能用下面这一整行文字分隔，这一行不要加任何其他文字、标点或 Markdown 符号，" +
+    "前后也不要用引号包裹，原样输出：\n[[给老公的话]]\n" +
+    "即：先输出第一部分内容，然后另起一行只写 [[给老公的话]] ，再另起一行输出第二部分内容，全文中这个标记只能出现一次。";
 
   const endpoint = `${AI_ENDPOINT_BASE}/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
@@ -4134,7 +4191,7 @@ async function callGeminiAI(summaryText){
           parts: [{ text: systemPrompt }]
         },
         contents: [
-          { role: "user", parts: [{ text: `这是我目前记录的身体数据摘要：\n${summaryText}\n\n请结合我当前的周期阶段，给我一条今天的情绪关怀提醒。` }] }
+          { role: "user", parts: [{ text: `这是我目前记录的身体数据摘要：\n${summaryText}\n\n请结合我当前的周期阶段，给我一条今天的情绪关怀提醒，并按要求附上写给我老公看的说明和体谅建议。` }] }
         ],
         generationConfig: {
           maxOutputTokens: 4096,
@@ -4175,18 +4232,62 @@ async function callGeminiAI(summaryText){
   return text;
 }
 
+/* AI 返回的原始文本里，用 [[给老公的话]] 这一行把「给自己」和「给老公」两部分隔开，
+   这里拆开成 {self, husband}；如果没找到标记（比如老模型/老缓存数据），就整段当作给自己的内容。 */
+function splitAIResponse(raw){
+  const text = String(raw || "");
+  const marker = /\n{0,2}\[\[给老公的话\]\]\n{0,2}/;
+  const m = text.match(marker);
+  if(!m) return { self: text.trim(), husband: "" };
+  const idx = m.index;
+  return {
+    self: text.slice(0, idx).trim(),
+    husband: text.slice(idx + m[0].length).trim()
+  };
+}
+
 function renderAIInsight(text, meta){
   const body = document.getElementById("aiInsightBody");
   const metaEl = document.getElementById("aiInsightMeta");
-  if(body) body.innerHTML = "";
-  if(body) body.textContent = text;
+  const husbandSection = document.getElementById("aiHusbandSection");
+  const husbandBody = document.getElementById("aiHusbandBody");
+
+  const { self, husband } = splitAIResponse(text);
+
+  if(body){ body.innerHTML = ""; body.textContent = self; }
   if(metaEl) metaEl.textContent = meta || "";
+
+  if(husbandSection && husbandBody){
+    if(husband){
+      husbandBody.textContent = husband;
+      husbandSection.style.display = "";
+    } else {
+      husbandBody.textContent = "";
+      husbandSection.style.display = "none";
+    }
+  }
 }
 
 function renderAIInsightError(msg){
   const body = document.getElementById("aiInsightBody");
   if(!body) return;
   body.innerHTML = `<span class="ai-insight-error">生成失败：${msg}</span>`;
+  const husbandSection = document.getElementById("aiHusbandSection");
+  if(husbandSection) husbandSection.style.display = "none";
+}
+
+/* 把给老公的那部分文字复制到剪贴板，方便直接转发给老公看 */
+function copyHusbandText(){
+  const body = document.getElementById("aiHusbandBody");
+  const text = body ? body.textContent.trim() : "";
+  if(!text) return;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text)
+      .then(()=> alert("已复制～发给老公看看吧"))
+      .catch(()=> alert("复制失败，长按文字手动复制一下吧"));
+  } else {
+    alert("当前环境不支持一键复制，长按文字手动复制一下吧");
+  }
 }
 
 /* 展示缓存中的上一次结果（切换到周期 Tab 时调用，不消耗额外 API 调用） */
@@ -4282,7 +4383,7 @@ function openAIHistory(){
       listEl.innerHTML += `
         <div class="ai-history-item">
           <div class="ai-history-item-meta"><span>${key(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}</span></div>
-          <div class="ai-history-item-text">${escapeHtml(cache.text)}</div>
+          <div class="ai-history-item-text">${escapeHtml(historyDisplayText(cache.text))}</div>
         </div>`;
     }
     return;
@@ -4308,7 +4409,7 @@ function openAIHistory(){
         return `
           <div class="ai-history-item" onclick="this.querySelector('.ai-history-item-text').classList.toggle('clamped')">
             <div class="ai-history-item-meta"><span>${key(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}</span><span>${escapeHtml(r.model||"")}</span></div>
-            <div class="ai-history-item-text clamped">${escapeHtml(r.text)}</div>
+            <div class="ai-history-item-text clamped">${escapeHtml(historyDisplayText(r.text))}</div>
           </div>`;
       }).join("");
     });
@@ -4316,6 +4417,13 @@ function openAIHistory(){
 
 function closeAIHistory(){
   document.getElementById("aiHistoryOverlay")?.classList.remove("active");
+}
+
+/* 历史列表里把「给老公的话」用友好的分隔文字接在后面显示，而不是显示原始的 [[给老公的话]] 标记 */
+function historyDisplayText(raw){
+  const { self, husband } = splitAIResponse(raw);
+  if(!husband) return self;
+  return `${self}\n\n💌 给老公的悄悄话\n${husband}`;
 }
 
 function escapeHtml(str){
@@ -4343,6 +4451,8 @@ async function generateAIInsight(forceNew){
   if(btn){ btn.classList.add("loading"); btn.disabled = true; }
   const body = document.getElementById("aiInsightBody");
   if(body) body.innerHTML = `<span class="ai-insight-empty">AI 正在根据你的数据思考中…</span>`;
+  const husbandSection = document.getElementById("aiHusbandSection");
+  if(husbandSection) husbandSection.style.display = "none";
 
   try{
     const text = await callGeminiAI(summary);
