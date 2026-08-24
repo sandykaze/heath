@@ -3631,8 +3631,17 @@ function drawExerciseChart(){
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
-  const max = EXERCISE_AXIS_MAX, min = EXERCISE_AXIS_MIN, range = EXERCISE_AXIS_MAX - EXERCISE_AXIS_MIN;
-  const unitScale = plotH / (EXERCISE_AXIS_MAX - EXERCISE_AXIS_MIN);
+  /* 纵坐标上限自适应：某天运动量超过默认上限（比如叠加多项运动到 120 分钟）时，
+     按实际最大值向上取整到 10 的整数倍，并留一点顶部余量，避免数据点被裁掉 */
+  const dataMaxMin = series.reduce((m, e) => {
+    const v = dayExerciseMin(e);
+    return v != null && v > m ? v : m;
+  }, 0);
+  const axisMax = Math.max(EXERCISE_AXIS_MAX, Math.ceil((dataMaxMin + 5) / 10) * 10);
+  const max = axisMax, min = EXERCISE_AXIS_MIN, range = axisMax - EXERCISE_AXIS_MIN;
+  const unitScale = plotH / range;
+  const gridStep = 10;
+  const gridLevels = Math.floor(max / gridStep);
 
   const exerciseColor = (getComputedStyle(document.documentElement).getPropertyValue('--pop-exercise-2') || '#9BD9A1').trim();
   const exerciseColorLight = (getComputedStyle(document.documentElement).getPropertyValue('--pop-exercise-1') || '#62C6A5').trim();
@@ -3683,8 +3692,8 @@ function drawExerciseChart(){
        左侧的文字标签刻意不画，让整个图表更干净 */
     ctx.strokeStyle = "rgba(140, 120, 150, 0.16)";
     ctx.lineWidth = 1;
-    for(let lvl=0; lvl<=9; lvl++){
-      const y = padT + (max - lvl*10)/range * plotH;
+    for(let lvl=0; lvl<=gridLevels; lvl++){
+      const y = padT + (max - lvl*gridStep)/range * plotH;
       ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
     }
 
