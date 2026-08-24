@@ -1656,11 +1656,14 @@ canvas{width:100%;height:100%;display:block}
                     <label class="exercise-type-chk"><input type="checkbox" value="户外骑行">户外骑行</label>
                     <label class="exercise-type-chk"><input type="checkbox" value="力量训练">力量训练</label>
                     <label class="exercise-type-chk"><input type="checkbox" value="功能性训练">功能性训练</label>
-                    <label class="exercise-type-chk"><input type="checkbox" value="其他">其他</label>
+                    <label class="exercise-type-chk"><input type="checkbox" value="其他" id="exerciseTypeOtherChk" onchange="toggleExerciseOtherInput()">其他</label>
                   </div>
                 </div>
+                <div class="field-group" id="exerciseTypeOtherGroup" style="display:none;">
+                  <input id="exerciseTypeOtherInput" placeholder="输入具体运动项目（如：瑜伽）">
+                </div>
                 <div class="field-group">
-                  <input id="exerciseNote" placeholder="备注（如：椭圆机 30 分钟、感觉很累）">
+                  <input id="exerciseNote" placeholder="备注（如：第一次训练、感觉很累）">
                 </div>
                 <button class="btn-secondary" style="width:100%;padding:10px;font-size:13px;margin-top:2px;" onclick="addExercise()">添加一次运动</button>
               </div>
@@ -2661,6 +2664,10 @@ function setupInlineEditData(){
   if (eMinSel) eMinSel.value = "30";
   document.getElementById("exerciseNote").value = "";
   document.querySelectorAll('#exerciseTypes input[type="checkbox"]').forEach(cb => cb.checked = false);
+  const otherInputReset = document.getElementById("exerciseTypeOtherInput");
+  if(otherInputReset) otherInputReset.value = "";
+  const otherGroupReset = document.getElementById("exerciseTypeOtherGroup");
+  if(otherGroupReset) otherGroupReset.style.display = "none";
 
   renderPoops();
   renderExercises();
@@ -2758,19 +2765,45 @@ function renderPoops(){
 
 /* ===================== 运动记录：增删查 ===================== */
 
+/* 勾选"其他"时展开自定义项目输入框，取消勾选时收起并清空，
+   避免残留一个看不见但仍会被读取的值 */
+function toggleExerciseOtherInput(){
+  const chk = document.getElementById("exerciseTypeOtherChk");
+  const group = document.getElementById("exerciseTypeOtherGroup");
+  const input = document.getElementById("exerciseTypeOtherInput");
+  if(!chk || !group || !input) return;
+  if(chk.checked){
+    group.style.display = "";
+    input.focus();
+  } else {
+    group.style.display = "none";
+    input.value = "";
+  }
+}
+
 function addExercise(){
   const x = dayObj(selectedKey);
   x.exercises ||= [];
   const minutes = Number(document.getElementById("exerciseMin").value) || 0;
+  const otherInput = document.getElementById("exerciseTypeOtherInput");
+  const otherText = otherInput ? otherInput.value.trim() : "";
   const types = Array.from(document.querySelectorAll('#exerciseTypes input[type="checkbox"]:checked'))
-    .map(cb => cb.value);
+    .map(cb => {
+      /* "其他"项目如果用户填写了具体名称，就用这个名称代替"其他"两个字展示和存储；
+         没填的话仍然保留"其他"兜底，避免记录丢字段 */
+      if(cb.value === "其他" && otherText) return otherText;
+      return cb.value;
+    });
   const note = document.getElementById("exerciseNote").value.trim();
   x.exercises.push({ minutes, types, note });
   /* 在编辑框里保持按时间/分钟数排序，便于展示 */
   x.exercises.sort((a,b)=>(a.minutes||0)-(b.minutes||0));
   document.getElementById("exerciseNote").value = "";
-  /* 提交后清空已勾选项，给下一次新增腾出干净状态 */
+  /* 提交后清空已勾选项和自定义输入框，给下一次新增腾出干净状态 */
   document.querySelectorAll('#exerciseTypes input[type="checkbox"]').forEach(cb => cb.checked = false);
+  if(otherInput) otherInput.value = "";
+  const otherGroup = document.getElementById("exerciseTypeOtherGroup");
+  if(otherGroup) otherGroup.style.display = "none";
   save();
   renderCalendar();
   renderExercises();
