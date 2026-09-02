@@ -437,6 +437,94 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .legend .leg-weight .chk input[type="checkbox"]:checked ~ .chk-box{background:var(--text-muted);border-color:var(--text-muted);}
 .legend .leg-exercise .chk input[type="checkbox"]:checked ~ .chk-box{background:linear-gradient(135deg, #9BD9A1, #62C6A5);border-color:#62C6A5;}
 
+
+/* 连续月份日历：月份之间无缝上下滚动 */
+#calendar.calendar-continuous{
+  display:block !important;
+  max-height:520px;
+  overflow-y:auto !important;
+  overflow-x:hidden;
+  padding:0 2px 14px;
+  overscroll-behavior-y:contain;
+  -webkit-overflow-scrolling:touch;
+  scroll-behavior:smooth;
+  touch-action:pan-y !important;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+}
+#calendar.calendar-continuous::-webkit-scrollbar{
+  display:none;
+  width:0;
+  height:0;
+}
+
+.calendar-month{
+  display:block;
+  padding:0 0 20px;
+  margin:0;
+}
+
+.calendar-month-title{
+  font-family:var(--font-num);
+  font-size:15px;
+  font-weight:800;
+  color:var(--text-main);
+  padding:14px 4px 9px;
+  background:transparent;
+  position:static;
+  letter-spacing:.02em;
+}
+
+.calendar-month-week{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  margin-bottom:5px;
+}
+
+.calendar-month-grid{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap:4px;
+  position:relative;
+}
+
+.calendar-month-grid .week-detail-row{
+  grid-column:1 / -1;
+}
+
+@media (max-width:600px){
+  #calendar.calendar-continuous{
+    max-height:58vh;
+  }
+  .calendar-month{
+    padding-bottom:14px;
+  }
+  .calendar-month-title{
+    padding-top:12px;
+    padding-bottom:8px;
+  }
+}
+
+
+/* 日历连续滚动视觉优化：月份标题融入卡片，不再出现突兀的白色色块 */
+#calendar.calendar-continuous{
+  background:transparent;
+}
+
+#calendar.calendar-continuous .calendar-month-title{
+  background:linear-gradient(
+    to bottom,
+    rgba(255,255,255,.18),
+    rgba(255,255,255,0)
+  );
+  border-radius:12px 12px 0 0;
+  margin:0;
+}
+
+#calendar.calendar-continuous .calendar-month + .calendar-month .calendar-month-title{
+  margin-top:2px;
+}
+
 /* Calendar Grid 日历独立卡片小格子网格 */
 .cal-grid{
   display:grid;
@@ -684,7 +772,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
   transform:translateY(100%);
   transition:transform .28s cubic-bezier(0.16, 1, 0.3, 1);
   max-height:88vh;
-  overflow-y:auto;
+  overflow-y:auto; scrollbar-width:none; -ms-overflow-style:none;
 }
 .modal-overlay.active .modal-panel{transform:translateY(0);}
 .modal-header{
@@ -883,7 +971,7 @@ canvas{width:100%;height:100%;display:block}
 .ai-insight-error{color:var(--pop-orange);font-weight:600;font-size:12.5px;}
 .ai-history-list{
   max-height:60vh;
-  overflow-y:auto;
+  overflow-y:auto; scrollbar-width:none; -ms-overflow-style:none;
   margin-top:6px;
   display:flex;
   flex-direction:column;
@@ -2409,109 +2497,164 @@ function changeMonth(n){
 }
 
 function renderCalendar(){
-  const y = viewDate.getFullYear(), m = viewDate.getMonth();
-  document.getElementById("monthTitle").textContent = `${y}年 ${m+1}月`;
-  
-  const first = new Date(y, m, 1);
-  const last = new Date(y, m+1, 0);
-  const todayObj = new Date();
-  todayObj.setHours(0,0,0,0);
-  const todayStr = key(todayObj);
-  
+  const container = document.getElementById("calendar");
+  const centerY = viewDate.getFullYear(), centerM = viewDate.getMonth();
   const phases = computeCyclePhases();
   const weightDiffs = computeWeightDifferences();
 
-  /* 星期表头改为英文三字母缩写 */
-  let html = ["SUN","MON","TUE","WED","THU","FRI","SAT"].map(x=>`<div class="dow">${x}</div>`).join("");
+  document.getElementById("monthTitle").textContent = `${centerY}年 ${centerM+1}月`;
 
-  let cellCount = 0;
-  let weekKeys = [];
-
-  function flushWeekIfNeeded(){
-    if(cellCount % 7 === 0){
-      if(selectedKey && weekKeys.includes(selectedKey)){
-        html += buildDetailRowHtml(selectedKey, phases, weightDiffs);
-      }
-      weekKeys = [];
-    }
+  /* 连续显示前后月份：当前月上下各保留 3 个月，
+     这样 8 月底 / 9 月初可以自然连续滚动看到。 */
+  const monthList = [];
+  for(let offset = -24; offset <= 24; offset++){
+    monthList.push(new Date(centerY, centerM + offset, 1));
   }
 
-  for(let i=0; i<first.getDay(); i++){
-    html += `<div class="day-cell other-month"></div>`;
-    cellCount++;
-    weekKeys.push(null);
+  function renderOneMonth(monthDate){
+    const y = monthDate.getFullYear();
+    const m = monthDate.getMonth();
+    const first = new Date(y, m, 1);
+    const last = new Date(y, m+1, 0);
+
+    const todayObj = new Date();
+    todayObj.setHours(0,0,0,0);
+    const todayStr = key(todayObj);
+
+    let gridHtml = "";
+    let cellCount = 0;
+    let weekKeys = [];
+
+    function flushWeekIfNeeded(){
+      if(cellCount % 7 === 0){
+        if(selectedKey && weekKeys.includes(selectedKey)){
+          gridHtml += buildDetailRowHtml(selectedKey, phases, weightDiffs);
+        }
+        weekKeys = [];
+      }
+    }
+
+    for(let i=0; i<first.getDay(); i++){
+      gridHtml += `<div class="day-cell other-month"></div>`;
+      cellCount++;
+      weekKeys.push(null);
+      flushWeekIfNeeded();
+    }
+
+    for(let d=1; d<=last.getDate(); d++){
+      const dt = new Date(y, m, d);
+      dt.setHours(0,0,0,0);
+      const k = key(dt);
+      const dayData = data.days[k] || {};
+      const phaseInfo = phases[k] || {};
+
+      let phaseType = phaseInfo.phase;
+      if(dayData.period === "start" || dayData.period === "on") phaseType = "period";
+      if(phaseType && !calFilters.cycle) phaseType = null;
+
+      const isPred = phaseInfo.isPred;
+
+      let bandClasses = phaseType ? ` ${phaseType}` : '';
+      if(isPred) bandClasses += " pred";
+
+      let weightHtml = "";
+      if(calFilters.weight && dayData.weight != null){
+        const formattedW = fmt1(dayData.weight);
+        const diffVal = weightDiffs[k];
+        let arrowHtml = `<span class="arrow-slot"></span>`;
+        if(diffVal != null && diffVal > 0){
+          arrowHtml = `<span class="arrow-slot arrow-up">↑</span>`;
+        } else if(diffVal != null && diffVal < 0){
+          arrowHtml = `<span class="arrow-slot arrow-down">↓</span>`;
+        }
+        weightHtml = `<div class="weight-tag">${formattedW}${arrowHtml}</div>`;
+      }
+
+      let poopHtml = "";
+      if(calFilters.poop && dayData.poops && dayData.poops.length){
+        poopHtml = `<div class="poop-tag"></div>`;
+      }
+
+      let exerciseTagHtml = "";
+      if(calFilters.exercise && dayData.exercises && dayData.exercises.length){
+        exerciseTagHtml = `<div class="exercise-tag"></div>`;
+      }
+
+      const isToday = k === todayStr;
+      const isFuture = dt > todayObj;
+      const isSelected = k === selectedKey;
+      const dateDisplay = isToday ? "今" : d;
+
+      gridHtml += `
+        <div class="day-cell ${isToday?'today':''} ${isFuture?'future-day':''} ${isSelected?'selected':''}" onclick="selectDay('${k}')">
+          ${phaseType ? `<div class="day-bg-band ${bandClasses}"></div>` : ''}
+          <div class="num-wrap">${dateDisplay}</div>
+          ${poopHtml}
+          ${exerciseTagHtml}
+          <div class="weight-slot">${weightHtml}</div>
+        </div>
+      `;
+      cellCount++;
+      weekKeys.push(k);
+      flushWeekIfNeeded();
+    }
+
+    while(cellCount % 7 !== 0){
+      gridHtml += `<div class="day-cell other-month"></div>`;
+      cellCount++;
+      weekKeys.push(null);
+    }
     flushWeekIfNeeded();
-  }
 
-  for(let d=1; d<=last.getDate(); d++){
-    const dt = new Date(y, m, d);
-    dt.setHours(0,0,0,0);
-    const k = key(dt);
-    const dayData = data.days[k] || {};
-    const phaseInfo = phases[k] || {};
-    
-    let phaseType = phaseInfo.phase;
-    if(dayData.period === "start" || dayData.period === "on") phaseType = "period";
-    if(phaseType && !calFilters.cycle) phaseType = null;
-
-    const isPred = phaseInfo.isPred;
-    
-    let bandClasses = phaseType ? ` ${phaseType}` : '';
-    if(isPred) bandClasses += " pred";
-
-    let weightHtml = "";
-    if(calFilters.weight && dayData.weight != null){
-      const formattedW = fmt1(dayData.weight);
-      const diffVal = weightDiffs[k];
-      let arrowHtml = `<span class="arrow-slot"></span>`;
-      if(diffVal != null && diffVal > 0){
-        arrowHtml = `<span class="arrow-slot arrow-up">↑</span>`;
-      } else if(diffVal != null && diffVal < 0){
-        arrowHtml = `<span class="arrow-slot arrow-down">↓</span>`;
-      }
-      weightHtml = `<div class="weight-tag">${formattedW}${arrowHtml}</div>`;
-    }
-
-    /* 排便打卡标签：右上角色块，受筛选开关控制 */
-    let poopHtml = "";
-    if(calFilters.poop && dayData.poops && dayData.poops.length){
-      poopHtml = `<div class="poop-tag"></div>`;
-    }
-
-    /* 运动打卡标签：放在排便小圆点正下方，紧凑 8px，受筛选开关控制 */
-    let exerciseTagHtml = "";
-    if(calFilters.exercise && dayData.exercises && dayData.exercises.length){
-      exerciseTagHtml = `<div class="exercise-tag"></div>`;
-    }
-
-    const isToday = k === todayStr;
-    const isFuture = dt > todayObj;
-    const isSelected = k === selectedKey;
-    const dateDisplay = isToday ? "今" : d;
-
-    html += `
-      <div class="day-cell ${isToday?'today':''} ${isFuture?'future-day':''} ${isSelected?'selected':''}" onclick="selectDay('${k}')">
-        ${phaseType ? `<div class="day-bg-band ${bandClasses}"></div>` : ''}
-        <div class="num-wrap">${dateDisplay}</div>
-        ${poopHtml}
-        ${exerciseTagHtml}
-        <div class="weight-slot">${weightHtml}</div>
-      </div>
+    return `
+      <section class="calendar-month" data-year="${y}" data-month="${m}">
+        <div class="calendar-month-title">${y}年 ${m+1}月</div>
+        <div class="calendar-month-week">
+          ${["SUN","MON","TUE","WED","THU","FRI","SAT"].map(x=>`<div class="dow">${x}</div>`).join("")}
+        </div>
+        <div class="calendar-month-grid">${gridHtml}</div>
+      </section>
     `;
-    cellCount++;
-    weekKeys.push(k);
-    flushWeekIfNeeded();
   }
 
-  while(cellCount % 7 !== 0){
-    html += `<div class="day-cell other-month"></div>`;
-    cellCount++;
-    weekKeys.push(null);
-  }
-  flushWeekIfNeeded();
+  container.classList.add("calendar-continuous");
+  container.innerHTML = monthList.map(renderOneMonth).join("");
 
-  document.getElementById("calendar").innerHTML = html;
+  /* 初始时把当前月份放到滚动区域中央。
+     用 scrollTop，不用 scrollIntoView，避免影响整个页面的位置。 */
+  requestAnimationFrame(() => {
+    const current = container.querySelector(
+      `.calendar-month[data-year="${centerY}"][data-month="${centerM}"]`
+    );
+    if(current){
+      container.scrollTop = Math.max(0, current.offsetTop - 4);
+    }
+  });
+
+  /* 滚动时让顶部月份标题跟随用户浏览的月份变化 */
+  if(!container._calendarScrollBound){
+    container._calendarScrollBound = true;
+    container.addEventListener("scroll", function(){
+      const months = Array.from(container.querySelectorAll(".calendar-month"));
+      if(!months.length) return;
+
+      const target = container.scrollTop + 28;
+      let active = months[0];
+
+      for(const month of months){
+        if(month.offsetTop <= target) active = month;
+        else break;
+      }
+
+      const yy = Number(active.dataset.year);
+      const mm = Number(active.dataset.month);
+      const title = document.getElementById("monthTitle");
+      if(title) title.textContent = `${yy}年 ${mm+1}月`;
+    }, {passive:true});
+  }
 }
+
+/* 连续月份日历：直接上下滚动，不再整月跳转。 */
 
 function buildDetailRowHtml(k, phases, weightDiffs){
   const dayData = data.days[k] || {};
@@ -4561,3 +4704,17 @@ window.onresize = function(){
 </script>
 </body>
 </html>
+<style>
+/* Continuous calendar: clean month labels without overlaying dates */
+.calendar-scroll .month-title{
+  position:relative !important;
+  top:auto !important;
+  z-index:1 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+  margin:10px 0 5px !important;
+  padding:2px 4px 4px !important;
+}
+.calendar-scroll::-webkit-scrollbar{display:none;width:0;height:0}
+.calendar-scroll{scrollbar-width:none;-ms-overflow-style:none}
+</style>
