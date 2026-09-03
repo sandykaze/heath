@@ -2318,7 +2318,7 @@ function renderTrendSummary(){
     exerciseValEl.classList.remove("muted");
     exerciseValEl.textContent = exercises.map(x => {
       const typesStr = (x.types && x.types.length) ? x.types.join("+") : "运动";
-      return `${typesStr}运动(${x.minutes||0}分钟)${x.note?`[${x.note}]`:''}`;
+      return `${typesStr}(${x.minutes||0}分钟)${x.note?`[${x.note}]`:''}`;
     }).join("，");
   } else {
     exerciseValEl.classList.add("muted");
@@ -2459,10 +2459,10 @@ function init(){
   /* 打开模态框时（openEditModal 内）会再把这个值同步为"当前系统小时"，这里给个兜底默认 */
   hSel.value = new Date().getHours();
 
-  /* 运动时间选择器：5 分钟一个档位，从 0 跳到 90 分钟 */
+  /* 运动时间选择器：5 分钟一个档位，从 0 跳到 120 分钟 */
   const eSel = document.getElementById("exerciseMin");
   if(eSel && !eSel.options.length){
-    for(let m=0; m<=90; m+=5){
+    for(let m=0; m<=120; m+=5){
       const label = m === 0 ? "0 分钟" : (m + " 分钟");
       eSel.innerHTML += `<option value="${m}">${label}</option>`;
     }
