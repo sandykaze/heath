@@ -3395,14 +3395,7 @@ function drawChart(){
 
         /* 选中某天后，在坐标区域上方显示当天体重 */
         if(p.raw.weight != null){
-          const prevWeight = [...series.slice(0, selectedIdx)].reverse().find(d => d.weight != null)?.weight;
-          const weightDelta = prevWeight != null ? Number((p.raw.weight - prevWeight).toFixed(1)) : null;
-          const weightDeltaText = weightDelta != null
-            ? `较上次 ${weightDelta > 0 ? "+" : ""}${fmt1(weightDelta)}kg`
-            : "";
-          drawSelectedValueLabel(ctx, p, `${fmt1(p.raw.weight)}kg`, "#FF6B9B", W, H, padL, padR, padT, {
-            delta: weightDeltaText
-          });
+          drawSelectedValueLabel(ctx, p, `${fmt1(p.raw.weight)}kg`, "#FF6B9B", W, H, padL, padR, padT);
         }
       }
     }
@@ -3715,14 +3708,13 @@ function drawPoopChart(){
         ctx.strokeStyle=poopColor;
         ctx.stroke();
 
-        /* 选中某天后，在坐标区域上方显示当天排便量级 */
-        const selectedLevel = p.level;
-        const selectedPoopText = selectedLevel != null ? POOP_LEVEL_LABELS[Math.min(5, Math.max(0, selectedLevel - 1))] : "未排便";
-        const poopCount = p.raw.poops?.length || 0;
-         const poopMeta = poopCount ? `${poopCount}次 · 当日总量` : "当天没有记录";
-         drawSelectedValueLabel(ctx, p, selectedPoopText, poopColor, W, H, padL, padR, padT, {
-           delta: poopMeta
-         });
+        /* 选中某天后，气泡直接显示当天每一次排便的实际量级。
+           不再显示“当日总量”，也避免多次排便累加后超过 5 级导致文字变成 undefined。 */
+        const selectedPoops = p.raw.poops || [];
+        const selectedPoopText = selectedPoops.length
+          ? selectedPoops.map(x => x.size || "小").join(" + ")
+          : "未排便";
+        drawSelectedValueLabel(ctx, p, selectedPoopText, poopColor, W, H, padL, padR, padT);
       }
     }
 
@@ -4090,14 +4082,7 @@ function drawExerciseChart(){
 
         /* 选中某天后，在坐标区域上方显示当天运动总时长 */
         const selectedExerciseText = p.minutes != null ? `${p.minutes}分钟` : "未运动";
-        const prevExercise = [...series.slice(0, selectedIdx)].reverse().map(dayExerciseMin).find(v => v != null);
-         const exerciseDelta = p.minutes != null && prevExercise != null ? p.minutes - prevExercise : null;
-         const exerciseMeta = exerciseDelta != null
-           ? `较上次 ${exerciseDelta > 0 ? "+" : ""}${exerciseDelta}分钟`
-           : (p.minutes != null ? "当天运动总时长" : "当天没有记录");
-         drawSelectedValueLabel(ctx, p, selectedExerciseText, exerciseColor, W, H, padL, padR, padT, {
-           delta: exerciseMeta
-         });
+        drawSelectedValueLabel(ctx, p, selectedExerciseText, exerciseColor, W, H, padL, padR, padT);
       }
     }
 
