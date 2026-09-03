@@ -3495,14 +3495,16 @@ function drawChart(){
         const clickX = e.clientX - rect.left;
         const clickedIdx = Math.round((clickX - padL + offset) / userStep);
         if(clickedIdx >= 0 && clickedIdx < series.length){
+          const previousSelectedIdx = selectedIdx;
           selectedIdx = clickedIdx;
           /* 把图表上的"选中点位"写回到全局 selectedKey，
              这样切到日历 / 排便 / 运动 Tab 时能停在同一天 */
           const newKey = series[clickedIdx].date;
-          if (selectedIdx === clickedIdx) {
-            /* 再点一次同一天：隐藏 / 显示高级数据小卡片 */
+          if (previousSelectedIdx === clickedIdx) {
+            /* 同一天再次点击：隐藏气泡 */
             selectedCardHidden = !selectedCardHidden;
           } else {
+            /* 点击任何新的一天：切换日期，并显示气泡 */
             selectedKey = newKey;
             selectedCardHidden = false;
             renderCalendar();
@@ -3844,10 +3846,11 @@ function drawPoopChart(){
           const clickX = e.clientX - rect.left;
           const clickedIdx = Math.round((clickX - padL + offset) / poopUserStep);
           if(clickedIdx >= 0 && clickedIdx < series.length){
+            const previousSelectedIdx = selectedIdx;
             selectedIdx = clickedIdx;
             /* 同步选中日期到全局，供日历/其它图表跟进 */
             const newKey = series[clickedIdx].date;
-            if (selectedIdx === clickedIdx) {
+            if (previousSelectedIdx === clickedIdx) {
               /* 再点一次同一天：隐藏 / 显示高级数据小卡片 */
               selectedCardHidden = !selectedCardHidden;
             } else {
@@ -4210,10 +4213,11 @@ function drawExerciseChart(){
           const clickX = e.clientX - rect.left;
           const clickedIdx = Math.round((clickX - padL + offset) / exerciseUserStep);
           if(clickedIdx >= 0 && clickedIdx < series.length){
+            const previousSelectedIdx = selectedIdx;
             selectedIdx = clickedIdx;
             /* 同步选中日期到全局，供日历/其它图表跟进 */
             const newKey = series[clickedIdx].date;
-            if (selectedIdx === clickedIdx) {
+            if (previousSelectedIdx === clickedIdx) {
               /* 再点一次同一天：隐藏 / 显示高级数据小卡片 */
               selectedCardHidden = !selectedCardHidden;
             } else {
