@@ -1936,6 +1936,7 @@ let data=JSON.parse(localStorage.getItem(KEY)||'{"targetWeight":50.0,"days":{}}'
 if(!data.targetWeight) data.targetWeight = 50.0;
 
 let selectedKey = null;
+let selectedCardHidden = false;
 let viewDate = new Date();
 
 function formatChartDateWithWeekday(dateStr){
@@ -3092,6 +3093,133 @@ let userStep = 85;
 let userZoomed = false;
 const DEFAULT_VISIBLE_DAYS = 10;
 
+function drawSelectedValueLabel(ctx, p, text, color, W, H, padL, padR, padT, options = {}){
+  if(!p || !text) return;
+
+  const dateText = options.date || (p.raw?.date ? p.raw.date.slice(5).replace("-", " / ") : "");
+  const deltaText = options.delta || "";
+  const isDark = document.documentElement.classList.contains('dark') ||
+                 document.body.classList.contains('dark') ||
+                 document.body.dataset.theme === 'dark';
+
+  ctx.save();
+
+  /* Premium selection guide: vertical + horizontal crosshair, deliberately very light. */
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = 0.13;
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 5]);
+  ctx.beginPath();
+  ctx.moveTo(p.x, padT);
+  ctx.lineTo(p.x, padT + H - padT - 30);
+  ctx.moveTo(padL, p.y);
+  ctx.lineTo(W - padR, p.y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  /* Soft halo around the selected point. */
+  ctx.globalAlpha = 0.12;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, 14, 0, Math.PI * 2);
+  ctx.fill();
+
+  /* 第二次点击同一个数据点时，只隐藏浮动卡片，选中状态仍保留。 */
+  if(selectedCardHidden) {
+    ctx.restore();
+    return;
+  }
+
+  ctx.globalAlpha = 1;
+  ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
+  const dateW = dateText ? ctx.measureText(dateText).width : 0;
+  ctx.font = "700 15px 'DM Sans','Noto Sans SC',sans-serif";
+  const valueW = ctx.measureText(text).width;
+  ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
+  const deltaW = deltaText ? ctx.measureText(deltaText).width : 0;
+
+  const contentW = Math.max(dateW, valueW, deltaW);
+  const boxW = Math.max(78, contentW + 34);
+  const boxH = deltaText ? 57 : 46;
+  const gap = 12;
+
+  let x = p.x - boxW / 2;
+  let y = p.y - boxH - gap;
+
+  x = Math.max(padL, Math.min(W - padR - boxW, x));
+
+  /* If the point is high, put the card below it instead of squeezing into the top edge. */
+  if(y < padT){
+    y = p.y + gap;
+  }
+  if(y + boxH > H - 24){
+    y = Math.max(padT, H - 24 - boxH);
+  }
+
+  /* Leader line from card to point. */
+  const anchorX = Math.max(x + 14, Math.min(x + boxW - 14, p.x));
+  const anchorY = y < p.y ? y + boxH : y;
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = 0.28;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(anchorX, anchorY);
+  ctx.lineTo(p.x, y < p.y ? p.y - 10 : p.y + 10);
+  ctx.stroke();
+
+  /* Glass card with a very subtle color wash. */
+  ctx.globalAlpha = 1;
+  ctx.shadowColor = isDark ? 'rgba(0,0,0,.34)' : 'rgba(48,32,58,.16)';
+  ctx.shadowBlur = 18;
+  ctx.shadowOffsetY = 6;
+  ctx.fillStyle = isDark ? 'rgba(38,34,44,.94)' : 'rgba(255,255,255,.94)';
+  ctx.strokeStyle = isDark ? 'rgba(255,255,255,.11)' : 'rgba(120,90,130,.10)';
+  ctx.lineWidth = 1;
+
+  const r = 14;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+boxW,y,x+boxW,y+boxH,r);
+  ctx.arcTo(x+boxW,y+boxH,x,y+boxH,r);
+  ctx.arcTo(x,y+boxH,x,y,r);
+  ctx.arcTo(x,y,x+boxW,y,r);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  /* Tiny accent rail. */
+  ctx.shadowColor = "transparent";
+  ctx.fillStyle = color;
+  ctx.globalAlpha = 0.9;
+  ctx.beginPath();
+  ctx.roundRect(x + 10, y + 10, 3, boxH - 20, 1.5);
+  ctx.fill();
+
+  const textColor = isDark ? '#FFFFFF' : '#35283A';
+  const mutedColor = isDark ? 'rgba(255,255,255,.58)' : 'rgba(75,60,82,.58)';
+
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+
+  if(dateText){
+    ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
+    ctx.fillStyle = mutedColor;
+    ctx.fillText(dateText, x + 20, y + 13);
+  }
+
+  ctx.font = "700 15px 'DM Sans','Noto Sans SC',sans-serif";
+  ctx.fillStyle = textColor;
+  ctx.fillText(text, x + 20, y + (dateText ? 29 : 21));
+
+  if(deltaText){
+    ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
+    ctx.fillStyle = color;
+    ctx.fillText(deltaText, x + 20, y + 45);
+  }
+
+  ctx.restore();
+}
+
 function drawChart(){
   const box = document.getElementById("chartBox");
   const canvas = document.getElementById("chart");
@@ -3264,6 +3392,18 @@ function drawChart(){
         ctx.lineWidth=3;
         ctx.strokeStyle="#FF6B9B";
         ctx.stroke();
+
+        /* 选中某天后，在坐标区域上方显示当天体重 */
+        if(p.raw.weight != null){
+          const prevWeight = [...series.slice(0, selectedIdx)].reverse().find(d => d.weight != null)?.weight;
+          const weightDelta = prevWeight != null ? Number((p.raw.weight - prevWeight).toFixed(1)) : null;
+          const weightDeltaText = weightDelta != null
+            ? `较上次 ${weightDelta > 0 ? "+" : ""}${fmt1(weightDelta)}kg`
+            : "";
+          drawSelectedValueLabel(ctx, p, `${fmt1(p.raw.weight)}kg`, "#FF6B9B", W, H, padL, padR, padT, {
+            delta: weightDeltaText
+          });
+        }
       }
     }
   }
@@ -3322,8 +3462,12 @@ function drawChart(){
           /* 把图表上的"选中点位"写回到全局 selectedKey，
              这样切到日历 / 排便 / 运动 Tab 时能停在同一天 */
           const newKey = series[clickedIdx].date;
-          if (newKey !== selectedKey) {
+          if (newKey === selectedKey) {
+            /* 再点一次同一天：隐藏 / 显示高级数据小卡片 */
+            selectedCardHidden = !selectedCardHidden;
+          } else {
             selectedKey = newKey;
+            selectedCardHidden = false;
             renderCalendar();
             renderTrendSummary();
           }
@@ -3570,6 +3714,15 @@ function drawPoopChart(){
         ctx.lineWidth=3;
         ctx.strokeStyle=poopColor;
         ctx.stroke();
+
+        /* 选中某天后，在坐标区域上方显示当天排便量级 */
+        const selectedLevel = p.level;
+        const selectedPoopText = selectedLevel != null ? POOP_LEVEL_LABELS[Math.min(5, Math.max(0, selectedLevel - 1))] : "未排便";
+        const poopCount = p.raw.poops?.length || 0;
+         const poopMeta = poopCount ? `${poopCount}次 · 当日总量` : "当天没有记录";
+         drawSelectedValueLabel(ctx, p, selectedPoopText, poopColor, W, H, padL, padR, padT, {
+           delta: poopMeta
+         });
       }
     }
 
@@ -3658,8 +3811,12 @@ function drawPoopChart(){
             selectedIdx = clickedIdx;
             /* 同步选中日期到全局，供日历/其它图表跟进 */
             const newKey = series[clickedIdx].date;
-            if (newKey !== selectedKey) {
+            if (newKey === selectedKey) {
+              /* 再点一次同一天：隐藏 / 显示高级数据小卡片 */
+              selectedCardHidden = !selectedCardHidden;
+            } else {
               selectedKey = newKey;
+              selectedCardHidden = false;
               renderCalendar();
               renderTrendSummary();
             }
@@ -3930,6 +4087,17 @@ function drawExerciseChart(){
         ctx.lineWidth=3;
         ctx.strokeStyle=exerciseColor;
         ctx.stroke();
+
+        /* 选中某天后，在坐标区域上方显示当天运动总时长 */
+        const selectedExerciseText = p.minutes != null ? `${p.minutes}分钟` : "未运动";
+        const prevExercise = [...series.slice(0, selectedIdx)].reverse().map(dayExerciseMin).find(v => v != null);
+         const exerciseDelta = p.minutes != null && prevExercise != null ? p.minutes - prevExercise : null;
+         const exerciseMeta = exerciseDelta != null
+           ? `较上次 ${exerciseDelta > 0 ? "+" : ""}${exerciseDelta}分钟`
+           : (p.minutes != null ? "当天运动总时长" : "当天没有记录");
+         drawSelectedValueLabel(ctx, p, selectedExerciseText, exerciseColor, W, H, padL, padR, padT, {
+           delta: exerciseMeta
+         });
       }
     }
 
@@ -4004,8 +4172,12 @@ function drawExerciseChart(){
             selectedIdx = clickedIdx;
             /* 同步选中日期到全局，供日历/其它图表跟进 */
             const newKey = series[clickedIdx].date;
-            if (newKey !== selectedKey) {
+            if (newKey === selectedKey) {
+              /* 再点一次同一天：隐藏 / 显示高级数据小卡片 */
+              selectedCardHidden = !selectedCardHidden;
+            } else {
               selectedKey = newKey;
+              selectedCardHidden = false;
               renderCalendar();
               renderTrendSummary();
             }
