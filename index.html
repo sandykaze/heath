@@ -3151,18 +3151,18 @@ function drawSelectedValueLabel(ctx, p, text, color, W, H, padL, padR, padT, opt
   }
 
   ctx.globalAlpha = 1;
-  ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
+  ctx.font = "600 10px 'DM Sans','Noto Sans SC',sans-serif";
   const dateW = dateText ? ctx.measureText(dateText).width : 0;
-  ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
+  ctx.font = "600 10px 'DM Sans','Noto Sans SC',sans-serif";
   const valueW = ctx.measureText(text).width;
-  ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
+  ctx.font = "600 10px 'DM Sans','Noto Sans SC',sans-serif";
   const deltaW = deltaText ? ctx.measureText(deltaText).width : 0;
 
   const contentW = Math.max(dateW, valueW, deltaW);
   /* 更精致的小卡：减少留白，让“当天数据”成为唯一视觉重点。 */
-  const boxW = Math.max(66, Math.min(112, contentW + 24));
+  const boxW = Math.max(68, Math.min(116, contentW + 24));
   const boxH = deltaText ? 43 : 34;
-  const gap = 8;
+  const gap = 12;
 
   let x = p.x - boxW / 2;
   let y = p.y - boxH - gap;
@@ -3223,17 +3223,17 @@ function drawSelectedValueLabel(ctx, p, text, color, W, H, padL, padR, padT, opt
   ctx.textBaseline = "middle";
 
   if(dateText){
-    ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
+    ctx.font = "600 10px 'DM Sans','Noto Sans SC',sans-serif";
     ctx.fillStyle = mutedColor;
     ctx.fillText(dateText, x + 15, y + 10);
   }
 
-  ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
+  ctx.font = "600 10px 'DM Sans','Noto Sans SC',sans-serif";
   ctx.fillStyle = textColor;
   ctx.fillText(text, x + 15, y + (dateText ? 21 : 17));
 
   if(deltaText){
-    ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
+    ctx.font = "600 10px 'DM Sans','Noto Sans SC',sans-serif";
     ctx.fillStyle = color;
     ctx.fillText(deltaText, x + 15, y + 32);
   }
@@ -4074,7 +4074,7 @@ function drawExerciseChart(){
       ctx.moveTo(padL, y);
       ctx.lineTo(W - padR, y);
       ctx.stroke();
-      ctx.fillText(String(value), padL - 8, y + 3);
+      ctx.fillText(String(value), padL - 12, y + 3);
     }
 
     ctx.save();
