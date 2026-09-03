@@ -1613,6 +1613,9 @@ canvas{width:100%;height:100%;display:block}
 }
 </style>
 
+<style>
+/* 趋势图的选中数据卡片由 Canvas 绘制，尺寸与间距统一在 drawSelectedValueLabel() 中控制。 */
+</style>
 </head>
 <body>
 
@@ -3032,13 +3035,13 @@ function buildChartSeries(){
   return rawList;
 }
 
-function drawMonotoneSpline(ctx, points, color) {
+function drawMonotoneSpline(ctx, points, colorOrGradient) {
   if (points.length < 2) return;
   if (points.length === 2) {
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     ctx.lineTo(points[1].x, points[1].y);
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = colorOrGradient;
     ctx.lineWidth = 3.5;
     ctx.stroke();
     return;
@@ -3084,9 +3087,19 @@ function drawMonotoneSpline(ctx, points, color) {
     ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p1.x, p1.y);
   }
 
-  ctx.strokeStyle = color;
+  ctx.strokeStyle = colorOrGradient;
   ctx.lineWidth = 3.5;
   ctx.stroke();
+}
+
+/* 折线靠近左侧纵坐标时做一个很短的柔和淡入：
+   不遮盖坐标文字，也不改变数据本身，只让折线从坐标轴附近自然出现。 */
+function makeChartLineGradient(ctx, color, padL, fadeWidth = 26) {
+  const g = ctx.createLinearGradient(padL, 0, padL + fadeWidth, 0);
+  g.addColorStop(0, "rgba(255,255,255,0)");
+  g.addColorStop(0.45, color);
+  g.addColorStop(1, color);
+  return g;
 }
 
 let userStep = 85;
@@ -3133,15 +3146,16 @@ function drawSelectedValueLabel(ctx, p, text, color, W, H, padL, padR, padT, opt
   ctx.globalAlpha = 1;
   ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
   const dateW = dateText ? ctx.measureText(dateText).width : 0;
-  ctx.font = "700 15px 'DM Sans','Noto Sans SC',sans-serif";
+  ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
   const valueW = ctx.measureText(text).width;
   ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
   const deltaW = deltaText ? ctx.measureText(deltaText).width : 0;
 
   const contentW = Math.max(dateW, valueW, deltaW);
-  const boxW = Math.max(78, contentW + 34);
-  const boxH = deltaText ? 57 : 46;
-  const gap = 12;
+  /* 更精致的小卡：减少留白，让“当天数据”成为唯一视觉重点。 */
+  const boxW = Math.max(66, Math.min(112, contentW + 24));
+  const boxH = deltaText ? 43 : 34;
+  const gap = 8;
 
   let x = p.x - boxW / 2;
   let y = p.y - boxH - gap;
@@ -3169,14 +3183,14 @@ function drawSelectedValueLabel(ctx, p, text, color, W, H, padL, padR, padT, opt
 
   /* Glass card with a very subtle color wash. */
   ctx.globalAlpha = 1;
-  ctx.shadowColor = isDark ? 'rgba(0,0,0,.34)' : 'rgba(48,32,58,.16)';
-  ctx.shadowBlur = 18;
-  ctx.shadowOffsetY = 6;
-  ctx.fillStyle = isDark ? 'rgba(38,34,44,.94)' : 'rgba(255,255,255,.94)';
-  ctx.strokeStyle = isDark ? 'rgba(255,255,255,.11)' : 'rgba(120,90,130,.10)';
+  ctx.shadowColor = isDark ? 'rgba(0,0,0,.28)' : 'rgba(48,32,58,.10)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 3;
+  ctx.fillStyle = isDark ? 'rgba(38,34,44,.96)' : 'rgba(255,255,255,.97)';
+  ctx.strokeStyle = isDark ? 'rgba(255,255,255,.10)' : 'rgba(120,90,130,.08)';
   ctx.lineWidth = 1;
 
-  const r = 14;
+  const r = 10;
   ctx.beginPath();
   ctx.moveTo(x+r,y);
   ctx.arcTo(x+boxW,y,x+boxW,y+boxH,r);
@@ -3192,7 +3206,7 @@ function drawSelectedValueLabel(ctx, p, text, color, W, H, padL, padR, padT, opt
   ctx.fillStyle = color;
   ctx.globalAlpha = 0.9;
   ctx.beginPath();
-  ctx.roundRect(x + 10, y + 10, 3, boxH - 20, 1.5);
+  ctx.roundRect(x + 8, y + 8, 2, boxH - 16, 1);
   ctx.fill();
 
   const textColor = isDark ? '#FFFFFF' : '#35283A';
@@ -3204,17 +3218,17 @@ function drawSelectedValueLabel(ctx, p, text, color, W, H, padL, padR, padT, opt
   if(dateText){
     ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
     ctx.fillStyle = mutedColor;
-    ctx.fillText(dateText, x + 20, y + 13);
+    ctx.fillText(dateText, x + 15, y + 10);
   }
 
-  ctx.font = "700 15px 'DM Sans','Noto Sans SC',sans-serif";
+  ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
   ctx.fillStyle = textColor;
-  ctx.fillText(text, x + 20, y + (dateText ? 29 : 21));
+  ctx.fillText(text, x + 15, y + (dateText ? 21 : 17));
 
   if(deltaText){
     ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
     ctx.fillStyle = color;
-    ctx.fillText(deltaText, x + 20, y + 45);
+    ctx.fillText(deltaText, x + 15, y + 32);
   }
 
   ctx.restore();
@@ -3238,7 +3252,7 @@ function drawChart(){
 
   if(!series.length){
     if(scrollTrackEl) scrollTrackEl.style.visibility = "hidden";
-    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
+    ctx.fillStyle="#8E7A93"; ctx.font="600 9px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
     ctx.fillText("暂无数据", W/2, H/2);
     return;
   }
@@ -3246,14 +3260,26 @@ function drawChart(){
   const validWeights = series.map(x=>x.weight).filter(w=>w!=null);
   if(!validWeights.length){
     if(scrollTrackEl) scrollTrackEl.style.visibility = "hidden";
-    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
+    ctx.fillStyle="#8E7A93"; ctx.font="600 9px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
     ctx.fillText("无体重数据", W/2, H/2);
     return;
   }
 
-  const min = Math.min(...validWeights);
-  const max = Math.max(...validWeights);
-  const range = (max - min) || 1;
+  /* 纵坐标根据已有体重数据自动取一个“好看”的范围：
+     尽量保持 4 个区间，避免刻度过密；同时给上下留一点呼吸空间。 */
+  const rawMin = Math.min(...validWeights);
+  const rawMax = Math.max(...validWeights);
+  const rawRange = rawMax - rawMin;
+  const weightStep = rawRange <= 0.8 ? 0.2
+    : rawRange <= 2 ? 0.5
+    : rawRange <= 4 ? 1
+    : rawRange <= 8 ? 2
+    : 5;
+  let min = Math.floor((rawMin - weightStep * 0.15) / weightStep) * weightStep;
+  let max = Math.ceil((rawMax + weightStep * 0.15) / weightStep) * weightStep;
+  if(max <= min) max = min + weightStep;
+  const range = max - min;
+  const weightAxisCount = Math.round(range / weightStep);
 
   const targetW = data.targetWeight || 50.0;
   const latestW = validWeights.at(-1);
@@ -3276,7 +3302,7 @@ function drawChart(){
   document.getElementById("targetDiffW").textContent = (targetDiff > 0 ? "+" : "") + fmt1(targetDiff) + "kg";
   document.getElementById("change30W").textContent = change30;
 
-  const padL = 20, padR = 20, padT = 20, padB = 30;
+  const padL = 42, padR = 20, padT = 20, padB = 30;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
@@ -3327,11 +3353,21 @@ function drawChart(){
     offset = Math.max(0, Math.min(offset, maxOffset));
     updateScrollbar(totalW, offset, maxOffset);
 
+    /* 体重纵坐标：动态 4~5 个刻度，数字轻量放在左侧，不抢折线视觉。 */
     ctx.strokeStyle="rgba(140, 120, 150, 0.16)";
-    ctx.lineWidth=1.5;
-    for(let i=0;i<3;i++){
-      let y = padT + i * plotH / 2;
-      ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();
+    ctx.lineWidth=1;
+    ctx.font="600 9px 'Noto Sans SC',sans-serif";
+    ctx.textAlign="right";
+    ctx.fillStyle="#8E7A93";
+    for(let i=0;i<=weightAxisCount;i++){
+      const value = min + i * weightStep;
+      const y = padT + (max - value)/range * plotH;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(W-padR, y);
+      ctx.stroke();
+      const label = weightStep < 1 ? Number(value).toFixed(1) : String(Math.round(value));
+      ctx.fillText(label, padL - 8, y + 3);
     }
 
     let lastValidW = validWeights[0];
@@ -3347,7 +3383,7 @@ function drawChart(){
 
     const validPts = pts.filter(p=>p.raw.weight!=null);
     if(validPts.length > 0){
-      drawMonotoneSpline(ctx, validPts, "#FF6B9B");
+      drawMonotoneSpline(ctx, validPts, makeChartLineGradient(ctx, "#FF6B9B", padL, 26));
     }
 
     pts.forEach((p, idx)=>{
@@ -3369,7 +3405,7 @@ function drawChart(){
         const labelInterval = Math.max(1, Math.round(60 / userStep));
         if(idx % labelInterval === 0){
           ctx.fillStyle="#8E7A93";
-          ctx.font="bold 11px 'DM Sans','Noto Sans SC',sans-serif";
+          ctx.font="600 9px 'DM Sans','Noto Sans SC',sans-serif";
           ctx.textAlign="center";
           ctx.fillText(p.raw.date.slice(5), p.x, padT + plotH + 18);
         }
@@ -3580,7 +3616,7 @@ function drawPoopChart(){
 
   if(!series.length){
     if(scrollTrackEl) scrollTrackEl.style.visibility = "hidden";
-    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
+    ctx.fillStyle="#8E7A93"; ctx.font="600 9px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
     ctx.fillText("暂无数据", W/2, H/2);
     return;
   }
@@ -3639,7 +3675,7 @@ function drawPoopChart(){
     /* 6 个层级网格线与标签（画在底层，最后不会被数据盖住，也不会被数据盖过去） */
     ctx.strokeStyle="rgba(140, 120, 150, 0.16)";
     ctx.lineWidth=1;
-    ctx.font="10px 'Noto Sans SC',sans-serif";
+    ctx.font="600 9px 'Noto Sans SC',sans-serif";
     ctx.textAlign="left";
     for(let lvl=0; lvl<=5; lvl++){
       const y = padT + (max - lvl)/range * plotH;
@@ -3670,7 +3706,7 @@ function drawPoopChart(){
 
     /* 折线穿过所有点（包括未排便的日子），形成"下拉到未排便行"的视觉效果 */
     if(pts.length > 1){
-      drawMonotoneSpline(ctx, pts, poopColor);
+      drawMonotoneSpline(ctx, pts, makeChartLineGradient(ctx, poopColor, padL, 26));
     }
 
     pts.forEach((p)=>{
@@ -3723,7 +3759,7 @@ function drawPoopChart(){
     /* 纵坐标层级文字画在最上层，永远不会被折线/圆点盖住；
        统一右对齐紧贴网格线，不同字数的标签也能整齐排列，不再显得参差违和 */
     ctx.fillStyle="#8E7A93";
-    ctx.font="10px 'Noto Sans SC',sans-serif";
+    ctx.font="600 9px 'Noto Sans SC',sans-serif";
     ctx.textAlign="right";
     const axisLabelX = padL - 8;
     /* 未排便在最底部（level 0） */
@@ -3738,7 +3774,7 @@ function drawPoopChart(){
     pts.forEach((p, idx)=>{
       if(p.x >= padL - 10 && p.x <= W - padR + 10 && idx % labelInterval === 0){
         ctx.fillStyle="#8E7A93";
-        ctx.font="bold 11px 'DM Sans','Noto Sans SC',sans-serif";
+        ctx.font="600 9px 'DM Sans','Noto Sans SC',sans-serif";
         ctx.textAlign="center";
         ctx.fillText(p.raw.date.slice(5), p.x, padT + plotH + 18);
       }
@@ -3836,7 +3872,7 @@ function drawPoopChart(){
 /* 运动数据 & 图表参数：
    - 数据上限与选择器一致：最多 90 分钟
    - 视觉上限留出顶部空白，让 cap 天的数据点完整显示
-   - 不显示左侧纵坐标文字，因此 padL 可以很小 */
+   - 纵坐标根据已有数据自动取少量关键刻度 */
 const EXERCISE_DATA_CAP = 90;     /* 数据上限 */
 const EXERCISE_AXIS_MAX = 95;     /* 视觉上限 */
 const EXERCISE_AXIS_MIN = 0;      /* 视觉下限 */
@@ -3946,26 +3982,31 @@ function drawExerciseChart(){
 
   if(!series.length){
     if(scrollTrackEl) scrollTrackEl.style.visibility = "hidden";
-    ctx.fillStyle="#8E7A93"; ctx.font="bold 13px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
+    ctx.fillStyle="#8E7A93"; ctx.font="600 9px 'Noto Sans SC',sans-serif"; ctx.textAlign="center";
     ctx.fillText("暂无数据", W/2, H/2);
     return;
   }
 
-  /* 左边的纵坐标文字不显示，给的 padL 足够小即可 */
-  const padL = 20, padR = 20, padT = 20, padB = 30;
+  /* 纵坐标显示少量、动态刻度；根据已有运动数据自动决定间距。 */
+  const padL = 44, padR = 20, padT = 20, padB = 30;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
-  /* 纵坐标上限自适应：某天运动量超过默认上限（比如叠加多项运动到 120 分钟）时，
-     按实际最大值向上取整到 10 的整数倍，并留一点顶部余量，避免数据点被裁掉 */
+  /* 运动纵坐标动态取整：目标约 4 个区间，不让 10 分钟一格把画面切得太碎。 */
   const dataMaxMin = series.reduce((m, e) => {
     const v = dayExerciseMin(e);
     return v != null && v > m ? v : m;
   }, 0);
-  const axisMax = Math.max(EXERCISE_AXIS_MAX, Math.ceil((dataMaxMin + 5) / 10) * 10);
+  const rawExerciseMax = Math.max(dataMaxMin, 1);
+  const roughStep = rawExerciseMax / 4;
+  const gridStep = roughStep <= 10 ? 10
+    : roughStep <= 20 ? 20
+    : roughStep <= 30 ? 30
+    : roughStep <= 50 ? 50
+    : 60;
+  const axisMax = Math.max(gridStep * 2, Math.ceil(rawExerciseMax / gridStep) * gridStep);
   const max = axisMax, min = EXERCISE_AXIS_MIN, range = axisMax - EXERCISE_AXIS_MIN;
   const unitScale = plotH / range;
-  const gridStep = 10;
   const gridLevels = Math.floor(max / gridStep);
 
   const exerciseColor = (getComputedStyle(document.documentElement).getPropertyValue('--pop-exercise-2') || '#9BD9A1').trim();
@@ -4013,13 +4054,20 @@ function drawExerciseChart(){
     offset = Math.max(0, Math.min(offset, maxOffset));
     updateScrollbar(totalW, offset, maxOffset);
 
-    /* 横向网格线：每 10 分钟一道，给"0、10、20、...、90"参考线；
-       左侧的文字标签刻意不画，让整个图表更干净 */
+    /* 横向网格线 + 左侧纵坐标：只保留少量关键刻度。 */
     ctx.strokeStyle = "rgba(140, 120, 150, 0.16)";
     ctx.lineWidth = 1;
+    ctx.font = "600 9px 'Noto Sans SC',sans-serif";
+    ctx.textAlign = "right";
+    ctx.fillStyle = "#8E7A93";
     for(let lvl=0; lvl<=gridLevels; lvl++){
-      const y = padT + (max - lvl*gridStep)/range * plotH;
-      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+      const value = lvl * gridStep;
+      const y = padT + (max - value)/range * plotH;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(W - padR, y);
+      ctx.stroke();
+      ctx.fillText(String(value), padL - 8, y + 3);
     }
 
     ctx.save();
@@ -4042,7 +4090,7 @@ function drawExerciseChart(){
 
     /* 折线穿过所有点（包括未运动的日子），形成下拉到 0 的视觉效果 */
     if(pts.length > 1){
-      drawMonotoneSpline(ctx, pts, exerciseColor);
+      drawMonotoneSpline(ctx, pts, makeChartLineGradient(ctx, exerciseColor, padL, 26));
     }
 
     pts.forEach((p) => {
@@ -4093,7 +4141,7 @@ function drawExerciseChart(){
     pts.forEach((p, idx) => {
       if(p.x >= padL - 10 && p.x <= W - padR + 10 && idx % labelInterval === 0){
         ctx.fillStyle="#8E7A93";
-        ctx.font="bold 11px 'DM Sans','Noto Sans SC',sans-serif";
+        ctx.font="600 9px 'DM Sans','Noto Sans SC',sans-serif";
         ctx.textAlign="center";
         ctx.fillText(p.raw.date.slice(5), p.x, padT + plotH + 18);
       }
