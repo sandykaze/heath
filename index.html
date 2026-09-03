@@ -1614,15 +1614,7 @@ canvas{width:100%;height:100%;display:block}
 </style>
 
 <style>
-/* Refined selected-day value bubble */
-.trend-tooltip, .chart-tooltip, .selected-value {
-  font-size: 9px !important;
-  min-height: 0 !important;
-  box-sizing: border-box !important;
-  line-height: 1.2 !important;
-  padding: 2px 3px !important;
-  border-radius: 5px !important;
-}
+/* 趋势图的选中数据卡片由 Canvas 绘制，尺寸与间距统一在 drawSelectedValueLabel() 中控制。 */
 </style>
 </head>
 <body>
@@ -3043,13 +3035,13 @@ function buildChartSeries(){
   return rawList;
 }
 
-function drawMonotoneSpline(ctx, points, color) {
+function drawMonotoneSpline(ctx, points, colorOrGradient) {
   if (points.length < 2) return;
   if (points.length === 2) {
     ctx.beginPath();
     ctx.moveTo(points[0].x, points[0].y);
     ctx.lineTo(points[1].x, points[1].y);
-    ctx.strokeStyle = color;
+    ctx.strokeStyle = colorOrGradient;
     ctx.lineWidth = 3.5;
     ctx.stroke();
     return;
@@ -3095,9 +3087,26 @@ function drawMonotoneSpline(ctx, points, color) {
     ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p1.x, p1.y);
   }
 
-  ctx.strokeStyle = color;
+  ctx.strokeStyle = colorOrGradient;
   ctx.lineWidth = 3.5;
   ctx.stroke();
+}
+
+/* 折线靠近左侧纵坐标时做一个很短的柔和淡入：
+   不遮盖坐标文字，也不改变数据本身，只让折线从坐标轴附近自然出现。 */
+function makeChartLineGradient(ctx, color, padL, fadeWidth = 26) {
+  const g = ctx.createLinearGradient(padL, 0, padL + fadeWidth, 0);
+  g.addColorStop(0, "rgba(255,255,255,0)");
+  g.addColorStop(0.45, color);
+  g.addColorStop(1, color);
+  return g;
+}
+
+/* 坐标点也跟随左侧折线做同样的柔和淡入。
+   之前只有折线用了渐变，圆点是单独以 100% 不透明度绘制，
+   所以靠近纵坐标时会出现一个突兀的实心点。 */
+function getChartEdgeAlpha(x, padL, fadeWidth = 26) {
+  return Math.max(0, Math.min(1, (x - padL) / fadeWidth));
 }
 
 let userStep = 85;
@@ -3150,9 +3159,10 @@ function drawSelectedValueLabel(ctx, p, text, color, W, H, padL, padR, padT, opt
   const deltaW = deltaText ? ctx.measureText(deltaText).width : 0;
 
   const contentW = Math.max(dateW, valueW, deltaW);
-  const boxW = Math.max(78, contentW + 34);
-  const boxH = deltaText ? 57 : 46;
-  const gap = 12;
+  /* 更精致的小卡：减少留白，让“当天数据”成为唯一视觉重点。 */
+  const boxW = Math.max(66, Math.min(112, contentW + 24));
+  const boxH = deltaText ? 43 : 34;
+  const gap = 8;
 
   let x = p.x - boxW / 2;
   let y = p.y - boxH - gap;
@@ -3180,14 +3190,14 @@ function drawSelectedValueLabel(ctx, p, text, color, W, H, padL, padR, padT, opt
 
   /* Glass card with a very subtle color wash. */
   ctx.globalAlpha = 1;
-  ctx.shadowColor = isDark ? 'rgba(0,0,0,.34)' : 'rgba(48,32,58,.16)';
-  ctx.shadowBlur = 18;
-  ctx.shadowOffsetY = 6;
-  ctx.fillStyle = isDark ? 'rgba(38,34,44,.94)' : 'rgba(255,255,255,.94)';
-  ctx.strokeStyle = isDark ? 'rgba(255,255,255,.11)' : 'rgba(120,90,130,.10)';
+  ctx.shadowColor = isDark ? 'rgba(0,0,0,.28)' : 'rgba(48,32,58,.10)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 3;
+  ctx.fillStyle = isDark ? 'rgba(38,34,44,.96)' : 'rgba(255,255,255,.97)';
+  ctx.strokeStyle = isDark ? 'rgba(255,255,255,.10)' : 'rgba(120,90,130,.08)';
   ctx.lineWidth = 1;
 
-  const r = 14;
+  const r = 10;
   ctx.beginPath();
   ctx.moveTo(x+r,y);
   ctx.arcTo(x+boxW,y,x+boxW,y+boxH,r);
@@ -3203,7 +3213,7 @@ function drawSelectedValueLabel(ctx, p, text, color, W, H, padL, padR, padT, opt
   ctx.fillStyle = color;
   ctx.globalAlpha = 0.9;
   ctx.beginPath();
-  ctx.roundRect(x + 10, y + 10, 3, boxH - 20, 1.5);
+  ctx.roundRect(x + 8, y + 8, 2, boxH - 16, 1);
   ctx.fill();
 
   const textColor = isDark ? '#FFFFFF' : '#35283A';
@@ -3215,17 +3225,17 @@ function drawSelectedValueLabel(ctx, p, text, color, W, H, padL, padR, padT, opt
   if(dateText){
     ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
     ctx.fillStyle = mutedColor;
-    ctx.fillText(dateText, x + 20, y + 13);
+    ctx.fillText(dateText, x + 15, y + 10);
   }
 
   ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
   ctx.fillStyle = textColor;
-  ctx.fillText(text, x + 20, y + (dateText ? 29 : 21));
+  ctx.fillText(text, x + 15, y + (dateText ? 21 : 17));
 
   if(deltaText){
     ctx.font = "600 9px 'DM Sans','Noto Sans SC',sans-serif";
     ctx.fillStyle = color;
-    ctx.fillText(deltaText, x + 20, y + 45);
+    ctx.fillText(deltaText, x + 15, y + 32);
   }
 
   ctx.restore();
@@ -3337,11 +3347,8 @@ function drawChart(){
      进入任何一个 Tab 时都尝试在当前 series 里查找 selectedKey 对应的索引；
      找不到再退回最后一天。这样在任意图表上点一下，再切到其它图表，
      仍然停在同一天，不会"被拉回到今天"。 */
+  /* 初次进入趋势图不预选任何一天；只有用户点击数据点后才显示选中态和气泡。 */
   let selectedIdx = -1;
-  if (selectedKey && window.__trendUserSelected) {
-    const foundIdx = series.findIndex(s => s.date === selectedKey);
-    if (foundIdx >= 0) selectedIdx = foundIdx;
-  }
 
   function render(){
     ctx.clearRect(0,0,W,H);
@@ -3380,11 +3387,14 @@ function drawChart(){
 
     const validPts = pts.filter(p=>p.raw.weight!=null);
     if(validPts.length > 0){
-      drawMonotoneSpline(ctx, validPts, "#FF6B9B");
+      drawMonotoneSpline(ctx, validPts, makeChartLineGradient(ctx, "#FF6B9B", padL, 26));
     }
 
     pts.forEach((p, idx)=>{
       if(p.x >= padL - 10 && p.x <= W - padR + 10){
+        /* 圆点与折线保持一致：靠近左侧纵坐标时同步柔和淡入。 */
+        ctx.save();
+        ctx.globalAlpha = getChartEdgeAlpha(p.x, padL, 26);
         ctx.beginPath();
         if(p.raw.weight != null){
           ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
@@ -3398,6 +3408,7 @@ function drawChart(){
           ctx.fill();
           ctx.stroke();
         }
+        ctx.restore();
 
         const labelInterval = Math.max(1, Math.round(60 / userStep));
         if(idx % labelInterval === 0){
@@ -3488,8 +3499,7 @@ function drawChart(){
           /* 把图表上的"选中点位"写回到全局 selectedKey，
              这样切到日历 / 排便 / 运动 Tab 时能停在同一天 */
           const newKey = series[clickedIdx].date;
-          window.__trendUserSelected = true;
-          if (newKey === selectedKey) {
+          if (selectedIdx === clickedIdx) {
             /* 再点一次同一天：隐藏 / 显示高级数据小卡片 */
             selectedCardHidden = !selectedCardHidden;
           } else {
@@ -3656,12 +3666,8 @@ function drawPoopChart(){
   }
 
   let offset = Math.max(0, (series.length - 1) * poopUserStep - plotW);
+  /* 初次进入趋势图不预选任何一天；只有用户点击数据点后才显示选中态和气泡。 */
   let selectedIdx = -1;
-  /* 进入排便 Tab 时尝试把 selectedKey 同步到当前 series 对应的那一天 */
-  if (selectedKey && window.__trendUserSelected) {
-    const foundIdx = series.findIndex(s => s.date === selectedKey);
-    if (foundIdx >= 0) selectedIdx = foundIdx;
-  }
 
   function render(){
     ctx.clearRect(0,0,W,H);
@@ -3704,11 +3710,14 @@ function drawPoopChart(){
 
     /* 折线穿过所有点（包括未排便的日子），形成"下拉到未排便行"的视觉效果 */
     if(pts.length > 1){
-      drawMonotoneSpline(ctx, pts, poopColor);
+      drawMonotoneSpline(ctx, pts, makeChartLineGradient(ctx, poopColor, padL, 26));
     }
 
     pts.forEach((p)=>{
       if(p.x >= padL - 10 && p.x <= W - padR + 10){
+        /* 圆点与折线保持一致：靠近左侧纵坐标时同步柔和淡入。 */
+        ctx.save();
+        ctx.globalAlpha = getChartEdgeAlpha(p.x, padL, 26);
         ctx.beginPath();
         if(p.level != null){
           ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
@@ -3722,6 +3731,7 @@ function drawPoopChart(){
           ctx.fill();
           ctx.stroke();
         }
+        ctx.restore();
       }
     });
 
@@ -3837,8 +3847,7 @@ function drawPoopChart(){
             selectedIdx = clickedIdx;
             /* 同步选中日期到全局，供日历/其它图表跟进 */
             const newKey = series[clickedIdx].date;
-          window.__trendUserSelected = true;
-            if (newKey === selectedKey) {
+            if (selectedIdx === clickedIdx) {
               /* 再点一次同一天：隐藏 / 显示高级数据小卡片 */
               selectedCardHidden = !selectedCardHidden;
             } else {
@@ -4039,12 +4048,8 @@ function drawExerciseChart(){
   }
 
   let offset = Math.max(0, (series.length - 1) * exerciseUserStep - plotW);
+  /* 初次进入趋势图不预选任何一天；只有用户点击数据点后才显示选中态和气泡。 */
   let selectedIdx = -1;
-  /* 进入运动 Tab 时尝试把 selectedKey 同步到当前 series 对应的那一天 */
-  if (selectedKey && window.__trendUserSelected) {
-    const foundIdx = series.findIndex(s => s.date === selectedKey);
-    if (foundIdx >= 0) selectedIdx = foundIdx;
-  }
 
   function render(){
     ctx.clearRect(0,0,W,H);
@@ -4089,11 +4094,14 @@ function drawExerciseChart(){
 
     /* 折线穿过所有点（包括未运动的日子），形成下拉到 0 的视觉效果 */
     if(pts.length > 1){
-      drawMonotoneSpline(ctx, pts, exerciseColor);
+      drawMonotoneSpline(ctx, pts, makeChartLineGradient(ctx, exerciseColor, padL, 26));
     }
 
     pts.forEach((p) => {
       if(p.x >= padL - 10 && p.x <= W - padR + 10){
+        /* 圆点与折线保持一致：靠近左侧纵坐标时同步柔和淡入。 */
+        ctx.save();
+        ctx.globalAlpha = getChartEdgeAlpha(p.x, padL, 26);
         ctx.beginPath();
         if(p.minutes != null){
           ctx.arc(p.x, p.y, 5, 0, Math.PI*2);
@@ -4107,6 +4115,7 @@ function drawExerciseChart(){
           ctx.fill();
           ctx.stroke();
         }
+        ctx.restore();
       }
     });
 
@@ -4204,8 +4213,7 @@ function drawExerciseChart(){
             selectedIdx = clickedIdx;
             /* 同步选中日期到全局，供日历/其它图表跟进 */
             const newKey = series[clickedIdx].date;
-          window.__trendUserSelected = true;
-            if (newKey === selectedKey) {
+            if (selectedIdx === clickedIdx) {
               /* 再点一次同一天：隐藏 / 显示高级数据小卡片 */
               selectedCardHidden = !selectedCardHidden;
             } else {
