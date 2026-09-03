@@ -3347,8 +3347,14 @@ function drawChart(){
      进入任何一个 Tab 时都尝试在当前 series 里查找 selectedKey 对应的索引；
      找不到再退回最后一天。这样在任意图表上点一下，再切到其它图表，
      仍然停在同一天，不会"被拉回到今天"。 */
-  /* 初次进入趋势图不预选任何一天；只有用户点击数据点后才显示选中态和气泡。 */
-  let selectedIdx = -1;
+  /* 跨 Tab 联动：如果已有全局选中日期（比如刚在排便/运动图上点选过），
+     切到体重图时也在这里定位同一天，并把视图滚动到能看到它，
+     而不是每次切换指标都退回"未选中"或被拉到最右侧。 */
+  let selectedIdx = selectedKey ? series.findIndex(e => e.date === selectedKey) : -1;
+  if(selectedIdx >= 0){
+    const idealOffset = selectedIdx*userStep - plotW/2;
+    offset = Math.max(0, Math.min(idealOffset, maxOffset));
+  }
 
   function render(){
     ctx.clearRect(0,0,W,H);
@@ -3668,8 +3674,15 @@ function drawPoopChart(){
   }
 
   let offset = Math.max(0, (series.length - 1) * poopUserStep - plotW);
-  /* 初次进入趋势图不预选任何一天；只有用户点击数据点后才显示选中态和气泡。 */
-  let selectedIdx = -1;
+  /* 跨 Tab 联动：如果已有全局选中日期（比如刚在体重/运动图上点选过），
+     切到排便图时也在这里定位同一天，并把视图滚动到能看到它，
+     而不是每次切换指标都退回"未选中"或被拉到最右侧。 */
+  let selectedIdx = selectedKey ? series.findIndex(e => e.date === selectedKey) : -1;
+  if(selectedIdx >= 0){
+    const poopMaxOffset0 = Math.max(0, (series.length - 1) * poopUserStep - plotW);
+    const idealOffset = selectedIdx*poopUserStep - plotW/2;
+    offset = Math.max(0, Math.min(idealOffset, poopMaxOffset0));
+  }
 
   function render(){
     ctx.clearRect(0,0,W,H);
@@ -4051,8 +4064,15 @@ function drawExerciseChart(){
   }
 
   let offset = Math.max(0, (series.length - 1) * exerciseUserStep - plotW);
-  /* 初次进入趋势图不预选任何一天；只有用户点击数据点后才显示选中态和气泡。 */
-  let selectedIdx = -1;
+  /* 跨 Tab 联动：如果已有全局选中日期（比如刚在体重/排便图上点选过），
+     切到运动图时也在这里定位同一天，并把视图滚动到能看到它，
+     而不是每次切换指标都退回"未选中"或被拉到最右侧。 */
+  let selectedIdx = selectedKey ? series.findIndex(e => e.date === selectedKey) : -1;
+  if(selectedIdx >= 0){
+    const exMaxOffset0 = Math.max(0, (series.length - 1) * exerciseUserStep - plotW);
+    const idealOffset = selectedIdx*exerciseUserStep - plotW/2;
+    offset = Math.max(0, Math.min(idealOffset, exMaxOffset0));
+  }
 
   function render(){
     ctx.clearRect(0,0,W,H);
@@ -4876,8 +4896,21 @@ function jumpToDate(k){
   switchTab('calTab');
   renderCalendar();
   setTimeout(()=>{
+    const container = document.getElementById('calendar');
     const el = document.querySelector('.day-cell.selected');
-    if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+    if(el && container){
+      /* 只把选中的小方块居中(旧逻辑)容易把它所在这一周的其它日期推到屏幕边缘，
+         下方新展开的"编辑当天数据"卡片又比较高，两者一起看时上半部分被裁掉。
+         这里改成：把选中日期所在这一周的位置往上留出一点空间(topPadding)，
+         让这一周完整的日期数字，连同下方展开的编辑卡片，能一起完整显示。 */
+      const containerRect = container.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const topPadding = 64;
+      const delta = (elRect.top - containerRect.top) - topPadding;
+      container.scrollTo({ top: container.scrollTop + delta, behavior: 'smooth' });
+    } else if(el){
+      el.scrollIntoView({behavior:'smooth', block:'center'});
+    }
   }, 60);
 }
 
