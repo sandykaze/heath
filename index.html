@@ -957,6 +957,7 @@ canvas{width:100%;height:100%;display:block}
 }
 .ai-insight-btn:hover{transform:scale(1.08);box-shadow:0 4px 10px rgba(157,78,221,.18);}
 .ai-insight-btn.loading{animation:aiSpin 1s linear infinite;}
+.ai-insight-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 @keyframes aiSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
 .ai-insight-body{
@@ -1865,9 +1866,18 @@ canvas{width:100%;height:100%;display:block}
           <span class="ai-insight-title" id="aiInsightTitle">AI建议</span>
         </div>
         <div class="ai-insight-actions">
-          <button class="ai-insight-btn" id="aiInsightHistoryBtn" onclick="openAIHistory()" title="查看历史">🕘</button>
-          <button class="ai-insight-btn" id="aiInsightRefreshBtn" onclick="generateAIInsight(true)" title="重新生成">↻</button>
-          <button class="ai-insight-btn" onclick="openAISettings()" title="设置 AI Key">⚙</button>
+          <button class="ai-insight-btn" id="aiInsightHistoryBtn" onclick="openAIHistory()" title="查看历史">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+          </button>
+          <button class="ai-insight-btn" id="aiInsightRefreshBtn" onclick="generateAIInsight(true)" title="重新生成">
+            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          </button>
+          <button class="ai-insight-btn" onclick="openDataExportModal()" title="导出我的健康数据">
+            <svg viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+          </button>
+          <button class="ai-insight-btn" onclick="openAISettings()" title="设置 AI Key">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
         </div>
       </div>
       <div class="ai-insight-body" id="aiInsightBody">
@@ -1878,7 +1888,9 @@ canvas{width:100%;height:100%;display:block}
         <div class="ai-husband-divider"></div>
         <div class="ai-husband-header">
           <span class="ai-husband-title">💌 给老公的悄悄话</span>
-          <button class="ai-insight-btn" id="aiHusbandCopyBtn" onclick="copyHusbandText()" title="复制发给老公">⧉</button>
+          <button class="ai-insight-btn" id="aiHusbandCopyBtn" onclick="copyHusbandText()" title="复制发给老公">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
         </div>
         <div class="ai-husband-body" id="aiHusbandBody"></div>
       </div>
@@ -1895,6 +1907,24 @@ canvas{width:100%;height:100%;display:block}
       </div>
       <div id="aiHistoryList" class="ai-history-list">
         <div class="ai-insight-empty">加载中…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="dataExportOverlay" onclick="closeDataExportModal()">
+    <div class="modal-panel" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <span>导出我的健康数据</span>
+        <button class="modal-close" onclick="closeDataExportModal()" aria-label="关闭">✕</button>
+      </div>
+      <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.6;">
+        这里只是把你记录的原始数据整理成文字，不包含任何 AI 建议。你可以直接复制下面的文字发给任意 AI 帮你分析，也可以下载 JSON 备份文件自己保存。
+      </div>
+      <textarea id="dataExportText" readonly
+        style="width:100%;min-height:260px;max-height:45vh;border:1px solid var(--glass-border);border-radius:14px;padding:12px;font-size:12.5px;line-height:1.6;background:rgba(255,255,255,.5);color:var(--text-main);resize:vertical;box-sizing:border-box;font-family:inherit;"></textarea>
+      <div class="actions">
+        <button class="btn-secondary" onclick="copyDataExportText()">复制文字</button>
+        <button class="btn-primary" onclick="exportData()">下载 JSON 备份</button>
       </div>
     </div>
   </div>
@@ -4920,6 +4950,65 @@ function exportData(){
   a.href = URL.createObjectURL(blob);
   a.download = `piisuke_backup_${key(new Date())}.json`;
   a.click();
+}
+
+/* 把逐日原始记录（体重/经期/排便/运动）整理成纯文字，方便复制给任意 AI 分析。
+   注意：这里只输出用户自己记录的原始数据，不包含 App 内生成的任何 AI 建议内容。 */
+function buildFullDataText(){
+  const allKeys = Object.keys(data.days).sort();
+  const periodLabel = { start:"经期开始", on:"经期中", end:"经期结束" };
+  const lines = [];
+  lines.push(`Piiisuke 健康数据导出（导出时间：${formatSlash(new Date())}）`);
+  lines.push(`目标体重：${data.targetWeight || 50}kg`);
+  lines.push("");
+  if(!allKeys.length){
+    lines.push("（暂无任何记录）");
+    return lines.join("\n");
+  }
+  allKeys.forEach(k=>{
+    const d = data.days[k] || {};
+    const parts = [];
+    if(d.period && periodLabel[d.period]) parts.push(periodLabel[d.period]);
+    if(d.weight != null) parts.push(`体重${fmt1(d.weight)}kg`);
+    if(Array.isArray(d.poops) && d.poops.length){
+      const poopStr = d.poops.map(p=>`${p.size}(${p.hour}:00)${p.note?`[${p.note}]`:""}`).join("、");
+      parts.push(`排便：${poopStr}`);
+    }
+    if(Array.isArray(d.exercises) && d.exercises.length){
+      const exStr = d.exercises.map(x=>{
+        const types = Array.isArray(x.types) ? x.types.join("/") : (x.types||"");
+        return `${types}${x.minutes?`${x.minutes}分钟`:""}${x.note?`[${x.note}]`:""}`;
+      }).join("、");
+      parts.push(`运动：${exStr}`);
+    }
+    if(parts.length) lines.push(`${k}：${parts.join("；")}`);
+  });
+  return lines.join("\n");
+}
+
+function openDataExportModal(){
+  const ta = document.getElementById("dataExportText");
+  if(ta) ta.value = buildFullDataText();
+  document.getElementById("dataExportOverlay").classList.add("active");
+}
+
+function closeDataExportModal(){
+  document.getElementById("dataExportOverlay").classList.remove("active");
+}
+
+function copyDataExportText(){
+  const ta = document.getElementById("dataExportText");
+  if(!ta) return;
+  const finish = (ok)=>{ alert(ok ? "已复制，可以去粘贴给 AI 啦～" : "复制失败，请手动长按选择文字复制。"); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(ta.value).then(()=>finish(true)).catch(()=>{
+      ta.select();
+      try{ finish(document.execCommand("copy")); }catch(e){ finish(false); }
+    });
+  } else {
+    ta.select();
+    try{ finish(document.execCommand("copy")); }catch(e){ finish(false); }
+  }
 }
 
 function importData(e){
