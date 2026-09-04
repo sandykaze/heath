@@ -2143,7 +2143,11 @@ async function loadCloudData(user){
   }
 
   cloudLoaded=true;
-  renderCalendar();
+  /* 这一步属于"页面刚打开时的初始化流程"（自动登录后拉取云端数据），
+     不是用户手动操作触发的更新，所以要和首次加载一样强制定位到当前月份，
+     而不是"保留滚动位置"——否则会跟首次渲染的定位逻辑抢跑，
+     容易停在还没生效的 scrollTop=0（也就是列表最早的月份）上。 */
+  renderCalendar({centerOnViewDate:true});
   drawChart();
   drawPoopChart();
   drawExerciseChart();
@@ -2308,6 +2312,12 @@ function switchTab(tabId){
   }
   if(tabId === 'predTab'){
     loadCachedAIInsight();
+  }
+  if(tabId === 'calTab'){
+    /* 如果之前在"趋势"或"周期预测"页选中过某一天（比如点了体重曲线上的某个点），
+       切回"记录"tab 时应该直接把那一周滚动展示出来，并展开对应的编辑卡片，
+       而不是停留在切换前的位置。 */
+    focusCalendarOnSelectedKey();
   }
 }
 
@@ -2538,7 +2548,7 @@ function init(){
   viewDate = new Date(today.getFullYear(), today.getMonth(), 1);
   /* 从 localStorage 恢复筛选状态（在最前面，确保 renderCalendar 用到的是用户偏好） */
   loadFilters();
-  renderCalendar();
+  renderCalendar({centerOnViewDate:true});
   drawChart();
   drawPoopChart();
   drawExerciseChart();
@@ -2549,11 +2559,17 @@ function init(){
 
 function changeMonth(n){
   viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+n, 1);
-  renderCalendar();
+  renderCalendar({centerOnViewDate:true});
 }
 
-function renderCalendar(){
+function renderCalendar(opts){
+  /* opts.centerOnViewDate = true 时才强制把日历滚动定位到 viewDate 所在月份
+     （初始化加载 / 翻月 / 从预测页跳转日期 这几种场景需要）。
+     其余场景（点日期格子、编辑保存、筛选切换等）不应该改变 viewDate，
+     所以应该保留用户当前手动滑动到的位置，而不是每次都跳回 viewDate 所在的那一周。 */
+  const centerOnViewDate = !!(opts && opts.centerOnViewDate);
   const container = document.getElementById("calendar");
+  const prevScrollTop = container.scrollTop;
   const centerY = viewDate.getFullYear(), centerM = viewDate.getMonth();
   const phases = computeCyclePhases();
   const weightDiffs = computeWeightDifferences();
@@ -2676,14 +2692,23 @@ function renderCalendar(){
   container.classList.add("calendar-continuous");
   container.innerHTML = monthList.map(renderOneMonth).join("");
 
-  /* 初始时把当前月份放到滚动区域中央。
-     用 scrollTop，不用 scrollIntoView，避免影响整个页面的位置。 */
+  /* 只有明确要求"定位到 viewDate 所在月份"时才滚动过去（初始化 / 翻月 / 跳转日期）；
+     其它情况下（比如点日期格子、编辑保存后重新渲染）恢复到重新渲染之前的滚动位置，
+     不要把用户已经滑动到的位置又跳回去。
+     这里用 behavior:'instant' 强制瞬间定位，而不是让浏览器按 CSS 里
+     #calendar.calendar-continuous 设置的 scroll-behavior:smooth 做成滑动动画——
+     打开页面/切月份时"定位"到目标位置应该是瞬间的，不应该每次都看到一个滑动效果；
+     真正需要滑动动画的地方（比如点日期后展开编辑框）会自己显式传 behavior:'smooth'。 */
   requestAnimationFrame(() => {
-    const current = container.querySelector(
-      `.calendar-month[data-year="${centerY}"][data-month="${centerM}"]`
-    );
-    if(current){
-      container.scrollTop = Math.max(0, current.offsetTop - 4);
+    if(centerOnViewDate){
+      const current = container.querySelector(
+        `.calendar-month[data-year="${centerY}"][data-month="${centerM}"]`
+      );
+      if(current){
+        container.scrollTo({ top: Math.max(0, current.offsetTop - 4), behavior: 'instant' });
+      }
+    } else {
+      container.scrollTo({ top: prevScrollTop, behavior: 'instant' });
     }
   });
 
@@ -4942,11 +4967,19 @@ async function generateAIInsight(forceNew){
 }
 
 function jumpToDate(k){
-  const d = new Date(k+"T00:00:00");
-  viewDate = new Date(d.getFullYear(), d.getMonth(), 1);
   selectedKey = k;
   switchTab('calTab');
-  renderCalendar();
+}
+
+/* 把日历滚动定位到 selectedKey 所在的那一周，并让这一周完整露出、
+   下方展开的"编辑当天数据"卡片也一起完整可见。
+   supplied by jumpToDate（预测页点日期）和 switchTab（切到"记录"tab时，
+   如果趋势页刚选中过某一天）共用。 */
+function focusCalendarOnSelectedKey(){
+  if(!selectedKey) return;
+  const d = new Date(selectedKey+"T00:00:00");
+  viewDate = new Date(d.getFullYear(), d.getMonth(), 1);
+  renderCalendar({centerOnViewDate:true});
   setTimeout(()=>{
     const container = document.getElementById('calendar');
     const el = document.querySelector('.day-cell.selected');
