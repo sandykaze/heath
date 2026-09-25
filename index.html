@@ -1927,6 +1927,12 @@ canvas{width:100%;height:100%;display:block}
       <div style="font-size:12.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.6;">
         这里只是把你记录的原始数据整理成文字，不包含任何 AI 建议。你可以直接复制下面的文字发给任意 AI 帮你分析，也可以下载 JSON 备份文件自己保存。
       </div>
+      <div id="dataExportFilterRow" style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px;font-size:12.5px;color:var(--text-main);">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="exportFilterWeight" checked onchange="refreshDataExportText()">体重</label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="exportFilterPeriod" checked onchange="refreshDataExportText()">姨妈</label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="exportFilterPoop" checked onchange="refreshDataExportText()">排便</label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="checkbox" id="exportFilterExercise" checked onchange="refreshDataExportText()">健身</label>
+      </div>
       <textarea id="dataExportText" readonly
         style="width:100%;min-height:260px;max-height:45vh;border:1px solid var(--glass-border);border-radius:14px;padding:12px;font-size:12.5px;line-height:1.6;background:rgba(255,255,255,.5);color:var(--text-main);resize:vertical;box-sizing:border-box;font-family:inherit;"></textarea>
       <div class="actions">
@@ -4999,8 +5005,32 @@ function focusCalendarOnSelectedKey(){
   }, 60);
 }
 
+/* 读取导出弹窗里「体重/姨妈/排便/健身」勾选框的当前状态；
+   找不到勾选框（比如从别的入口调用）时，默认全部导出。 */
+function getExportFilters(){
+  const val = (id) => { const el = document.getElementById(id); return el ? el.checked : true; };
+  return {
+    weight: val("exportFilterWeight"),
+    period: val("exportFilterPeriod"),
+    poop: val("exportFilterPoop"),
+    exercise: val("exportFilterExercise")
+  };
+}
+
 function exportData(){
-  const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
+  const filters = getExportFilters();
+  const filteredDays = {};
+  Object.keys(data.days || {}).forEach(k=>{
+    const d = data.days[k] || {};
+    const nd = {};
+    if(filters.weight && d.weight != null) nd.weight = d.weight;
+    if(filters.period && d.period) nd.period = d.period;
+    if(filters.poop && Array.isArray(d.poops) && d.poops.length) nd.poops = d.poops;
+    if(filters.exercise && Array.isArray(d.exercises) && d.exercises.length) nd.exercises = d.exercises;
+    if(Object.keys(nd).length) filteredDays[k] = nd;
+  });
+  const exportObj = Object.assign({}, data, { days: filteredDays });
+  const blob = new Blob([JSON.stringify(exportObj,null,2)], {type:"application/json"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = `piisuke_backup_${key(new Date())}.json`;
@@ -5009,41 +5039,48 @@ function exportData(){
 
 /* 把逐日原始记录（体重/经期/排便/运动）整理成纯文字，方便复制给任意 AI 分析。
    注意：这里只输出用户自己记录的原始数据，不包含 App 内生成的任何 AI 建议内容。 */
-function buildFullDataText(){
+function buildFullDataText(filters){
+  filters = filters || getExportFilters();
   const allKeys = Object.keys(data.days).sort();
   const periodLabel = { start:"经期开始", on:"经期中", end:"经期结束" };
   const lines = [];
   lines.push(`Piiisuke 健康数据导出（导出时间：${formatSlash(new Date())}）`);
-  lines.push(`目标体重：${data.targetWeight || 50}kg`);
+  if(filters.weight) lines.push(`目标体重：${data.targetWeight || 50}kg`);
   lines.push("");
   if(!allKeys.length){
     lines.push("（暂无任何记录）");
     return lines.join("\n");
   }
+  let hasAnyLine = false;
   allKeys.forEach(k=>{
     const d = data.days[k] || {};
     const parts = [];
-    if(d.period && periodLabel[d.period]) parts.push(periodLabel[d.period]);
-    if(d.weight != null) parts.push(`体重${fmt1(d.weight)}kg`);
-    if(Array.isArray(d.poops) && d.poops.length){
+    if(filters.period && d.period && periodLabel[d.period]) parts.push(periodLabel[d.period]);
+    if(filters.weight && d.weight != null) parts.push(`体重${fmt1(d.weight)}kg`);
+    if(filters.poop && Array.isArray(d.poops) && d.poops.length){
       const poopStr = d.poops.map(p=>`${p.size}(${p.hour}:00)${p.note?`[${p.note}]`:""}`).join("、");
       parts.push(`排便：${poopStr}`);
     }
-    if(Array.isArray(d.exercises) && d.exercises.length){
+    if(filters.exercise && Array.isArray(d.exercises) && d.exercises.length){
       const exStr = d.exercises.map(x=>{
         const types = Array.isArray(x.types) ? x.types.join("/") : (x.types||"");
         return `${types}${x.minutes?`${x.minutes}分钟`:""}${x.note?`[${x.note}]`:""}`;
       }).join("、");
       parts.push(`运动：${exStr}`);
     }
-    if(parts.length) lines.push(`${k}：${parts.join("；")}`);
+    if(parts.length){ lines.push(`${k}：${parts.join("；")}`); hasAnyLine = true; }
   });
+  if(!hasAnyLine) lines.push("（没有符合当前勾选类型的记录）");
   return lines.join("\n");
 }
 
-function openDataExportModal(){
+function refreshDataExportText(){
   const ta = document.getElementById("dataExportText");
   if(ta) ta.value = buildFullDataText();
+}
+
+function openDataExportModal(){
+  refreshDataExportText();
   document.getElementById("dataExportOverlay").classList.add("active");
 }
 
