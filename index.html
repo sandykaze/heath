@@ -625,11 +625,16 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .day-bg-band.luteal{
   background:var(--amber-bg);
 }
+/* 姨妈延迟：预计日已过但还没记录“第一天”，用中性灰紫区分，避免继续显示成姨妈期 */
+.day-bg-band.late{
+  background:rgba(142, 122, 147, 0.16);
+}
 /* 预测中的周期阶段不再画边框，仅用更淡的底色区分 */
 .day-bg-band.pred.period{background:rgba(255, 107, 155, 0.09)}
 .day-bg-band.pred.follicular{background:rgba(17, 138, 178, 0.08)}
 .day-bg-band.pred.ovulation{background:rgba(157, 78, 221, 0.07)}
 .day-bg-band.pred.luteal{background:rgba(255, 209, 102, 0.14)}
+.day-bg-band.pred.late{background:rgba(142, 122, 147, 0.16)}
 
 /* 左上角日期数字样式（突出品质感） */
 .num-wrap{
@@ -822,6 +827,7 @@ h1{font-size:26px;line-height:1;margin:0;font-weight:700;color:var(--text-main);
 .tag-phase.follicular{background:var(--blue-bg);color:var(--pop-blue)}
 .tag-phase.ovulation{background:var(--purple-bg);color:var(--pop-purple)}
 .tag-phase.luteal{background:var(--amber-bg);color:var(--amber)}
+.tag-phase.late{background:rgba(142, 122, 147, 0.16);color:var(--text-muted)}
 
 .chart-container{width:100%;height:200px;position:relative;touch-action:none}
 canvas{width:100%;height:100%;display:block}
@@ -2440,6 +2446,23 @@ function getAvgCycleLengthPrecise(){
   return Number((diffs.reduce((a,b)=>a+b,0) / diffs.length).toFixed(1));
 }
 
+/* 姨妈延迟判断：
+   最近一次“姨妈第一天”+平均周期 = 预计来潮日；
+   如果今天已经超过这一天，而且还没有记录新的“姨妈第一天”，就算延迟。
+   （预计当天本身不算延迟，因为当天还可能来。）
+   返回 null 表示没有延迟；否则返回 { expected, lateDays, avgCycle }。 */
+function getPeriodDelayInfo(){
+  const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
+  if(starts.length < 2) return null;
+  const avgCycle = getAvgCycleLength();
+  const expected = new Date(starts.at(-1)+"T00:00:00");
+  expected.setDate(expected.getDate() + avgCycle);
+  const today = new Date(key(new Date())+"T00:00:00");
+  const lateDays = Math.round((today - expected) / 86400000);
+  if(lateDays <= 0) return null;
+  return { expected, lateDays, avgCycle };
+}
+
 function computeCyclePhases(){
   const phases = {};
   const starts = Object.keys(data.days).filter(k=>data.days[k].period==="start").sort();
@@ -2474,9 +2497,26 @@ function computeCyclePhases(){
   });
 
   let lastStart = new Date(starts.at(-1)+"T00:00:00");
+
+  /* 姨妈延迟：把“预计来潮日 ~ 今天”标成延迟（而不是姨妈期），
+     后面的预测整体顺延——最早从明天开始算下一次。 */
+  const delay = getPeriodDelayInfo();
+  const todayD = new Date(key(new Date())+"T00:00:00");
+  if(delay){
+    for(let d = new Date(delay.expected); d <= todayD; d.setDate(d.getDate()+1)){
+      phases[key(d)] = { phase: "late", isPred: true };
+    }
+  }
+
   for(let m=1; m<=12; m++){
-    let pStart = new Date(lastStart);
-    pStart.setDate(pStart.getDate() + avgCycle * m);
+    let pStart;
+    if(delay){
+      pStart = new Date(todayD);
+      pStart.setDate(pStart.getDate() + 1 + avgCycle * (m-1));
+    } else {
+      pStart = new Date(lastStart);
+      pStart.setDate(pStart.getDate() + avgCycle * m);
+    }
     
     for(let i=0; i<avgCycle; i++){
       const curr = new Date(pStart);
@@ -4356,7 +4396,8 @@ const PHASE_LABEL = {
   period:     "姨妈期",
   follicular: "卵泡期",
   ovulation:  "排卵期",
-  luteal:     "黄体期"
+  luteal:     "黄体期",
+  late:       "姨妈延迟"
 };
 const PHASE_ADVICE = {
   period: [
@@ -4378,6 +4419,11 @@ const PHASE_ADVICE = {
     "情绪容易波动，多给自己一点耐心",
     "临近姨妈期容易烦躁，别对自己太苛刻",
     "心情低落时，是身体在提醒你慢下来"
+  ],
+  late: [
+    "压力、熬夜、作息变化都可能让它晚到，先别太焦虑",
+    "放松心情、规律作息，身体会慢慢调整回来",
+    "来了记得标记“姨妈第一天”，延迟很久的话可以咨询医生"
   ]
 };
 
@@ -4399,7 +4445,12 @@ function buildTodayTip(){
     const lastStartDate = new Date(starts.at(-1) + "T00:00:00");
     const todayDate = new Date(todayKey + "T00:00:00");
     const daysSince = Math.round((todayDate - lastStartDate) / 86400000);
-    if(daysSince >= 0){
+    const delayInfo = getPeriodDelayInfo();
+    if(delayInfo){
+      parts.push({ text: `预计的姨妈还没来，已延迟${delayInfo.lateDays}天，${PHASE_ADVICE.late[Math.floor(Math.random()*PHASE_ADVICE.late.length)]}`, punct: "。" });
+    } else if(daysSince === avgCycle){
+      parts.push({ text: `今天是预计的姨妈日，来了记得标记“姨妈第一天”`, punct: "。" });
+    } else if(daysSince >= 0){
       let phase = null;
       let phaseStart = 0;
       const ovulationStart = Math.max(5, avgCycle - 18);
@@ -4495,14 +4546,23 @@ function prediction(){
 
   const avg = getAvgCycleLength();
   const avgPrecise = getAvgCycleLengthPrecise();
-  summaryEl.innerHTML = `根据历史记录，您的平均周期为 <b>${avgPrecise} 天</b>。未来 12 个月"姨妈第一天"预计日期：`;
+  const delayInfo = getPeriodDelayInfo();
+  summaryEl.innerHTML = `根据历史记录，您的平均周期为 <b>${avgPrecise} 天</b>。` +
+    (delayInfo ? `当前姨妈已延迟 <b>${delayInfo.lateDays} 天</b>，预测已顺延（最早明天）。` : ``) +
+    `未来 12 个月"姨妈第一天"预计日期：`;
 
   let lastDate = new Date(starts.at(-1)+"T00:00:00");
   let listHtml = "";
 
   for(let i=1; i<=12; i++){
-    let nextDate = new Date(lastDate);
-    nextDate.setDate(nextDate.getDate() + Math.round(avg * i));
+    let nextDate;
+    if(delayInfo){
+      nextDate = new Date(key(new Date())+"T00:00:00");
+      nextDate.setDate(nextDate.getDate() + 1 + Math.round(avg * (i-1)));
+    } else {
+      nextDate = new Date(lastDate);
+      nextDate.setDate(nextDate.getDate() + Math.round(avg * i));
+    }
     
     let fullD = formatSlash(nextDate);
     let dKey = key(nextDate);
@@ -4585,7 +4645,10 @@ function buildAIDataSummary(){
     }
     if(recentDiffs.length) lines.push(`最近几次周期长度（天）：${recentDiffs.join("、")}。`);
     // 当前周期阶段（与今日提示同一套分桶逻辑），方便 AI 针对性给出情绪/身体感受相关的建议
-    if(daysSince >= 0){
+    const delayInfo = getPeriodDelayInfo();
+    if(delayInfo){
+      lines.push(`【当前周期阶段】预计的经期已延迟 ${delayInfo.lateDays} 天（尚未记录新的经期开始）。`);
+    } else if(daysSince >= 0){
       let phase = null, phaseStart = 0;
       const ovulationStart = Math.max(5, avgCycle - 18);
       const ovulationEnd = Math.max(5, avgCycle - 12);
